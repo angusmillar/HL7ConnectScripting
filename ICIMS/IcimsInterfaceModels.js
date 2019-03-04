@@ -31,7 +31,7 @@ function IcimsInterfaceModels()
       //if (!BusinessModel.Doctor)
       //  throw "Doctor can not be null for MapToIcimsInterface.";
 
-      var AddRecord = new IcimsAddUpdateInterface();
+      var AddRecord = new IcimsAddInterface();
       var InterfaceModel = MapToModel(AddRecord, BusinessModel);
       return EncodeFormData(InterfaceModel);
     }
@@ -42,7 +42,7 @@ function IcimsInterfaceModels()
       //if (!BusinessModel.Doctor)
       //  throw "Doctor can not be null for MapToIcimsInterface.";
 
-      var UpdateRecord = new IcimsAddUpdateInterface();
+      var UpdateRecord = new IcimsUpdateInterface();
       var InterfaceModel = MapToModel(UpdateRecord, BusinessModel);
       return EncodeFormData(InterfaceModel);
     }
@@ -98,16 +98,8 @@ Breakpoint;
     }
     //patient sex (string)
     Model.sex = BusinessModel.Patient.Sex;
-    //address line 1 (string)
-    //Model.addr_line_1 = "";
-    //address line 2 (string)
-    //Model.addr_line_2 = "";
-    //suburb name (string)
-    //Model.suburb = "";
-    //state (string)
-    //Model.state = "";
-    //post code (string)
-    //Model.postcode = "";
+    
+    //Patient Address
     if (BusinessModel.Patient.PatientAddress)
     {
       Model.addr_line_1 = BusinessModel.Patient.PatientAddress.AddressLine1;
@@ -116,9 +108,9 @@ Breakpoint;
       Model.state = BusinessModel.Patient.PatientAddress.State;
       Model.postcode = BusinessModel.Patient.PatientAddress.Postcode;
     }
-    //home phone number (string)
+    
     BreakPoint;
-    //Model.phone = "";
+    //Patient Contacts Home
     if (BusinessModel.Patient.ContactHome)
     {
      if (BusinessModel.Patient.ContactHome.Phone.length > 0)
@@ -134,8 +126,7 @@ Breakpoint;
      }
     }
 
-    //mobile number (string)
-    //Model.mobile = "";
+    //Patient Contacts mobile
     if (BusinessModel.Patient.ContactHome)
     {
      if (BusinessModel.Patient.ContactHome.Mobile.length > 0)
@@ -160,21 +151,10 @@ Breakpoint;
     if ((BusinessModel.Meta.Action == IcimsPostAction.Add || BusinessModel.Meta.Action == IcimsPostAction.Update)
     && (BusinessModel.Doctor != null))
     {
-      //usual GP name (string)
       Model.gp_fname = BusinessModel.Doctor.Given;
-      //usual GP name (string)
       Model.gp_surname = BusinessModel.Doctor.Family;
-      //usual GP street address line 1 (string)
-      //Model.gp_addr_line_1 = null;
-      //usual GP street address line 2 (string)
-      //Model.gp_addr_line_2 = null;
-      //usual GP suburb (string)
-      //Model.gp_suburb = null;
-      //usual GP state (string)
-      //Model.gp_state = null;
-      //usual GP post code (string)
-      //Model.gp_postcode = null;
       
+      //Doctor Address
       if (BusinessModel.Doctor.Address)
       {
         Model.gp_addr_line_1 = BusinessModel.Doctor.Address.AddressLine1;
@@ -183,10 +163,8 @@ Breakpoint;
         Model.gp_state = BusinessModel.Doctor.Address.State;
         Model.gp_postcode = BusinessModel.Doctor.Address.Postcode;
       }
-      //usual GP email (string)
-      //Model.gp_email = "";
-      //usual GP fax number (string)
-      //Model.gp_fax = "";
+      
+      //Doctor Contacts
       if (BusinessModel.Doctor.Contact)
       {
         if (BusinessModel.Doctor.Contact.Email.length > 0)
@@ -199,11 +177,10 @@ Breakpoint;
         }
       }
     }
+    //Merge info
     if (BusinessModel.Meta.Action == IcimsPostAction.Merge)
     {
-      //prior MRN (string, mandatory)
       Model.prior_ur = BusinessModel.MergeIdentifers.PriorMRNValue;
-      //prior institution ID (string)
       Model.prior_assigning_authority = BusinessModel.MergeIdentifers.PriorMRNAssigningAuthority;
     }
     return Model;
@@ -238,14 +215,96 @@ Breakpoint;
     return formBody;
   }
 
+
    /**
    * @class
-   * @classdesc The ICIMS Add or Update interface
+   * @classdesc  The ICIMS IcimsAddInterface inherit's from IcimsAddUpdateInterfaceBase
    * @version 3
    * @inner
    * @constructor
   */
-  function IcimsAddUpdateInterface()
+  function IcimsAddInterface()
+  {
+    //Inherit's from IcimsAddUpdateInterfaceBase and scope as Add
+    var Add = new IcimsAddUpdateInterfaceBase();
+    return Add;
+  }
+
+   /**
+   * @class
+   * @classdesc  The ICIMS IcimsUpdateInterface inherit's from IcimsAddUpdateInterfaceBase
+   * @version 3
+   * @inner
+   * @constructor
+  */
+  function IcimsUpdateInterface()
+  {
+    //Inherit's from IcimsAddUpdateInterfaceBase and scope as Update
+    var Update = new IcimsAddUpdateInterfaceBase();
+    return Update;
+  }
+
+   /**
+   * @class
+   * @classdesc  The ICIMS IcimsMergeInterface inherit's from IcimsAddUpdateInterfaceBase
+   * @version 3
+   * @inner
+   * @constructor
+  */
+  function IcimsMergeInterface()
+  {
+    //Inherit's from IcimsAddUpdateInterfaceBase and scope and add properties for Merge
+    var Merge = new IcimsInterfaceBase();
+
+    /** @property {string} prior_ur - prior patient UR number (mandatory) */
+    Merge.prior_ur = null;
+    /** @property {string} assigning_authority - prior institution id */
+    Merge.prior_assigning_authority = null;
+   
+    return Merge;
+  }
+
+ /**
+   * @class
+   * @classdesc  The ICIMS IcimsAddUpdateInterfaceBase inherit's from IcimsInterfaceBase
+   * @version 3
+   * @inner
+   * @constructor
+  */
+  function IcimsAddUpdateInterfaceBase()
+  {
+    //Inherit's from IcimsInterfaceBase and add properties for Add and Update
+    var Base = new IcimsInterfaceBase();
+    
+    Base.gp_fname = null;
+    /** @property {string} gp_surname - usual GP surname name*/
+    Base.gp_surname = null;
+    /** @property {string} gp_addr_line_1 - GP street address line 1*/
+    Base.gp_addr_line_1 = null;
+    /** @property {string} gp_addr_line_2 - GP street address line 2*/
+    Base.gp_addr_line_2 = null;
+    /** @property {string} gp_suburb - usual GP suburb*/
+    Base.gp_suburb = null;
+    /** @property {string} gp_state - usual GP state*/
+    Base.gp_state = null;
+    /** @property {string} gp_postcode - usual GP post code*/
+    Base.gp_postcode = null;
+    /** @property {string} gp_email - usual GP email*/
+    Base.gp_email = null;
+    /** @property {string} gp_fax - usual GP fax number*/
+    Base.gp_fax = null;
+    
+    return Base;
+  }
+
+  /**
+   * @class
+   * @classdesc The IcimsInterfaceBase model
+   * @version 3
+   * @inner
+   * @constructor
+  */
+  function IcimsInterfaceBase()
   {
     /** @property {string} action - the ICIMS action string 'addpatient', 'updatepatient' */
     this.action = null;
@@ -286,77 +345,8 @@ Breakpoint;
     /** @property {string} aboriginality - The Patient's ATSI code value*/
     this.aboriginality = null;
     /** @property {string} gp_fname - usual GP first name*/
-    this.gp_fname = null;
-    /** @property {string} gp_surname - usual GP surname name*/
-    this.gp_surname = null;
-    /** @property {string} gp_addr_line_1 - GP street address line 1*/
-    this.gp_addr_line_1 = null;
-    /** @property {string} gp_addr_line_2 - GP street address line 2*/
-    this.gp_addr_line_2 = null;
-    /** @property {string} gp_suburb - usual GP suburb*/
-    this.gp_suburb = null;
-    /** @property {string} gp_state - usual GP state*/
-    this.gp_state = null;
-    /** @property {string} gp_postcode - usual GP post code*/
-    this.gp_postcode = null;
-    /** @property {string} gp_email - usual GP email*/
-    this.gp_email = null;
-    /** @property {string} gp_fax - usual GP fax number*/
-    this.gp_fax = null;
   }
-
-   /**
-   * @class
-   * @classdesc  The ICIMS Merge interface
-   * @version 3
-   * @inner
-   * @constructor
-  */
-  function IcimsMergeInterface()
-  {
-    /** @property {string} action - the ICIMS action string 'addpatient', 'updatepatient' */
-    this.action = null;
-    /** @property {string} msgid - unique message id sent by the HL7 caller */
-    this.msgid = null;
-    /** @property {string} msg_datetime - datetime string sent by the HL7 caller ISO8601 format */
-    this.msg_datetime = null;
-    /** @property {string} ur_num - patient UR number */
-    this.ur_num = null;
-    /** @property {string} assigning_authority - institution id */
-    this.assigning_authority = null;
-    /** @property {string} prior_ur - prior patient UR number (mandatory) */
-    this.prior_ur = null;
-    /** @property {string} assigning_authority - prior institution id */
-    this.prior_assigning_authority = null;
-    /** @property {string} fname - patient first name */
-    this.fname = null;
-    /** @property {string} surname - patient surname */
-    this.surname = null;
-    /** @property {string} dob - patient DOB ISO8601 format */
-    this.dob = null;
-    /** @property {string} sex - patient sex */
-    this.sex = null;
-    /** @property {string} addr_line_1 - Patient's address line 1 */
-    this.addr_line_1 = null;
-    /** @property {string} addr_line_2 - Patient's address line 2 */
-    this.addr_line_2 = null;
-    /** @property {string} suburb - Patient's suburb name */
-    this.suburb = null;
-    /** @property {string} state - Patient's state */
-    this.state = null;
-    /** @property {string} postcode - Patient's postcode */
-    this.postcode = null;
-    /** @property {string} phone - Patient home phone number */
-    this.phone = null;
-    /** @property {string} mobile - Patient mobile number */
-    this.mobile = null;
-    /** @property {string} marital_status - Patient marital status */
-    this.marital_status = null;
-    /** @property {string} language - Patient's language code*/
-    this.language = null;
-    /** @property {string} aboriginality - The Patient's ATSI code value*/
-    this.aboriginality = null;
-  }
+  
 }
 
 /** @global*/
