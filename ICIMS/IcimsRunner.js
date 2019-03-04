@@ -1,9 +1,9 @@
 
 //Debugging
-<%include $safe$\ICIMS\BusinessModels.js%>
-<%include $safe$\ICIMS\IcimsInterfaceModels.js%>
-<%include $safe$\ICIMS\RestClient.js%>
-<%include $safe$\ICIMS\Json2.js%>
+<%include $repo$\ICIMS\BusinessModels.js%>
+<%include $repo$\ICIMS\IcimsInterfaceModels.js%>
+<%include $repo$\ICIMS\RestClient.js%>
+<%include $repo$\ICIMS\Json2.js%>
 
 
 /**
