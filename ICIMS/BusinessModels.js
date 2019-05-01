@@ -23,7 +23,7 @@ function BusinessModels(SiteContext)
   */
   this.FacilityConfiguration = function()
   {
-    FacilityConfig = new FacilityConfiguration();
+    FacilityConfig = new FacilityConfiguration(SiteContext);
     return FacilityConfig;
   };
 
@@ -238,7 +238,7 @@ function BusinessModels(SiteContext)
     // Royal Melbourne Medical Record number value
     if (oSeg.Code == "PID")
     {
-      var MRN = new ResolveMrn(oSeg.Element(3), FacilityConfig.PrimaryMRNAssigningAuthority);
+      var MRN = new ResolveMrn(oSeg.Element(3), FacilityConfig);
       this.RMHMrnValue = MRN.Value;
       this.RMHMrnAssigningAuthority = MRN.AssigningAuthority;
 
@@ -248,6 +248,12 @@ function BusinessModels(SiteContext)
         var oXPN = oSeg.Field(5).Repeats(i);
         if (oXPN.Component(7).AsString.toUpperCase() == "L")
         {
+          this.Given = Set(oXPN.Component(2));
+          this.Family = Set(oXPN.Component(1));
+        }
+        else if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
+        {
+          //SAH does not use NameType codes
           this.Given = Set(oXPN.Component(2));
           this.Family = Set(oXPN.Component(1));
         }
@@ -275,22 +281,58 @@ function BusinessModels(SiteContext)
       //Patient Marital Status
       this.MaritalStatus = Set(oSeg.Field(16));
       //Patient Language
-      this.Language = Set(oSeg.Field(15));
+      if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
+      {
+        this.Language = "";
+      }
+      else
+      {
+        this.Language = Set(oSeg.Field(15));
+      }
+      
       //The Patient ATSI code value
-      this.Aboriginality = Set(oSeg.Field(10).Component(1));
+      if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
+      {
+        this.Aboriginality = "";
+      }
+      else
+      {
+        this.Aboriginality = Set(oSeg.Field(10).Component(1));
+      }
+      
+      
 
       //Patient Address
       //(1: Business, 2: Mailing Address, 3:Temporary Address, 4:ResidentialHome, 9: Not Specified)
       //ToDo: What to do is we don't first get 4:Residential/Home, do we look for others or send empty fields?
 
       //Collect the following addresses in this order.
-      var AddressTypeArray =
-        [ AddressTypeEnum.ResidentialHome,
-          AddressTypeEnum.Business,
-          AddressTypeEnum.MailingAddress,
-          AddressTypeEnum.TemporaryAddress,
-          AddressTypeEnum.NotSpecified
+      var AddressTypeArray = [];
+      if (FacilityConfig.SiteContext == SiteContextEnum.RMH)
+      {
+        AddressTypeArray =
+        [
+          RMHAddressTypeEnum.ResidentialHome,
+          RMHAddressTypeEnum.Business,
+          RMHAddressTypeEnum.MailingAddress,
+          RMHAddressTypeEnum.TemporaryAddress,
+          RMHAddressTypeEnum.NotSpecified
         ];
+      }
+      else
+      {
+       var AddressTypeArray =
+        [
+          Hl7AddressTypeEnum.Permanent,
+          Hl7AddressTypeEnum.Business,
+          Hl7AddressTypeEnum.Home,
+          Hl7AddressTypeEnum.Office,
+          Hl7AddressTypeEnum.Mailing,
+          Hl7AddressTypeEnum.CurrentoOrTemporary,
+          Hl7AddressTypeEnum.CountyOfOrigin
+        ];
+      }
+      
          
       var oXADTarget = null;
       var Dic = ResolveAddressTypeFromXADList(oSeg.Field(11), AddressTypeArray);
@@ -400,7 +442,7 @@ BreakPoint;
     /** @property {string} PriorMRNAssigningAuthority - The prior Medical Record Number's Assigning Authority code*/
     this.PriorMRNAssigningAuthority = null;
 
-    var MRN = new ResolveMrn(oMRG.Element(1), FacilityConfig.PrimaryMRNAssigningAuthority);
+    var MRN = new ResolveMrn(oMRG.Element(1), FacilityConfig);
     this.PriorMRNValue = MRN.Value;
     this.PriorMRNAssigningAuthority = MRN.AssigningAuthority;
   }
@@ -501,7 +543,7 @@ BreakPoint;
    * @readonly
    * @enum {integer}
   */
-   var AddressTypeEnum = {
+   var RMHAddressTypeEnum = {
      /** 1 */
      Business : 1,
      /** 2 */
@@ -513,6 +555,29 @@ BreakPoint;
      /** 9 */
      NotSpecified : 9
    };
+   
+   /**
+   * Enum of all knowen HL7 Table 0190 AddressTypes
+   * @readonly
+   * @enum {integer}
+  */
+   var Hl7AddressTypeEnum =  {
+     /** B */
+     Business : "B",
+     /** C */
+     CurrentoOrTemporary : "C",
+     /** F */
+     CountyOfOrigin : "F",
+     /** H */
+     Home : "H",
+     /** M */
+     Mailing : "M",
+     /** O */
+     Office : "O",
+     /** P */
+     Permanent : "P"
+   };
+   
   /**
    * Enum of all knowen PhoneUse at RMH, Component 2
    * @readonly
@@ -569,21 +634,27 @@ BreakPoint;
    * @inner
    * @constructor
   */
-  function ResolveMrn(oElement, AssigningAuthorityCode)
+  function ResolveMrn(oElement, FacilityConfig)
   {
 BreakPoint;
     /** @property {string} Value - The Medical Record Number value */
     this.Value = null;
     /** @property {string} AssigningAuthority - The Medical Record Number's Assigning Authority code */
     this.AssigningAuthority = null;
-
+    
     var FirstMRValue = "";
     var FirstMRAssigningAuthority = "";
     for (var i=0;  i <= ((oElement.RepeatCount) - 1)  ; i++)
     {
       var oCX = oElement.Repeats(i);
-      if (oCX.Component(5).AsString.toUpperCase() == "MR" &&
-          oCX.Component(4).AsString.toUpperCase() == AssigningAuthorityCode &&
+      //SAH messages have no AssigningAuthority only a number
+      if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
+      {
+         this.Value = Set(oCX.Component(1));
+         this.AssigningAuthority = FacilityConfig.PrimaryMRNAssigningAuthority;
+      }
+      else if (oCX.Component(5).AsString.toUpperCase() == "MR" &&
+          oCX.Component(4).AsString.toUpperCase() == FacilityConfig.PrimaryMRNAssigningAuthority &&
           oCX.Component(8).AsString == "")
       {
          this.Value = Set(oCX.Component(1));
