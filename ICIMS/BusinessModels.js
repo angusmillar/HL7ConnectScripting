@@ -113,16 +113,17 @@ function BusinessModels(SiteContext)
 
     //Patient
     this.Patient = new Patient(oHL7.Segment("PID", 0));
+
     //Doctor
-    var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
-    if (oROL_GP !== null)
+    if (FacilityConfig.SiteContext == SiteContextEnum.RMH)
     {
-      this.Doctor = new Doctor(oROL_GP);
+      var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
+      if (oROL_GP !== null)
+      {
+        this.Doctor = new Doctor(oROL_GP);
+      }
     }
-    else
-    {
-      this.Doctor = null;
-    }
+    
     //Meta-data
     this.Meta = new Meta(AddActionName, oHL7.Segment("MSH",0));
   }
@@ -290,27 +291,19 @@ function BusinessModels(SiteContext)
       this.MaritalStatus = Set(oSeg.Field(16));
 
       //Patient Language
-      if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
-      {
-        this.Language = "";
-      }
-      else
+      if (oSeg.Field(15).AsString != "")
       {
         this.Language = Set(oSeg.Field(15));
       }
-      
+
+      BreakPoint;
+
       //The Patient ATSI code value
-      if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
-      {
-        this.Aboriginality = "";
-      }
-      else
+      if (oSeg.Field(10).ComponentCount > 1 && Component(1).AsString != "")
       {
         this.Aboriginality = Set(oSeg.Field(10).Component(1));
       }
       
-      
-
       //Patient Address
       //(1: Business, 2: Mailing Address, 3:Temporary Address, 4:ResidentialHome, 9: Not Specified)
       //ToDo: What to do is we don't first get 4:Residential/Home, do we look for others or send empty fields?
