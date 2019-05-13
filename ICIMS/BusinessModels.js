@@ -206,6 +206,8 @@ function BusinessModels(SiteContext)
     this.RMHMrnValue = null;
     /** @property {string}  RMHMrnAssigningAuthority - The Medical Record Number's Assigning Authority code */
     this.RMHMrnAssigningAuthority = null;
+    /** @property {string}  RMHMrnValue - The Medicare Number value for the patient */
+    this.MedicareNumberValue = null;
     /** @property {string}  Given - The Patient's given name */
     this.Given = null;
     /** @property {string}  Faimly - The Patient's family name */
@@ -216,6 +218,8 @@ function BusinessModels(SiteContext)
     this.Sex = null;
     /** @property {Address}  PatientAddress - The Patient's address */
     this.PatientAddress = null;
+    /** @property {string}  PatientEmail - The Patient's email address */
+    this.PatientEmail
     /** @property {Contact}  ContactHome - The Patient's home contacts*/
     this.ContactHome = null;
     /** @property {Contact}  ContactBusiness - The Patient's Business contacts*/
@@ -235,13 +239,17 @@ function BusinessModels(SiteContext)
     */
     this.Aboriginality = null;
 
-    // Royal Melbourne Medical Record number value
+
     if (oSeg.Code == "PID")
     {
+      // Medical Record number value
       var MRN = new ResolveMrn(oSeg.Element(3), FacilityConfig);
       this.RMHMrnValue = MRN.Value;
       this.RMHMrnAssigningAuthority = MRN.AssigningAuthority;
 
+      //Medicare Number value
+      this.MedicareNumberValue = Set(oSeg.Field(19));
+      
       //Patient Name
       for (var i=0;  i <= ((oSeg.Field(5).RepeatCount) - 1)  ; i++)
       {
@@ -280,6 +288,7 @@ function BusinessModels(SiteContext)
       this.Sex = Set(oSeg.Field(8));
       //Patient Marital Status
       this.MaritalStatus = Set(oSeg.Field(16));
+
       //Patient Language
       if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
       {
@@ -323,35 +332,59 @@ function BusinessModels(SiteContext)
       {
        var AddressTypeArray =
         [
-          Hl7AddressTypeEnum.Permanent,
-          Hl7AddressTypeEnum.Business,
-          Hl7AddressTypeEnum.Home,
-          Hl7AddressTypeEnum.Office,
-          Hl7AddressTypeEnum.Mailing,
-          Hl7AddressTypeEnum.CurrentoOrTemporary,
-          Hl7AddressTypeEnum.CountyOfOrigin
+          SAHAddressTypeEnum.Permanent,
+          SAHAddressTypeEnum.Business,
+          SAHAddressTypeEnum.Home,
+          SAHAddressTypeEnum.Office,
+          SAHAddressTypeEnum.Mailing,
+          SAHAddressTypeEnum.CurrentoOrTemporary,
+          SAHAddressTypeEnum.CountyOfOrigin,
+          SAHAddressTypeEnum.Email
         ];
       }
       
          
-      var oXADTarget = null;
+      var oXADAdressTarget = null;
       var Dic = ResolveAddressTypeFromXADList(oSeg.Field(11), AddressTypeArray);
       for (var AddressType in AddressTypeArray)
       {
         if (Dic.Exists(AddressTypeArray[AddressType]))
         {
-          oXADTarget = Dic.Item(AddressTypeArray[AddressType]);
+          oXADAdressTarget = Dic.Item(AddressTypeArray[AddressType]);
           break;
         }
       }
+      this.PatientAddress = new Address(oXADAdressTarget);
       
-      this.PatientAddress = new Address(oXADTarget);
-
+      //Email Address For SAH
+      if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
+      {
+        if (Dic.Exists(SAHAddressTypeEnum.Email))
+        {
+           var oXADEmailAdressTarget = Dic.Item(SAHAddressTypeEnum.Email);
+           this.PatientEmail = Set(oXADEmailAdressTarget.Component(1));
+        }
+        else
+        {
+          this.PatientEmail = "";
+        }
+      }
+      
+      
+BreakPoint;
       this.ContactHome = new Contact();
-      this.ContactHome.Inflate(oSeg.Field(13), PhoneUseEnum.Primary);
-
       this.ContactBusiness = new Contact();
-      this.ContactBusiness.Inflate(oSeg.Field(14), PhoneUseEnum.Work);
+      if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
+      {
+        this.ContactHome.InflateBasic(oSeg.Field(13));
+        this.ContactBusiness.InflateBasic(oSeg.Field(14));
+      }
+      else if (FacilityConfig.SiteContext == SiteContextEnum.RMH)
+      {
+        this.ContactHome.Inflate(oSeg.Field(13), PhoneUseEnum.Primary);
+        this.ContactBusiness.Inflate(oSeg.Field(14), PhoneUseEnum.Work);
+      }
+      
     }
   }
   
@@ -494,6 +527,21 @@ BreakPoint;
     /** @property {array} Fax - Fax number list */
     this.Fax = [];
 
+    this.InflateBasic = function(Element)
+    {
+      if (Element.Component(1).AsString != "")
+      {
+        if (Element.Component(1).AsString.substring(0, 2) == "04")
+        {
+          this.Mobile.push(Set(Element.Component(1)));
+        }
+        else
+        {
+          this.Phone.push(Set(Element.Component(1)));
+        }
+      }
+    }
+    
     this.Inflate = function(Element, UseType)
     {
       for (var i=0;  i <= ((Element.RepeatCount) - 1)  ; i++)
@@ -561,7 +609,7 @@ BreakPoint;
    * @readonly
    * @enum {integer}
   */
-   var Hl7AddressTypeEnum =  {
+   var SAHAddressTypeEnum =  {
      /** B */
      Business : "B",
      /** C */
@@ -575,7 +623,9 @@ BreakPoint;
      /** O */
      Office : "O",
      /** P */
-     Permanent : "P"
+     Permanent : "P",
+     /** E */
+     Email : "E"
    };
    
   /**

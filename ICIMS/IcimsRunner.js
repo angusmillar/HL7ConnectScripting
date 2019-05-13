@@ -105,28 +105,21 @@ function IcimsRunner(aEvent)
    if (MessageType == "ADT")
    {
      var IcimsInterface= new IcimsInterfaceModels();
-     if (MessageEvent == "A04")
+     if (MessageEvent == "A04" || MessageEvent == "A05")    //Register a patient
      {
        var Add = new Models.Add(oHL7);
        FormData = IcimsInterface.MapToIcimsInterface(Add);
        EndPointMethod = Add.Meta.Action;
        CallRESTService = true;
      }
-     else if (MessageEvent == "A05")
-     {
-      var Add = new Models.Add(oHL7);
-       FormData = IcimsInterface.MapToIcimsInterface(Add);
-       EndPointMethod = Add.Meta.Action;
-       CallRESTService = true;
-     }
-     else if (MessageEvent == "A08")
+     else if (MessageEvent == "A01" || MessageEvent == "A08" || MessageEvent == "A02" || MessageEvent == "A03")  //Update patient information
      {
        var Update = new Models.Update(oHL7);
        FormData = IcimsInterface.MapToIcimsInterface(Update);
        EndPointMethod = Update.Meta.Action;
        CallRESTService = true;
      }
-     else if (MessageEvent == "A40")
+     else if (MessageEvent == "A40")  //Merge patient - internal ID
      {
        var Merge = new Models.Merge(oHL7);
        FormData = IcimsInterface.MapToIcimsInterface(Merge);
