@@ -155,17 +155,21 @@ function BusinessModels(SiteContext)
 
     //Patient
     this.Patient = new Patient(oHL7.Segment("PID", 0));
+
     //Doctor
-    BreakPoint;
-    var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
-    if (oROL_GP !== null)
+    if (FacilityConfig.SiteContext == SiteContextEnum.RMH)
     {
-      this.Doctor = new Doctor(oROL_GP);
+      var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
+      if (oROL_GP !== null)
+      {
+        this.Doctor = new Doctor(oROL_GP);
+      }
+      else
+      {
+        this.Doctor = null;
+      }
     }
-    else
-    {
-      this.Doctor = null;
-    }
+
     //Meta-data
     this.Meta = new Meta(UpdateActionName, oHL7.Segment("MSH",0));
   }
