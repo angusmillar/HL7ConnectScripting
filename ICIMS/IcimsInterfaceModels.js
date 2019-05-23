@@ -87,6 +87,9 @@ Breakpoint;
     Model.ur_num = BusinessModel.Patient.RMHMrnValue;
     //institution id (string)
     Model.assigning_authority = BusinessModel.Patient.RMHMrnAssigningAuthority;
+BreakPoint;
+    //patient Medicare Number (string)
+    Model.MedicareNumberValue = BusinessModel.Patient.MedicareNumberValue
     //patient first name (string)
     Model.fname = BusinessModel.Patient.Given;
     //patient surname (string)
@@ -316,6 +319,8 @@ Breakpoint;
     this.ur_num = null;
     /** @property {string} assigning_authority - institution id */
     this.assigning_authority = null;
+    /** @property {string} MedicareNumberValue - patient's Medicare Number 10 or 11 digits */
+    this.MedicareNumberValue = null;
     /** @property {string} fname - patient first name */
     this.fname = null;
     /** @property {string} surname - patient surname */
