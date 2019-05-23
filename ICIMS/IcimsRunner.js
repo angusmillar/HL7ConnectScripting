@@ -63,16 +63,18 @@ function IcimsRunner(aEvent)
         FacilityConfiguration.PrimaryMRNAssigningAuthority = "SAH";
         //EndPoint - The REST endpoint url for ICIMS
 
-        //FacilityConfiguration.EndPoint = "http://mhicimsprod.ssg.org.au/staging/api/pas.py";
+        //Development
         FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
+        //Test
+        //FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py";
 
         //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.
         //Production Token
         //FacilityConfiguration.AuthorizationToken = = "Basic aGw3OmlDSU1TMjBsNw==";
         //Test Token
-        FacilityConfiguration.AuthorizationToken = "Basic aGw3dGVzdDppY2ltczIwMTc=";
+        FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
         //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
-        FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutboundProd";
+        FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
         FacilityConfiguration.MaxRejectBeforeInterfaceStop = 20;
         Models.FacilityConfig = FacilityConfiguration
