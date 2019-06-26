@@ -1,11 +1,10 @@
 
 //Debugging
 <%include $repo$\ICIMS\BusinessModels.js%>
-<%include $repo$\ICIMS\IcimsInterfaceModels.js%>
-<%include $repo$\ICIMS\RestClient.js%>
 <%include $repo$\ICIMS\Json2.js%>
+<%include $repo$\ICIMS\FhirLibrary\FhirClient.js%>
+<%include $repo$\ICIMS\FhirLibrary\FhirResourceFactory.js%>
 
-<%include $repo$\ICIMS\FhirClient.js%>
 
 /**
  * @module
@@ -24,11 +23,9 @@
  * @constructor
  * @param {event} OnScriptSend The event passed in by HL7 Connect
  */
-function IcimsRunner(aEvent)
+function Main(aEvent)
 {
-
-  TestFhir();
-  BreakPoint;
+   BreakPoint;
    //Validate and set the site context for the script
    //This is so the script can be adjusted for new sites as required.
    //For instance the string "RMH" must be passed in as a script parameter from HL7 Connect.
@@ -38,27 +35,6 @@ function IcimsRunner(aEvent)
    //=========== Per site Configuration ========================================
    var FacilityConfiguration = null;
    switch(SiteContext) {
-    case SiteContextEnum.RMH:
-        //The Site Context enum we are running the script under
-        FacilityConfiguration = Models.FacilityConfiguration(SiteContext);
-        //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
-        FacilityConfiguration.PrimaryMRNAssigningAuthority = "RMH";
-        //EndPoint - The REST endpoint url for ICIMS
-
-        //FacilityConfiguration.EndPoint = "http://mhicimsprod.ssg.org.au/staging/api/pas.py";
-        FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
-                
-        //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.
-        //Production Token
-        //FacilityConfiguration.AuthorizationToken = = "Basic aGw3OmlDSU1TMjBsNw==";
-        //Test Token
-        FacilityConfiguration.AuthorizationToken = "Basic aGw3dGVzdDppY2ltczIwMTc=";
-        //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
-        FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutboundProd";
-        //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
-        FacilityConfiguration.MaxRejectBeforeInterfaceStop = 20;
-        Models.FacilityConfig = FacilityConfiguration
-        break;
     case SiteContextEnum.SAH:
         //The Site Context enum we are running the script under
         FacilityConfiguration = Models.FacilityConfiguration(SiteContext);
@@ -68,16 +44,13 @@ function IcimsRunner(aEvent)
 
         //Development
         FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
-        //Test
-        //FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py";
-
         //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.
         //Production Token
         //FacilityConfiguration.AuthorizationToken = = "Basic aGw3OmlDSU1TMjBsNw==";
         //Test Token
         FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
         //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
-        FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+        FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsPathologyOutbound";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
         FacilityConfiguration.MaxRejectBeforeInterfaceStop = 20;
         Models.FacilityConfig = FacilityConfiguration
@@ -107,34 +80,29 @@ function IcimsRunner(aEvent)
   var MessageEvent = oHL7.Segment("MSH",0).Field(9).Component(2).AsString.toUpperCase();
   try
   {
-   if (MessageType == "ADT")
+   if (MessageType == "ORU")
    {
-     var IcimsInterface= new IcimsInterfaceModels();
-     if (MessageEvent == "A04" || MessageEvent == "A05")    //Register a patient
+     BreakPoint;
+     var FhirResFactory = new FhirResourceFactory();
+     if (MessageEvent == "R01")    //Register a patient
      {
-       var Add = new Models.Add(oHL7);
-       FormData = IcimsInterface.MapToIcimsInterface(Add);
-       EndPointMethod = Add.Meta.Action;
-       CallRESTService = true;
-     }
-     else if (MessageEvent == "A01" || MessageEvent == "A08" || MessageEvent == "A02" || MessageEvent == "A03")  //Update patient information
-     {
-       var Update = new Models.Update(oHL7);
-       FormData = IcimsInterface.MapToIcimsInterface(Update);
-       EndPointMethod = Update.Meta.Action;
-       CallRESTService = true;
-     }
-     else if (MessageEvent == "A40")  //Merge patient - internal ID
-     {
-       var Merge = new Models.Merge(oHL7);
-       FormData = IcimsInterface.MapToIcimsInterface(Merge);
-       EndPointMethod = Merge.Meta.Action;
-       CallRESTService = true;
+       BreakPoint;
+       var Bundle = new FhirResFactory.CreatePathologyBundle(oHL7);
+
+
+       BreakPoint;
+       var JsonResource = JSON.stringify(Bundle, "", 4)
+       EndPointMethod = "$process-message";
+       BreakPoint;
+      // var POSTOutcome = new Client.POST("https://stu3.test.pyrohealth.net/fhir", EndPointMethod, "", JsonResource);
+
+       
+       CallRESTService = false;
      }
      else
      {
        var ErrorMsg = "ICIMS Unknown Message Event of: " + MessageEvent;
-	   IcimsLog("ICIMS Unknown Message Event, expect ADT Events A04, A08 & A40, found event: " + MessageEvent);
+	   IcimsLog("ICIMS Unknown Message Event, expect ADT Events R01, found event: " + MessageEvent);
        RejectMessage(ErrorMsg);
        StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
      }
