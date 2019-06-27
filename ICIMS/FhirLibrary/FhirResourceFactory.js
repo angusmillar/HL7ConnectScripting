@@ -3,6 +3,7 @@
 <%include $repo$\ICIMS\FhirLibrary\MessageHeaderFhirResource.js%>
 <%include $repo$\ICIMS\FhirLibrary\OrganizationFhirResource.js%>
 <%include $repo$\ICIMS\FhirLibrary\DiagnosticReportFhirResource.js%>
+<%include $repo$\ICIMS\FhirLibrary\PatientFhirResource.js%>
 <%include $repo$\ICIMS\FhirLibrary\FhirDataTypeTool.js%>
 <%include $repo$\ICIMS\FhirLibrary\FhirTools.js%>
 
@@ -26,11 +27,11 @@ function FhirResourceFactory(){
     var SAHOrganizationName = "SAH";
     var SAHOrganizationAliasArray = ["SAN", "Sydney Adventist Hospital"];
 
-    var PatientId = FhirTool.GetGuid();
-    var DiagnosticReportId = FhirTool.GetGuid();
-
-
     var oBundle = new BundleFhirResource(FhirTool.GetGuid());
+
+    //--------------------------------------------------------------------------
+    //MessageHeader Resource
+    //--------------------------------------------------------------------------
     var MessageHeaderId = FhirTool.GetGuid();
     var oMsgHeader = new MessageHeaderFhirResource(MessageHeaderId, oModels);
     oMsgHeader.SetReceiver(IcimsOrganizationId, IcimsOrganizationName);
@@ -38,12 +39,40 @@ function FhirResourceFactory(){
     oMsgHeader.SetSource(oModels.Pathology.Meta.SendingApplication);
     oMsgHeader.SetFocus(DiagnosticReportId, "DiagnosticReport");
     oBundle.AddEntry(FhirTool.PreFixUuid(MessageHeaderId), oMsgHeader.GetResource());
+
+    //--------------------------------------------------------------------------
+    //Patient Resource
+    //--------------------------------------------------------------------------
+BreakPoint;
+
+    var PatientId = FhirTool.GetGuid();
+    var oPatient = new PatientFhirResource(PatientId);
+    oPatient.SetActive(true);
+    var oPatIdTypeCoding = FhirDataType.GetCoding("MR", "http://hl7.org/fhir/v2/0203", "Medical record number");
+    var oPatIdType = FhirDataType.GetCodeableConcept(oPatIdTypeCoding, "Medical record number")
+    var ReportIdentifier = FhirDataType.GetIdentifier("official", oPatIdType,
+      oModels.FacilityConfig.PrimaryMRNSystemUri,
+      oModels.Pathology.Patient.PrimaryMrnValue)
+    oPatient.SetIdentifier([ReportIdentifier]);
+
+    var HumanName = FhirDataType.GetHumanName("Official", oModels.Pathology.Patient.FormattedName,
+      oModels.Pathology.Patient.Family,
+      oModels.Pathology.Patient.Given,
+      oModels.Pathology.Patient.Title)
+    oPatient.SetName([HumanName]);
+    oPatient.SetGender(oModels.Pathology.Patient.Gender);
+
+    oBundle.AddEntry(FhirTool.PreFixUuid(PatientId), oPatient.GetResource());
     
+
+    //--------------------------------------------------------------------------
+    //DiagnosticReport Resource
+    //--------------------------------------------------------------------------
     var DiagnosticReportId = FhirTool.GetGuid();
     var oDiagReport = new DiagnosticReportFhirResource(DiagnosticReportId);
 
-    var oTypeCoding = FhirDataType.GetCoding("MR", "http://hl7.org/fhir/v2/0203", "Medical record number");
-    var oType = FhirDataType.GetCodeableConcept(oTypeCoding, "Medical record number")
+    var oTypeCoding = FhirDataType.GetCoding("FILL", "http://hl7.org/fhir/identifier-type", "Filler Identifier");
+    var oType = FhirDataType.GetCodeableConcept(oTypeCoding, "Report Identifier")
     var ReportIdentifier = FhirDataType.GetIdentifier("official", oType,
       FhirTool.PreFixUuid(oModels.Pathology.Report.FillerOrderNumberUniversalId.toLowerCase()),
       oModels.Pathology.Report.FillerOrderNumberValue)
@@ -59,23 +88,28 @@ function FhirResourceFactory(){
     var oCodeCodeableConcept = FhirDataType.GetCodeableConcept(oCodeCoding);
     oDiagReport.SetCode(oCodeCodeableConcept);
 
-    var oPatientReference = FhirDataType.GetReference(PatientId, oModels.Pathology.Patient.Family.toUpperCase() + " " + oModels.Pathology.Patient.Given );
+    var oPatientReference = FhirDataType.GetReference(PatientId, oModels.Pathology.Patient.FormattedName );
     oDiagReport.SetSubject(oPatientReference);
 
     oDiagReport.SetEffectiveDateTime(oModels.Pathology.Report.CollectionDateTime.AsXML);
 
     oDiagReport.SetIssued(oModels.Pathology.Report.ReportIssuedDateTime.AsXML);
 
-BreakPoint;
     var oPdfAttachment = FhirDataType.GetPdfAttachment(oModels.Pathology.Base64Pdf);
     oDiagReport.SetPresentedForm([oPdfAttachment]);
 
     oBundle.AddEntry(FhirTool.PreFixUuid(DiagnosticReportId), oDiagReport.GetResource());
 
+    //--------------------------------------------------------------------------
+    //Organization ICIMS
+    //--------------------------------------------------------------------------
     var oOrgIcims = new OrganizationFhirResource(IcimsOrganizationId, IcimsOrganizationName);
     oOrgIcims.SetAlias(IcimsOrganizationAliasArray);
     oBundle.AddEntry(FhirTool.PreFixUuid(IcimsOrganizationId), oOrgIcims.GetResource());
 
+    //--------------------------------------------------------------------------
+    //Organization SAH
+    //--------------------------------------------------------------------------
     var oOrgSAH = new OrganizationFhirResource(SAHOrganizationId, SAHOrganizationName);
     oOrgSAH.SetAlias([SAHOrganizationAliasArray]);
     oBundle.AddEntry(FhirTool.PreFixUuid(SAHOrganizationId), oOrgSAH.GetResource());

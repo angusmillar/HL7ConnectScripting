@@ -41,9 +41,12 @@ function BusinessModels(SiteContext)
     /** @property {string}  AddActionName - The static action name required by ICIMS for AddPatient requests.*/
     this.SiteContext = SiteContext;
 
-    /** @property {string}  PrimaryMRNAssigningAuthority - The Assigning Authority code used by the site for its primary Medical Record Number */
+    /** @property {string}  PrimaryMRNAssigningAuthority - The Assigning Authority code used by the site for its primary Medical Record Number in HL7 V2 Messages */
     this.PrimaryMRNAssigningAuthority = null;
 
+    /** @property {string}  PrimaryMRNAssigningAuthority - The Uri code used by the site for its primary Medical Record Number in FHIR Identifiers*/
+    this.PrimaryMRNSystemUri = null;
+    
     /** @property {string}  EndPoint - The REST endpoint url for ICIMS.*/
     this.EndPoint = null;
 
@@ -110,31 +113,20 @@ function BusinessModels(SiteContext)
   */
   function Patient(oSeg, FacilityConfig)
   {
-    /** @property {string}  RMHMrnValue - The Medical Record Number value for the patient */
-    this.RMHMrnValue = null;
-    /** @property {string}  RMHMrnAssigningAuthority - The Medical Record Number's Assigning Authority code */
-    this.RMHMrnAssigningAuthority = null;
-    /** @property {string}  RMHMrnValue - The Medicare Number value for the patient */
+    this.PrimaryMrnValue = null;
+    this.PrimaryMrnAssigningAuthority = null;
     this.MedicareNumberValue = null;
-    /** @property {string}  Given - The Patient's given name */
+    this.Title = null;
     this.Given = null;
-    /** @property {string}  Faimly - The Patient's family name */
     this.Family = null;
-    /** @property {date}  Dob - The Patient's date or birth */
+    this.FormattedName = null;
     this.Dob = null;
-    /** @property {char}  Dob - The Patient's sex */
     this.Sex = null;
-    /** @property {Address}  PatientAddress - The Patient's address */
     this.PatientAddress = null;
-    /** @property {string}  PatientEmail - The Patient's email address */
     this.PatientEmail
-    /** @property {Contact}  ContactHome - The Patient's home contacts*/
     this.ContactHome = null;
-    /** @property {Contact}  ContactBusiness - The Patient's Business contacts*/
     this.ContactBusiness = null;
-    /** @property {string}  MaritalStatus - The Patient's Marital Status*/
     this.MaritalStatus = null;
-    /** @property {string}  Language - The Patient's Language code*/
     this.Language = null;
     /** @property {string} Aboriginality - The Patient's ATSI Indigenous Status code value: <code>
       *  <li><b>1</b>: Aboriginal but not Torres Strait Islander Origin</li>
@@ -145,15 +137,14 @@ function BusinessModels(SiteContext)
       *  <li><b>8</b>: Question unable to be asked (Victorian HealthSmart value Only)</li>
       *  <li><b>9</b>: Not stated/ inadequately described</li></code>
     */
-    //this.Aboriginality = null;
-
+   
 
     if (oSeg.Code == "PID")
     {
       // Medical Record number value
       var MRN = new ResolveMrn(oSeg.Element(3), FacilityConfig);
-      this.RMHMrnValue = MRN.Value;
-      this.RMHMrnAssigningAuthority = MRN.AssigningAuthority;
+      this.PrimaryMrnValue = MRN.Value;
+      this.PrimaryMrnAssigningAuthority = MRN.AssigningAuthority;
 
       //Medicare Number value
       this.MedicareNumberValue = Set(oSeg.Field(19));
@@ -164,16 +155,29 @@ function BusinessModels(SiteContext)
         var oXPN = oSeg.Field(5).Repeats(i);
         if (oXPN.Component(7).AsString.toUpperCase() == "L")
         {
+          this.Title = Set(oXPN.Component(5));
           this.Given = Set(oXPN.Component(2));
           this.Family = Set(oXPN.Component(1));
         }
         else if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
         {
           //SAH does not use NameType codes
+          this.Title = Set(oXPN.Component(5));
           this.Given = Set(oXPN.Component(2));
           this.Family = Set(oXPN.Component(1));
         }
       }
+      
+        BreakPoint;
+      if (this.Title != null && this.Given != null){
+        this.FormattedName = this.Family.toUpperCase() + ", " + this.Title + " " + this.Given;
+      } else if (this.Title == null && this.Given != null) {
+        this.FormattedName = this.Family.toUpperCase() + ", " + this.Given;
+      } else
+      {
+        this.FormattedName = this.Family.toUpperCase();
+      }
+      
 
       //Patient Date of Birth
       //require: dd/mm/yyyy
@@ -194,6 +198,29 @@ function BusinessModels(SiteContext)
       }
       //Patient Sex
       this.Sex = Set(oSeg.Field(8));
+      
+      if (this.Sex != null){
+        switch(this.Sex) {
+        case "F":
+          this.Gender = "female";
+          break;
+        case "M":
+          this.Gender = "male";
+          break;
+        case "A":
+          this.Gender = "other";
+        case "N":
+          this.Gender = "unknown";
+          break;
+        case "O":
+          this.Gender = "other";
+        case "U":
+          this.Gender = "unknown";
+        default:
+          throw "The Patient sex found in PID-8 was not expected, value is : " + oOBR.Field(25).AsString + ", allowed values are (F,M,A,N,O,U).";
+        }
+      }
+      
       //Patient Marital Status
       this.MaritalStatus = Set(oSeg.Field(16));
 
@@ -294,7 +321,7 @@ function BusinessModels(SiteContext)
   */
   function Report(oOBR)
   {
-    /** @property {string}  RMHMrnValue - The Medical Record Number value for the patient */
+    /** @property {string}  PrimaryMrnValue - The Medical Record Number value for the patient */
     this.FillerOrderNumberValue = null;
     this.FillerOrderNumberNamespaceId = null;
     this.FillerOrderNumberUniversalId = null;

@@ -29,6 +29,11 @@ function FhirDataTypeTool(){
   {
     return new Attachment("application/pdf", undefined , base64Data);
   };
+
+  this.GetHumanName = function(use, text, famly, given, prefix, suffix, oPeriod)
+  {
+    return new HumanName(use, text, famly, given, prefix, suffix, oPeriod);
+  };
   
   function Coding(code, codeSystem, display, version){
     var coding = new function(){};
@@ -79,5 +84,18 @@ function FhirDataTypeTool(){
     Attachment.data = data;
     return Attachment;
   }
+
+  function HumanName(use, text, family, given, prefix, suffix, oPeriod){
+    var HumanName = new function(){};
+    HumanName.use = use;
+    HumanName.text = text;
+    HumanName.family = family;
+    HumanName.given = given;
+    HumanName.prefix = prefix;
+    HumanName.suffix = suffix;
+    HumanName.period = oPeriod;
+    return HumanName;
+  }
+
 
 }

@@ -38,9 +38,9 @@ function Main(aEvent)
         //The Site Context enum we are running the script under
         FacilityConfiguration = oModels.FacilityConfiguration(SiteContext);
         //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
-        FacilityConfiguration.PrimaryMRNAssigningAuthority = "https://www.sah.org.au/";
+        FacilityConfiguration.PrimaryMRNAssigningAuthority = "SAH";
         //EndPoint - The REST endpoint url for ICIMS
-
+        FacilityConfiguration.PrimaryMRNSystemUri = "https://www.sah.org.au/systems/fhir/pas/medical-record-number";
         //Development
         FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
         //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.

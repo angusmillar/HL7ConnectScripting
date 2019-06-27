@@ -10,5 +10,14 @@ function FhirTools(){
     return GUID().toLowerCase();
   };
 
+  this.GetBool = function(bool)
+  {
+    if (bool){
+      return "true";
+    } else {
+      return "false";
+    }
+  };
+
 
 }
