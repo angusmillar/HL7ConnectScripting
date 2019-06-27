@@ -31,19 +31,19 @@ function Main(aEvent)
    //For instance the string "RMH" must be passed in as a script parameter from HL7 Connect.
    var SiteContext = ValidateSiteContext(aEvent.Parameter);
 
-   var Models = new BusinessModels(SiteContext);
+   var oModels = new BusinessModels(SiteContext);
    //=========== Per site Configuration ========================================
    var FacilityConfiguration = null;
    switch(SiteContext) {
     case SiteContextEnum.SAH:
         //The Site Context enum we are running the script under
-        FacilityConfiguration = Models.FacilityConfiguration(SiteContext);
+        FacilityConfiguration = oModels.FacilityConfiguration(SiteContext);
         //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
         FacilityConfiguration.PrimaryMRNAssigningAuthority = "SAH";
         //EndPoint - The REST endpoint url for ICIMS
 
         //Development
-        FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
+        FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
         //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.
         //Production Token
         //FacilityConfiguration.AuthorizationToken = = "Basic aGw3OmlDSU1TMjBsNw==";
@@ -53,7 +53,6 @@ function Main(aEvent)
         FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsPathologyOutbound";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
         FacilityConfiguration.MaxRejectBeforeInterfaceStop = 20;
-        Models.FacilityConfig = FacilityConfiguration
         break;
     default:
         throw "No SiteContext script parameter passed to the running script";
@@ -87,7 +86,8 @@ function Main(aEvent)
      if (MessageEvent == "R01")    //Register a patient
      {
        BreakPoint;
-       var Bundle = new FhirResFactory.CreatePathologyBundle(oHL7);
+       oModels.PathologyOruMessage(oHL7);
+       var Bundle = new FhirResFactory.CreatePathologyBundle(oModels);
 
 
        BreakPoint;

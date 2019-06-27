@@ -1,20 +1,8 @@
-/**
- * @module
- * @description The BusinessModels script contains a set of classes that form an object graph of the data we require for the API calls.
- * Each of these classes also contain methods for extracting the data elements from the HL7 V2 message into the object graph.
-*/
 
-
-/**
- * @class
- * @classdesc  The internal Business Models that the scriot works with
- * @constructor
- * @param {enum} SiteContext The site contect the script is running under
- */
 function BusinessModels(SiteContext)
 {
-  var FacilityConfig = null;
-
+  this.FacilityConfig = null;
+  this.Pathology = null;
   /**
    * @function
    * @description Creates a new FacilityConfiguration object instance
@@ -23,8 +11,8 @@ function BusinessModels(SiteContext)
   */
   this.FacilityConfiguration = function()
   {
-    FacilityConfig = new FacilityConfiguration(SiteContext);
-    return FacilityConfig;
+    this.FacilityConfig = new FacilityConfiguration(SiteContext);
+    return this.FacilityConfig;
   };
 
   /**
@@ -33,34 +21,13 @@ function BusinessModels(SiteContext)
    * @param {message} oHL7 The inbound message object
    * @returns {Add} object
   */
-  this.Add = function(oHL7)
+  this.PathologyOruMessage = function(oHL7)
   {
-    return new Add(oHL7);
+    this.Pathology = new Pathology(oHL7, this.FacilityConfig);
+    return this.Pathology;
   };
 
-  /** 
-   * @function
-   * @description Creates a new Update object instance
-   * @param {message} oHL7 The inbound message object
-   * @returns {Update} object
-  */
-  this.Update = function(oHL7)
-  {
-    return new Update(oHL7);
-  };
-
-  /** 
-   * @function
-   * @description Creates a new Merge object instance
-   * @param {message} oHL7 The inbound message object
-   * @returns {Merge} object
-  */
-  this.Merge = function(oHL7)
-  {
-    BreakPoint;
-    return new Merge(oHL7);
-  };
-
+  
   /**
    * @class
    * @classdesc Internal Add class collects data required for the AddPatient requests
@@ -98,102 +65,19 @@ function BusinessModels(SiteContext)
    * @param {message} oHL7 The inbound message object
    * @inner
   */
-  function Add(oHL7)
+  function Pathology(oHL7, FacilityConfig)
   {
-    /** @property {string}  AddActionName - The static action name required by ICIMS for AddPatient requests.
-      * @default
-    */
-    var AddActionName = IcimsPostAction.Add
-    /** @property {Patient}  Patient - Patient object*/
-    this.Patient = null;
-    /** @property {Doctor}  Doctor - Doctor object*/
-    this.Doctor = null;
-    /** @property {Meta}  Meta - Meta object*/
     this.Meta = null;
-
-    //Patient
-    this.Patient = new Patient(oHL7.Segment("PID", 0));
-
-    //Doctor
-    if (FacilityConfig.SiteContext == SiteContextEnum.RMH)
-    {
-      var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
-      if (oROL_GP !== null)
-      {
-        this.Doctor = new Doctor(oROL_GP);
-      }
-    }
+    this.Patient = null;
     
     //Meta-data
-    this.Meta = new Meta(AddActionName, oHL7.Segment("MSH",0));
+    this.Meta = new Meta(oHL7.Segment("MSH",0));
+    
+    //Patient
+    this.Patient = new Patient(oHL7.Segment("PID", 0), FacilityConfig);
+
   }
   
-  /**
-   * @class
-   * @classdesc Internal Update class collects data required for the UpdatePatient requests
-   * @constructor
-   * @param {message} oHL7 The inbound message object
-   * @inner
-  */
-  function Update(oHL7)
-  {
-    /** @property {string}  UpdateActionName - The static action name required by ICIMS for UpdatePatient requests.
-      * @default
-    */
-    var UpdateActionName = IcimsPostAction.Update;
-    /** @property {Patient}  Patient - Patient object
-    */
-    this.Patient = null;
-
-    /** @property {Doctor}  Doctor - Doctor object
-    */
-    this.Doctor = null;
-
-    /** @property {Meta}  Meta - Meta object
-    */
-    this.Meta = null;
-
-    //Patient
-    this.Patient = new Patient(oHL7.Segment("PID", 0));
-
-    //Doctor
-    if (FacilityConfig.SiteContext == SiteContextEnum.RMH)
-    {
-      var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
-      if (oROL_GP !== null)
-      {
-        this.Doctor = new Doctor(oROL_GP);
-      }
-      else
-      {
-        this.Doctor = null;
-      }
-    }
-
-    //Meta-data
-    this.Meta = new Meta(UpdateActionName, oHL7.Segment("MSH",0));
-  }
-
-  /**
-   * @class
-   * @classdesc Internal Merge class collects data required for the MergePatient requests
-   * @constructor
-   * @param {message} oHL7 The inbound message object
-   * @inner
-  */
-  function Merge(oHL7)
-  {
-    /** @property {string}  MergeActionName - The static action name required by ICIMS for Merge requests.
-      * @default*/
-    var MergeActionName = IcimsPostAction.Merge;
-    /** @property {Patient}  Patient - Patient object */
-    this.Patient = new Patient(oHL7.Segment("PID", 0));
-    /** @property {Meta}  Meta - Meta bject    */
-    this.Meta = new Meta(MergeActionName, oHL7.Segment("MSH",0));
-    /** @property {Merge}  Merge - Merge object    */
-    this.MergeIdentifers = new MergeIdentifers(oHL7.Segment("MRG", 0));
-  }
-
 //==============================================================================
 // Support Classes
 //==============================================================================
@@ -205,7 +89,7 @@ function BusinessModels(SiteContext)
    * @param {Segment} oSeg The HL7 V2 PID Patient Segment
    * @inner
   */
-  function Patient(oSeg)
+  function Patient(oSeg, FacilityConfig)
   {
     /** @property {string}  RMHMrnValue - The Medical Record Number value for the patient */
     this.RMHMrnValue = null;
@@ -242,7 +126,7 @@ function BusinessModels(SiteContext)
       *  <li><b>8</b>: Question unable to be asked (Victorian HealthSmart value Only)</li>
       *  <li><b>9</b>: Not stated/ inadequately described</li></code>
     */
-    this.Aboriginality = null;
+    //this.Aboriginality = null;
 
 
     if (oSeg.Code == "PID")
@@ -303,10 +187,10 @@ function BusinessModels(SiteContext)
       BreakPoint;
 
       //The Patient ATSI code value
-      if (oSeg.Field(10).ComponentCount > 1 && Component(1).AsString != "")
-      {
-        this.Aboriginality = Set(oSeg.Field(10).Component(1));
-      }
+      //if (oSeg.Field(10).ComponentCount > 1 && Component(1).AsString != "")
+      //{
+      //  this.Aboriginality = Set(oSeg.Field(10).Component(1));
+      //}
       
       //Patient Address
       //(1: Business, 2: Mailing Address, 3:Temporary Address, 4:ResidentialHome, 9: Not Specified)
@@ -385,46 +269,6 @@ BreakPoint;
     }
   }
   
-  /**
-   * @class
-   * @classdesc Internal Doctor class collects data required for the Doctor
-   * @constructor
-   * @param {Segment} oROL The HL7 V2 ROL role Segment for the general practitioner
-   * @inner
-  */
-  function Doctor(oROL)
-  {
-    /** @property {string} Given - The Doctor's given name*/
-    this.Given = null;
-    /** @property {string} Family - The Doctor's family name*/
-    this.Family = null;
-    /** @property {Address} Address - The Doctor's address */
-    this.Address = null;
-    /** @property {Contact} Contact - The Doctor's home contacts*/
-    this.Contact = null;
-
-    this.Given = Set(oROL.Field(4).Component(3));
-    this.Family = Set(oROL.Field(4).Component(2));
-
-    //Doctor Address
-    //(1: Business, 2: Mailing Address, 3:Temporary Address, 4:Residential/Home, 9: Not Specified)
-    //At RMH we had issues in that we got many addresses and could not pick the one required for the current primary doctor surgery
-    //This was resolved and the PMI is to now only send a single address that being the correct address.
-    //For this reason I have changes the code below to just take the first address regardless of there being many, which there should not be.
-
-BreakPoint;
-    //If we did not get the target adddress then just take the first address.
-    if (oROL.Field(11).RepeatCount > 0)
-    {
-      this.Address = new Address(oROL.Field(11).Repeats(0));
-    }
-    
-    //Doctor Contacts (We only take the first of each type.
-    this.Contact = new Contact();
-    this.Contact.Inflate(oROL.Field(12), PhoneUseEnum.Work);
-
-    
-  }
 
    /**
    * @class
@@ -434,14 +278,13 @@ BreakPoint;
    * @param {Segment} oMSH The HL7 V2 MSH Message Header Segment for the Message details
    * @inner
   */
-  function Meta(Action, oMSH)
+  function Meta(oMSH)
   {
-    /** @property {string} Action - The ICIMS request action string */
-    this.Action = Action;
-    /** @property {string} MessageControlID - The HL7 V2 message unquie id */
+    
     this.MessageControlID = null;
-    /** @property {date} MessageDateTime - The HL7 V2 message creation Date Time*/
     this.MessageDateTime = null;
+    this.SendingApplication = null;
+    
     if (oMSH.Code !== "MSH")
     {
       throw "Meta Hl7 Segment oMSH must have the segment code 'MSH'.";
@@ -456,26 +299,10 @@ BreakPoint;
     {
       throw "Message Date & Time in MSH-7 can not be parsed as a Date or Date time, vaule was: " + oMSH.Field(7).AsString;
     }
+    
+    this.SendingApplication = Set(oMSH.Field(3));
   }
 
- /**
-   * @class
-   * @classdesc Internal Merge class collects data required for Patient Mergers
-   * @constructor
-   * @param {Segment} oMRG The HL7 V2 MRG Merge segment for merge details
-   * @inner
-  */
-  function MergeIdentifers(oMRG)
-  {
-    /** @property {string} PriorMRNValue - The prior Medical Record Number value for merge events*/
-    this.PriorMRNValue = null;
-    /** @property {string} PriorMRNAssigningAuthority - The prior Medical Record Number's Assigning Authority code*/
-    this.PriorMRNAssigningAuthority = null;
-
-    var MRN = new ResolveMrn(oMRG.Element(1), FacilityConfig);
-    this.PriorMRNValue = MRN.Value;
-    this.PriorMRNAssigningAuthority = MRN.AssigningAuthority;
-  }
 
  /**
    * @class
@@ -683,7 +510,6 @@ BreakPoint;
   */
   function ResolveMrn(oElement, FacilityConfig)
   {
-BreakPoint;
     /** @property {string} Value - The Medical Record Number value */
     this.Value = null;
     /** @property {string} AssigningAuthority - The Medical Record Number's Assigning Authority code */
@@ -725,32 +551,7 @@ BreakPoint;
     }
   }
 
-  /**
-   * @description Function to find the correct HL7 V2 Role (ROL) segment for the Patient's General Practitioner information
-   * @function
-   * @param {message} oHL7 The HL7 V2 message
-   * @returns {segment}
-   * @inner
-  */
-  function ResolveGeneralPractitionerROL(oHL7)
-  {
-    for (var i=0; (i < oHL7.CountSegment("ROL")); i++)
-    {
-      //ToDo: Check with Gita about codes in ROL-9.1, which codes to look for and can we get many of the same type
-      // for the target we want GP?
-      //Also what to do if we get not GP ROL segment
-      //ROL-3.1 (Provider Role) = AP: Authoring Provider, CP:Consulting Doctor, RT:Discharged to/Referring provider, RP:Discharging/Referring provider, IR:Intended Recipient, PP:Primary Provider General Practitioner)
-      //ROL-9.1= GMPRC: General Practitioner
-      var ProviderRole = "PP";
-      var ProviderType = "GMPRC";
-      if (oHL7.Segment("ROL",i).Field(3).Component(1).AsString.toUpperCase() == ProviderRole &&
-          oHL7.Segment("ROL",i).Field(9).Component(1).AsString.toUpperCase() == ProviderType)
-      {
-        return oHL7.Segment("ROL",i);
-      }
-    }
-    return null;
-  }
+
 
   /** @function
    * @description Get the first XAD element from the Adress List that matches the AddressTypeArray given.

@@ -1,28 +1,19 @@
-
-<%include $repo$\ICIMS\FhirLibrary\MessageHeaderFhirResource.js%>
-
-
 function BundleFhirResource(){
 
-  this.GetResource = function(oHL7){
-    Resource = new CreateResource(oHL7);
-    return Resource;
+  var Bundle = new function(){};
+  Bundle.resourceType = "Bundle";
+  Bundle.id = GUID();
+  Bundle.type = "message";
+  Bundle.entry = [];
+
+  this.GetResource = function(){
+    return Bundle;
   };
 
-  function CreateResource(oHL7){
-
-    var Bundle = new function(){};
-    Bundle.resourceType = "Bundle";
-    Bundle.id = GUID();
-    Bundle.type = "message";
-    
-    var MsgHeader = new MessageHeaderFhirResource();
-    var MessageHeaderEntry = GetEntry(GUID(),MsgHeader.GetResource(oHL7));
-    Bundle.entry = [ MessageHeaderEntry ];
-    
-    return Bundle;
+  this.AddEntry = function(fullUrl, resource){
+    Bundle.entry.push(GetEntry(fullUrl, resource));
   }
-  
+
   function GetEntry(fullURL, resource)
   {
     var Entry = new function(){};

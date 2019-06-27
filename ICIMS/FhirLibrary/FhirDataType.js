@@ -2,9 +2,14 @@ function FhirDataType(){
 
   this.GetCoding = function(code, codeSystem, display, version)
   {
-    Coding = new Coding(code, codeSystem, display, version);
-    return Coding;
+    return new Coding(code, codeSystem, display, version);
   };
+
+  this.GetReference = function(reference, display)
+  {
+    return new Reference(reference, display);
+  };
+
   
   function Coding(code, codeSystem, display, version){
     var coding = new function(){};
@@ -14,6 +19,13 @@ function FhirDataType(){
     if (version != "")
       coding.version = version;
     return coding;
+  }
+  
+  function Reference(reference, display){
+    var ref = new function(){};
+    ref.reference = reference;
+    ref.display = display;
+    return ref;
   }
   
 }
