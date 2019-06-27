@@ -1,15 +1,14 @@
 
-<%include $repo$\ICIMS\FhirLibrary\FhirDataType.js%>
+<%include $repo$\ICIMS\FhirLibrary\FhirDataTypeTool.js%>
 
 function MessageHeaderFhirResource(id, oModels){
   var oModels = oModels;
   var Resource = new function(){};
   Resource.resourceType = "MessageHeader";
   Resource.id = id;
-  var DataType = new FhirDataType();
+  var DataType = new FhirDataTypeTool();
   Resource.event = DataType.GetCoding("diagnosticreport-provide", "http://hl7.org/fhir/message-events", "diagnosticreport-provide");
   Resource.destination = GetDestination("ICIMS", oModels.FacilityConfig.EndPoint);
-  BreakPoint;
   Resource.timestamp = oModels.Pathology.Meta.MessageDateTime.AsXML;
   
   this.GetResource = function(){

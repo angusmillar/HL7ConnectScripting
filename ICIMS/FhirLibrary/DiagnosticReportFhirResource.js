@@ -1,8 +1,6 @@
 
-<%include $repo$\ICIMS\FhirLibrary\FhirDataType.js%>
+function DiagnosticReportFhirResource(id){
 
-function DiagnosticReportFhirResource(id, oModels){
-  var oModels = oModels;
   var Resource = new function(){};
   Resource.resourceType = "DiagnosticReport";
   Resource.id = id;
@@ -11,32 +9,36 @@ function DiagnosticReportFhirResource(id, oModels){
     return Resource;
   };
 
-
-  this.SetSource = function(name, software, version, oContact, endpoint){
-    Resource.source = GetSource(name, software, version, oContact, endpoint);
+  this.SetIdentifierArray = function(identifierArray){
+    Resource.identifier = identifierArray;
   };
 
- 
-  function GetSource(name, software, version, oContact, endpoint)
-  {
-    var Source = new function(){};
-    if (name != "")
-      Source.name = name;
+  this.SetStatus = function(code){
+    Resource.status = code;
+  };
 
-    if (software != "")
-      Source.endpoint = software;
+  this.SetCategory = function(codableConcept){
+    Resource.category = codableConcept;
+  };
+  
+  this.SetCode = function(codableConcept){
+    Resource.code = codableConcept;
+  };
 
-    if (version != "")
-      Source.endpoint = version;
+  this.SetSubject = function(reference){
+    Resource.subject = reference;
+  };
 
-    if (oContact != "")
-      Source.endpoint = oContact;
+  this.SetEffectiveDateTime = function(dateTime){
+    Resource.effectiveDateTime = dateTime;
+  };
 
-    if (endpoint != "")
-      Source.endpoint = endpoint;
+  this.SetIssued = function(dateTime){
+    Resource.issued = dateTime;
+  };
 
-    return Source;
-  }
-
+  this.SetPresentedForm = function(AttachmentArray){
+    Resource.presentedForm = AttachmentArray;
+  };
 
 }

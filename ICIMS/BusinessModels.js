@@ -69,12 +69,31 @@ function BusinessModels(SiteContext)
   {
     this.Meta = null;
     this.Patient = null;
+    this.Report = null;
+    this.Base64Pdf = null;
     
     //Meta-data
     this.Meta = new Meta(oHL7.Segment("MSH",0));
     
     //Patient
     this.Patient = new Patient(oHL7.Segment("PID", 0), FacilityConfig);
+
+    //Patient
+    this.Report = new Report(oHL7.Segment("OBR", 0), FacilityConfig);
+
+    //PDF
+    for (var i=0; (i < oHL7.CountSegment("OBX")); i++) {
+      if (oHL7.Segment("OBX",i).Field(2).AsString.toUpperCase() == "ED" &&
+          oHL7.Segment("OBX",i).Field(3).Component(1).AsString.toUpperCase() == "PDF" &&
+          oHL7.Segment("OBX",i).Field(3).Component(3).AsString.toUpperCase() == "AUSPDI")
+      {
+        this.Base64Pdf = oHL7.Segment("OBX",i).Field(5).Component(5).AsString;
+      }
+    }
+    //Throw if no PDF found
+    if (this.Base64Pdf == null){
+      throw "Unable to locate the base64 encoded PDF report data. Expected an OBX Segment with OBX-2 = ED, OBX-3.1 = PDF and OBX-3.3 = AUSPDI";
+    }
 
   }
   
@@ -184,8 +203,6 @@ function BusinessModels(SiteContext)
         this.Language = Set(oSeg.Field(15));
       }
 
-      BreakPoint;
-
       //The Patient ATSI code value
       //if (oSeg.Field(10).ComponentCount > 1 && Component(1).AsString != "")
       //{
@@ -251,8 +268,6 @@ function BusinessModels(SiteContext)
         }
       }
       
-      
-BreakPoint;
       this.ContactHome = new Contact();
       this.ContactBusiness = new Contact();
       if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
@@ -270,14 +285,79 @@ BreakPoint;
   }
   
 
-   /**
+  /**
    * @class
-   * @classdesc Internal Meta class Collects Meta-data required for the REST service call
+   * @classdesc Internal Patient class collects data required for the Patient
    * @constructor
-   * @param {string} Action The ICIMS action string (addpatient, updatepatient, mergepatient)
-   * @param {Segment} oMSH The HL7 V2 MSH Message Header Segment for the Message details
+   * @param {Segment} oSeg The HL7 V2 PID Patient Segment
    * @inner
   */
+  function Report(oOBR)
+  {
+    /** @property {string}  RMHMrnValue - The Medical Record Number value for the patient */
+    this.FillerOrderNumberValue = null;
+    this.FillerOrderNumberNamespaceId = null;
+    this.FillerOrderNumberUniversalId = null;
+    this.Status = null;
+    this.DiagServSectId = null;
+
+    this.ReportCode = null;
+    this.ReportCodeDescription = null;
+    this.ReportCodeSystem = null;
+
+    this.CollectionDateTime = null;
+    this.ReportIssuedDateTime = null;
+
+
+    this.FillerOrderNumberValue = Set(oOBR.Field(3).Component(1));
+    this.FillerOrderNumberNamespaceId = Set(oOBR.Field(3).Component(2));
+    this.FillerOrderNumberUniversalId = Set(oOBR.Field(3).Component(3));
+
+    switch(oOBR.Field(25).AsString) {
+      case "F":
+        this.Status = "final";
+        break;
+      case "C":
+        this.Status = "corrected";
+        break;
+      case "P":
+        this.Status = "preliminary";
+        break;
+      default:
+        throw "The Report status found in OBR-25 was not expected, value is : " + oOBR.Field(25).AsString;
+    }
+    
+    this.DiagServSectId = Set(oOBR.Field(24));
+
+    this.ReportCode = Set(oOBR.Field(4).Component(1));
+    this.ReportCodeDescription = Set(oOBR.Field(4).Component(2));
+    this.ReportCodeSystem = Set(oOBR.Field(4).Component(3));
+
+    try
+    {
+      this.CollectionDateTime = DateAndTimeFromHL7(oOBR.Field(7).AsString);
+    }
+    catch(Exec)
+    {
+      throw "Collection Date & Time in OBR-7 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(7).AsString;
+    }
+
+    try
+    {
+      this.ReportIssuedDateTime = DateAndTimeFromHL7(oOBR.Field(22).AsString);
+    }
+    catch(Exec)
+    {
+      throw "Results Rpt/Status Change Date & Time in OBR-22 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(22).AsString;
+    }
+    
+  }
+
+
+
+  //---------------------------------------------------------------
+  //Report
+  //---------------------------------------------------------------
   function Meta(oMSH)
   {
     

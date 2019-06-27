@@ -5,4 +5,10 @@ function FhirTools(){
     return "urn:uuid:" + Uuid;
   };
 
+  this.GetGuid = function()
+  {
+    return GUID().toLowerCase();
+  };
+
+
 }

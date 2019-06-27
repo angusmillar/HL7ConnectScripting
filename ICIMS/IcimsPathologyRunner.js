@@ -25,7 +25,6 @@
  */
 function Main(aEvent)
 {
-   BreakPoint;
    //Validate and set the site context for the script
    //This is so the script can be adjusted for new sites as required.
    //For instance the string "RMH" must be passed in as a script parameter from HL7 Connect.
@@ -39,7 +38,7 @@ function Main(aEvent)
         //The Site Context enum we are running the script under
         FacilityConfiguration = oModels.FacilityConfiguration(SiteContext);
         //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
-        FacilityConfiguration.PrimaryMRNAssigningAuthority = "SAH";
+        FacilityConfiguration.PrimaryMRNAssigningAuthority = "https://www.sah.org.au/";
         //EndPoint - The REST endpoint url for ICIMS
 
         //Development
@@ -81,7 +80,6 @@ function Main(aEvent)
   {
    if (MessageType == "ORU")
    {
-     BreakPoint;
      var FhirResFactory = new FhirResourceFactory();
      if (MessageEvent == "R01")    //Register a patient
      {

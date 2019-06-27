@@ -1,8 +1,8 @@
-function BundleFhirResource(){
+function BundleFhirResource(id){
 
   var Bundle = new function(){};
   Bundle.resourceType = "Bundle";
-  Bundle.id = GUID();
+  Bundle.id = id;
   Bundle.type = "message";
   Bundle.entry = [];
 
