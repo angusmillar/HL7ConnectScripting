@@ -37,6 +37,10 @@ function DiagnosticReportFhirResource(id){
     Resource.issued = dateTime;
   };
 
+  this.SetResult = function(resultReferenceArray){
+    Resource.result = resultReferenceArray;
+  };
+
   this.SetPresentedForm = function(AttachmentArray){
     Resource.presentedForm = AttachmentArray;
   };

@@ -30,5 +30,13 @@ function PatientFhirResource(id){
     Resource.gender = code;
   };
 
+  this.SetBirthDate = function(date){
+    Resource.date = date;
+  };
+
+  this.SetAddress = function(addressArray){
+    Resource.address = addressArray;
+  };
+
 
 }

@@ -29,7 +29,6 @@ function BusinessModels(SiteContext)
 
   this.Merge = function(oHL7)
   {
-    BreakPoint;
     return new Merge(oHL7);
   };
 
@@ -63,7 +62,7 @@ function BusinessModels(SiteContext)
     this.Meta = null;
     this.Patient = null;
     this.Report = null;
-    this.Base64Pdf = null;
+    this.ObservationList = null;
     
     //Meta-data
     this.Meta = new Meta("PathologyPost", oHL7.Segment("MSH",0));
@@ -74,20 +73,12 @@ function BusinessModels(SiteContext)
     //Patient
     this.Report = new Report(oHL7.Segment("OBR", 0), FacilityConfig);
 
-    //PDF
-    for (var i=0; (i < oHL7.CountSegment("OBX")); i++) {
-      if (oHL7.Segment("OBX",i).Field(2).AsString.toUpperCase() == "ED" &&
-          oHL7.Segment("OBX",i).Field(3).Component(1).AsString.toUpperCase() == "PDF" &&
-          oHL7.Segment("OBX",i).Field(3).Component(3).AsString.toUpperCase() == "AUSPDI")
-      {
-        this.Base64Pdf = oHL7.Segment("OBX",i).Field(5).Component(5).AsString;
-      }
+    var OBXList = oHL7.SegmentQuery("OBX");
+    if (OBXList.Count > 0){
+      this.ObservationList = GetObservationList(OBXList);
+    } else {
+      throw "There were zero OBX segments found in the ORU message.";
     }
-    //Throw if no PDF found
-    if (this.Base64Pdf == null){
-      throw "Unable to locate the base64 encoded PDF report data. Expected an OBX Segment with OBX-2 = ED, OBX-3.1 = PDF and OBX-3.3 = AUSPDI";
-    }
-
   }
 
   function Add(oHL7)
@@ -360,6 +351,8 @@ function Patient(oSeg, FacilityConfig)
       }
     }
     this.PatientAddress = new Address(oXADAdressTarget);
+
+
     
     //Email Address For SAH
     if (FacilityConfig.SiteContext == SiteContextEnum.SAH)
@@ -452,6 +445,72 @@ function Report(oOBR)
     
   }
 
+  //Loops through each OBX segment and creates an array of Observation object instances
+  function GetObservationList(OBXList){
+    var ObservationList = [];
+    for (var i=0; (i < OBXList.Count); i++) {
+      ObservationList.push(new Observation(OBXList.Item(i)));
+    }
+    return ObservationList;
+  }
+
+  //Parse an OBX segment to an Observation instance
+  function Observation(oOBX){
+    this.Index = null;
+    this.DataType = null;
+    this.Code = null;
+    this.CodeDescription = null;
+    this.CodeSystem = null;
+    this.Value = null;
+    this.Status = null;
+    this.ObsDateTime = null;
+
+    this.Index = Set(oOBX.Field(1));
+    this.DataType = Set(oOBX.Field(2));
+    this.Code = Set(oOBX.Field(3).Component(1));
+    this.CodeDescription = Set(oOBX.Field(3).Component(2));
+
+    this.CodeSystem = Set(oOBX.Field(3).Component(3));
+
+    //OBX-2 DataType
+    if (this.DataType.toUpperCase() == "ED" && this.Code.toUpperCase() == "PDF" ){
+      this.Value = Set(oOBX.Field(5).Component(5));
+    } else {
+      this.Value = Set(oOBX.Field(5));
+    }
+
+    //OBX-11 Status
+    if (oOBX.Field(11).AsString != ""){
+      switch(oOBX.Field(11).AsString) {
+      case "F":
+        this.Status = "final";
+        break;
+      case "C":
+        this.Status = "amended";
+        break;
+      case "P":
+        this.Status = "preliminary";
+      case "D":
+        this.Status = "entered-in-error";
+        break;
+      default:
+        throw "The Observation status found in OBX-11 of the OBX segment index " + this.Index + " was not expected, value is : " + oOBX.Field(11).AsString + ", allowed values are (F,C,D,P).";
+      }
+    }
+
+    //OBX-14 Observation DateTime perfomred
+    if (oOBX.Field(14).AsString != ""){
+      try
+      {
+        this.ObsDateTime = DateAndTimeFromHL7(oOBX.Field(14).AsString);
+      }
+      catch(Exec)
+      {
+        throw "Observation Date & Time in OBX-14 for OBX index " + this.Index +" can not be parsed as a Date or Date time, vaule was: " + oOBX.Field(14).AsString;
+      }
+    }
+  }
+
   function Doctor(oROL)
   {
     /** @property {string} Given - The Doctor's given name*/
@@ -529,16 +588,18 @@ BreakPoint;
 
   function Address(oXAD)
   {
-    /** @property {string} AddressLine1 - Address line one */
+    //AddressLine1 - Address line one
     this.AddressLine1 = null;
-    /** @property {string} AddressLine2 - Address line two */
+    //AddressLine2 - Address line two
     this.AddressLine2 = null;
-    /** @property {string} Suburb - Address's suburb */
+    //Address's suburb
     this.Suburb = null;
-    /** @property {string} State - Address's state */
+    //Address's state
     this.State = null;
-    /** @property {string} Postcode - Address's postcode */
+    //Address's postcode
     this.Postcode = null;
+    //The whole address formatted into one line
+    this.FormattedAddress = null;
 
     if (oXAD !== null)
     {
@@ -548,6 +609,23 @@ BreakPoint;
       this.State = Set(oXAD.Component(4));
       this.Postcode = Set(oXAD.Component(5));
     }
+    
+    if (this.AddressLine1 != null){
+      this.FormattedAddress = this.AddressLine1;
+    }
+    if (this.AddressLine2 != null){
+      this.FormattedAddress = this.FormattedAddress + ", " + this.AddressLine2;
+    }
+    if (this.Suburb != null){
+      this.FormattedAddress = this.FormattedAddress + ", " + this.Suburb;
+    }
+    if (this.Postcode != null){
+      this.FormattedAddress = this.FormattedAddress + " " + this.Postcode;
+    }
+    if (this.State != null){
+      this.FormattedAddress = this.FormattedAddress + " " + this.State;
+    }
+    
   }
 
   function Contact()

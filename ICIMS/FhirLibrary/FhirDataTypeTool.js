@@ -34,6 +34,17 @@ function FhirDataTypeTool(){
   {
     return new HumanName(use, text, famly, given, prefix, suffix, oPeriod);
   };
+
+  this.GetAddress = function(use, type, text, line, city, district, state, postalCode, country, oPeriod)
+  {
+    return new Address(use, type, text, line, city, district, state, postalCode, country, oPeriod);
+  };
+
+  this.GetAddressAustrlian = function(use, text, line, suburb, state, postalCode, country, oPeriod)
+  {
+    return new Address(use, undefined, text, line, suburb, undefined, state, postalCode, country, oPeriod);
+  };
+
   
   function Coding(code, codeSystem, display, version){
     var coding = new function(){};
@@ -97,5 +108,19 @@ function FhirDataTypeTool(){
     return HumanName;
   }
 
+  function Address(use, type, text, line, city, district, state, postalCode, country, oPeriod){
+    var Address = new function(){};
+    Address.use = use;
+    Address.type = type;
+    Address.text = text;
+    Address.line = line;
+    Address.city = city;
+    Address.district = district;
+    Address.state = state;
+    Address.postalCode = postalCode;
+    Address.country = country;
+    Address.period = oPeriod;
+    return Address;
+  }
 
 }
