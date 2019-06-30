@@ -31,7 +31,7 @@ function PatientFhirResource(id){
   };
 
   this.SetBirthDate = function(date){
-    Resource.date = date;
+    Resource.birthDate = date;
   };
 
   this.SetAddress = function(addressArray){

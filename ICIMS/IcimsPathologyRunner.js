@@ -76,31 +76,34 @@ function Main(aEvent)
   var MessageType = oHL7.Segment("MSH",0).Field(9).Component(1).AsString.toUpperCase();
   //The current inbound HL7 V2 message event
   var MessageEvent = oHL7.Segment("MSH",0).Field(9).Component(2).AsString.toUpperCase();
+
   try
   {
    if (MessageType == "ORU")
    {
-     var FhirResFactory = new FhirResourceFactory();
-     if (MessageEvent == "R01")    //Register a patient
+
+     if (MessageEvent == "R01")
      {
        BreakPoint;
        oModels.PathologyOruMessage(oHL7);
+
+       BreakPoint;
+       var FhirResFactory = new FhirResourceFactory();
        var Bundle = new FhirResFactory.CreatePathologyBundle(oModels);
-
-
-       BreakPoint;
-       var JsonResource = JSON.stringify(Bundle, "", 4)
-       EndPointMethod = "$process-message";
-       BreakPoint;
-      // var POSTOutcome = new Client.POST("https://stu3.test.pyrohealth.net/fhir", EndPointMethod, "", JsonResource);
-
        
-       CallRESTService = false;
+       BreakPoint;
+       var BodyData = JSON.stringify(Bundle, "", 4)
+       //EndPointMethod = "$process-message";
+       EndPointMethod = "Bundle";
+
+       BreakPoint;
+
+       CallRESTService = true;
      }
      else
      {
        var ErrorMsg = "ICIMS Unknown Message Event of: " + MessageEvent;
-	   IcimsLog("ICIMS Unknown Message Event, expect ADT Events R01, found event: " + MessageEvent);
+	   IcimsLog("ICIMS Unknown Message Event, expect the events 'R01', found event: " + MessageEvent);
        RejectMessage(ErrorMsg);
        StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
      }
@@ -108,21 +111,20 @@ function Main(aEvent)
      if (CallRESTService)
      {
        BreakPoint;
-       IcimsLog("Logging form data about to be sent to ICIMS:");
+       IcimsLog("Logging request body data about to be sent to ICIMS:");
        IcimsLog("-------------------------------------------------------------");
-       IcimsLog(FormData);
+       IcimsLog(BodyData);
 
-
-       var Client = new RestClient();
-       var POSTOutcome = new Client.POST(FacilityConfiguration.EndPoint, EndPointMethod, FacilityConfiguration.AuthorizationToken, FormData);
+       var Client = new FhirClient();
+       var POSTOutcome = new Client.POST(FacilityConfiguration.EndPoint, EndPointMethod, FacilityConfiguration.AuthorizationToken, BodyData);
        if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 200)
        {
-         IcimsLog("Data We got: " + POSTOutcome.DataReceived);
+         IcimsLog("Data received: " + POSTOutcome.DataReceived);
          //Message has been sent successfully to ICIMS, event complete!
        }
        else if(!POSTOutcome.Error && POSTOutcome.HttpStatus == 401)
        {
-         //We have a HTTP Status code 400 error, Authorization failed.
+         //We have a HTTP Status code 401 error, Authorization failed.
          var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived);
          var ErrorMsg = "ICIMS Error Message: State: " + ICIMSError.state + ", Msg: " + ICIMSError.error;
          IcimsLog("ICIMS HTTP Status Code "+ POSTOutcome.HttpStatus + ": Authorization failed, check Authorization token is correct in script.");
@@ -169,7 +171,7 @@ function Main(aEvent)
    {
      //A HL7 V2 message type that is not suported by this script was passed in.
      var ErrorMsg = "ICIMS expected Message type: " + MessageType;
-     IcimsLog("ICIMS Unknown Message type, only expect ADT messages");
+     IcimsLog("ICIMS Unknown Message type, only expect ORU messages");
      RejectMessage(ErrorMsg);
      StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
    }
@@ -286,56 +288,10 @@ function Main(aEvent)
 	var currentdate = new Date();
     var datetime = currentdate.toDateString() + " : "
 	+ currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
-
-    Kernel.WriteToCustomLog("IcimsLog", datetime + ": " + message + "\r" + "\n")
+    Kernel.WriteToCustomLog("IcimsPathologyLog", datetime + ": " + message + "\r" + "\n")
   }
-
-
-
-
-  function TestFhir(){
-    var resourceName = "Patient";
-
-    BreakPoint;
-    var Client = new FhirClient();
-    var patientResource = new function(){};
-
-    if (resourceName != "")
-    {
-      patientResource.resourceType = resourceName;
-    }
-
-    var name1 = new function(){};
-    name1.family = "Angus";
-    name1.given = "Millar";
-    name1.use = "official"
-    
-    var name2 = new function(){};
-    
-    name2.given = "Gus";
-    name2.use = "nickname";
-
-    var nameList = [name1, name2];
-    patientResource.name = nameList;
-
-    patientResource.gender = "male";
-    patientResource.birthDate = "1973-09-30";
-     
-    
-    var JsonStr = JSON.stringify(patientResource, "", 4)
-
-    BreakPoint;
-    var POSTOutcome = new Client.POST("https://stu3.test.pyrohealth.net/fhir", "Patient", "NotInUse", JsonStr);
-
-  }
-
-
 
 }
-
-
-
-
 
 
 //======= Global ===============================================================

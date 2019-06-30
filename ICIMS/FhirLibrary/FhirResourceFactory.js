@@ -29,8 +29,8 @@ BreakPoint;
     var SAHOrganizationId = "95f4641f-6de7-470c-a44c-90ef5eb17faf";
     var SAHOrganizationName = "SAH";
     var SAHOrganizationAliasArray = ["SAN", "Sydney Adventist Hospital"];
-
-    var oBundle = new BundleFhirResource(FhirTool.GetGuid());
+//FhirTool.GetGuid()
+    var oBundle = new BundleFhirResource(undefined);
 
     //--------------------------------------------------------------------------
     //MessageHeader Resource
@@ -40,6 +40,7 @@ BreakPoint;
     oMsgHeader.SetReceiver(IcimsOrganizationId, IcimsOrganizationName);
     oMsgHeader.SetSender(SAHOrganizationId, SAHOrganizationName);
     oMsgHeader.SetSource(oModels.Pathology.Meta.SendingApplication);
+    oMsgHeader.SetMessageHeaderResponseRequestExt("on-error");
     var DiagnosticReportId = FhirTool.GetGuid();
     oMsgHeader.SetFocus(DiagnosticReportId, "DiagnosticReport");
     oBundle.AddEntry(FhirTool.PreFixUuid(MessageHeaderId), oMsgHeader.GetResource());
@@ -65,7 +66,7 @@ BreakPoint;
 
     oPatient.SetIdentifier([MrnIdentifier, MedicareIdentifier]);
 
-    var HumanName = FhirDataType.GetHumanName("Official", oModels.Pathology.Patient.FormattedName,
+    var HumanName = FhirDataType.GetHumanName("official", oModels.Pathology.Patient.FormattedName,
       oModels.Pathology.Patient.Family,
       oModels.Pathology.Patient.Given,
       oModels.Pathology.Patient.Title)
@@ -185,7 +186,7 @@ BreakPoint;
     //Organization SAH
     //--------------------------------------------------------------------------
     var oOrgSAH = new OrganizationFhirResource(SAHOrganizationId, SAHOrganizationName);
-    oOrgSAH.SetAlias([SAHOrganizationAliasArray]);
+    oOrgSAH.SetAlias(SAHOrganizationAliasArray);
     //Add Organization SAH to Bundle
     oBundle.AddEntry(FhirTool.PreFixUuid(SAHOrganizationId), oOrgSAH.GetResource());
 
