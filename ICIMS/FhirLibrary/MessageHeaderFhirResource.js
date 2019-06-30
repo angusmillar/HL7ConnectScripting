@@ -27,6 +27,13 @@ function MessageHeaderFhirResource(id, oModels){
     Resource.source = GetSource(name, software, version, oContact, endpoint);
   };
   
+  this.SetMessageHeaderResponseRequestExt = function(code){
+    Resource.extension = [{
+        url: "http://hl7.org/fhir/StructureDefinition/messageheader-response-request",
+        valueCode: code
+      }];
+  };
+  
   this.SetFocus = function(endpoint, name){
     Resource.focus = DataType.GetReference(endpoint, name);
   };
