@@ -96,13 +96,12 @@ function Main(aEvent)
        BreakPoint;
        var BodyData = JSON.stringify(Bundle, function (key, value) {
             //TODO: need to json stringify Quantity objects
-            if (key == "valueQuantity")
-            {
+            if (key == "valueQuantity"){
               return "10.000";
             } else {
               return value;
             }
-          }, 4)
+          }, 4);
        //EndPointMethod = "$process-message";
        EndPointMethod = "Bundle";
 
@@ -110,16 +109,14 @@ function Main(aEvent)
 
        CallRESTService = true;
      }
-     else
-     {
+     else {
        var ErrorMsg = "ICIMS Unknown Message Event of: " + MessageEvent;
 	   IcimsLog("ICIMS Unknown Message Event, expect the events 'R01', found event: " + MessageEvent);
        RejectMessage(ErrorMsg);
        StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
      }
      //Data Processed now attempt to call ICIMS REST Service
-     if (CallRESTService)
-     {
+     if (CallRESTService){
        BreakPoint;
        IcimsLog("Logging request body data about to be sent to ICIMS:");
        IcimsLog("-------------------------------------------------------------");
@@ -127,13 +124,11 @@ function Main(aEvent)
 
        var Client = new FhirClient();
        var POSTOutcome = new Client.POST(FacilityConfiguration.EndPoint, EndPointMethod, FacilityConfiguration.AuthorizationToken, BodyData);
-       if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 200)
-       {
+       if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 200){
          IcimsLog("Data received: " + POSTOutcome.DataReceived);
          //Message has been sent successfully to ICIMS, event complete!
        }
-       else if(!POSTOutcome.Error && POSTOutcome.HttpStatus == 401)
-       {
+       else if(!POSTOutcome.Error && POSTOutcome.HttpStatus == 401){
          //We have a HTTP Status code 401 error, Authorization failed.
          var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived);
          var ErrorMsg = "ICIMS Error Message: State: " + ICIMSError.state + ", Msg: " + ICIMSError.error;
@@ -143,8 +138,7 @@ function Main(aEvent)
          RejectMessage(ErrorMsg);
          StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
        }
-       else if(!POSTOutcome.Error)
-       {
+       else if(!POSTOutcome.Error){
          //We have some other HTTP error code
          var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived);
          var ErrorMsg = "ICIMS HTTP failed HTTP Status: " + POSTOutcome.HttpStatus + ", State: " + ICIMSError.state + ", Msg: " + ICIMSError.error;
@@ -154,19 +148,15 @@ function Main(aEvent)
          RejectMessage(ErrorMsg);
          StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
        }
-       else
-       {
-         if (POSTOutcome.Error)
-         {
+       else {
+         if (POSTOutcome.Error) {
            //We were unable to reach the REST endpoint, maybe network connection is down?
            var ErrorMsg = "ICIMS HTTP Request failed, network connectivity issue";
            IcimsLog(ErrorMsg);
            IcimsLog("ICIMS Error Message: " + POSTOutcome.ErrorMessage);
            RejectMessage(ErrorMsg);
            StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
-         }
-         else
-         {
+         } else {
            //Some unexplained script error, should not happen!
            var ErrorMsg = "ICIMS Unknown Scripting error";
            IcimsLog(ErrorMsg);
@@ -176,9 +166,7 @@ function Main(aEvent)
          }
        }
      }
-   }
-   else
-   {
+   } else {
      //A HL7 V2 message type that is not suported by this script was passed in.
      var ErrorMsg = "ICIMS expected Message type: " + MessageType;
      IcimsLog("ICIMS Unknown Message type, only expect ORU messages");
@@ -186,8 +174,7 @@ function Main(aEvent)
      StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
    }
   }
-  catch(Exec)
-  {
+  catch(Exec) {
    //The script has throwen and exception, should not happen!
    var ErrorMsg = "ICIMS Unknown Scripting exception of :" + Exec;
    IcimsLog(ErrorMsg);
@@ -201,15 +188,12 @@ function Main(aEvent)
    * @param {string} ErrorMsg The Error message to show on the HL7 Connect status page interface
    * @returns {void}
   */
-  function StopInterface(ErrorMsg)
-  {
-    if (IsTestCase == false)
-    {
+  function StopInterface(ErrorMsg){
+    if (IsTestCase == false){
 
       var oInterfaceOut = Kernel.Getinterface(FacilityConfiguration.NameOfInterfaceRunnningScript);
       var RejectCount = oInterfaceOut.RejCount
-      if (RejectCount > FacilityConfiguration.MaxRejectBeforeInterfaceStop - 2)
-      {
+      if (RejectCount > FacilityConfiguration.MaxRejectBeforeInterfaceStop - 2){
         IcimsLog("ICIMS Script is stopping the interface due to Reject count max reached.")
         //SendEmail("smtp.iinet.net.au", "HL7 Connect Error", "angusmillar@iinet.net.au", "hl7connect@error.com.au", "There was an error");
         oInterfaceOut.Stop(false, "Script-Error", ErrorMsg);
