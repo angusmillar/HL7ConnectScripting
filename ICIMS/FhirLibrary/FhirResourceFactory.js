@@ -5,6 +5,7 @@
 <%include $repo$\ICIMS\FhirLibrary\DiagnosticReportFhirResource.js%>
 <%include $repo$\ICIMS\FhirLibrary\PatientFhirResource.js%>
 <%include $repo$\ICIMS\FhirLibrary\ObservationFhirResource.js%>
+<%include $repo$\ICIMS\FhirLibrary\ProvenanceFhirResource.js%>
 <%include $repo$\ICIMS\FhirLibrary\FhirDataTypeTool.js%>
 <%include $repo$\ICIMS\FhirLibrary\FhirTools.js%>
 
@@ -17,8 +18,6 @@ function FhirResourceFactory(){
 
   function CreatePathologyBundle(oModels){
 
-BreakPoint;
-
     var FhirTool = new FhirTools();
     var FhirDataType = new FhirDataTypeTool();
     
@@ -29,9 +28,12 @@ BreakPoint;
     var SAHOrganizationId = "95f4641f-6de7-470c-a44c-90ef5eb17faf";
     var SAHOrganizationName = "SAH";
     var SAHOrganizationAliasArray = ["SAN", "Sydney Adventist Hospital"];
-//FhirTool.GetGuid()
+
+    //When sending to a [base]/fhir/Bundle endpoint for testing as a POST
+    //you can not have an id, however, when sending to $process-message you must
     var oBundle = new BundleFhirResource(undefined);
 
+    //var oBundle = new BundleFhirResource(FhirTool.GetGuid());
     //--------------------------------------------------------------------------
     //MessageHeader Resource
     //--------------------------------------------------------------------------
@@ -155,11 +157,13 @@ BreakPoint;
 
     //Get the base64 encoded PDF from the ObservationList and add to the DiagnosticReport Resource
     //property named 'presentedForm'
-    for (var i=0; (i < oModels.Pathology.ObservationList.length); i++) {
-      if (oModels.Pathology.ObservationList[i].Code == "PDF" && oModels.Pathology.ObservationList[i].CodeSystem == "AUSPDI"){
-        var oPdfAttachment = FhirDataType.GetPdfAttachment(oModels.Pathology.ObservationList[i].Value);
-        oDiagReport.SetPresentedForm([oPdfAttachment]);
-        break;
+    if (oModels.FacilityConfig.SendPathologyPdfReport){
+      for (var i=0; (i < oModels.Pathology.ObservationList.length); i++) {
+        if (oModels.Pathology.ObservationList[i].Code == "PDF" && oModels.Pathology.ObservationList[i].CodeSystem == "AUSPDI"){
+          var oPdfAttachment = FhirDataType.GetPdfAttachment(oModels.Pathology.ObservationList[i].Value);
+          oDiagReport.SetPresentedForm([oPdfAttachment]);
+          break;
+        }
       }
     }
 
@@ -189,6 +193,45 @@ BreakPoint;
     oOrgSAH.SetAlias(SAHOrganizationAliasArray);
     //Add Organization SAH to Bundle
     oBundle.AddEntry(FhirTool.PreFixUuid(SAHOrganizationId), oOrgSAH.GetResource());
+
+    //--------------------------------------------------------------------------
+    //Provenance SAH
+    //--------------------------------------------------------------------------
+    
+    var provenanceId = FhirTool.GetGuid()
+    var oProvenance = new ProvenanceFhirResource(provenanceId);
+    var TargetReferenceArray = [];
+    TargetReferenceArray.push(FhirDataType.GetReference(MessageHeaderId, "MessageHeader"));
+    TargetReferenceArray.push(FhirDataType.GetReference(PatientId, "Patient"));
+    TargetReferenceArray.push(FhirDataType.GetReference(DiagnosticReportId, "DiagnosticReport"));
+    for (var i=0; (i < ObservationResourceList.length); i++) {
+      TargetReferenceArray.push(FhirDataType.GetReference(ObservationResourceList[i].id, "Observation"));
+    }
+    TargetReferenceArray.push(FhirDataType.GetReference(IcimsOrganizationId, "Organization ICIMS"));
+    TargetReferenceArray.push(FhirDataType.GetReference(SAHOrganizationId, "Organization SAH"));
+    oProvenance.SetTarget(TargetReferenceArray);
+    
+    BreakPoint;
+    var Today = FhirTool.GetNow();
+    
+    //var xDate = Date().toLocaleString();
+    oProvenance.SetRecorded(Today);
+    
+    var activityCoding = FhirDataType.GetCoding("CREATE", "http://hl7.org/fhir/v3/DataOperation", "create");
+    oProvenance.SetActivity(activityCoding);
+
+    //var roleCoding = FhirDataType.GetCoding(code, codeSystem, display, version);
+    //var roleCodeableConcept = FhirDataType.GetCodeableConcept(roleCoding, text);
+    
+    var whoReference = FhirDataType.GetReference(undefined, "HL7 Connect Integration Engine");
+    var onBehalfOfReference = FhirDataType.GetReference(IcimsOrganizationId, "ICIMS");
+    oProvenance.SetAgent(undefined, whoReference, onBehalfOfReference);
+
+    var messageControlIdIdentifier = FhirDataType.GetIdentifier("official", undefined, "https://www.sah.org.au/systems/fhir/hl7-v2/message-control-id", oModels.Pathology.Meta.MessageControlID);
+    oProvenance.SetEntity("source", messageControlIdIdentifier);
+
+    //Add Provenanceto Bundle
+    oBundle.AddEntry(FhirTool.PreFixUuid(provenanceId), oProvenance.GetResource());
 
     return oBundle.GetResource();
   }

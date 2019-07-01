@@ -47,6 +47,9 @@ function BusinessModels(SiteContext)
     // The REST endpoint url for ICIMS.*/
     this.EndPoint = null;
 
+    // The REST endpoint url for ICIMS.*/
+    this.SendPathologyPdfReport = false;
+
     // The static Authorization Token to make the REST call against ICIMS service. */
     this.AuthorizationToken = null;
     
@@ -449,7 +452,8 @@ function Report(oOBR)
   function GetObservationList(OBXList){
     var ObservationList = [];
     for (var i=0; (i < OBXList.Count); i++) {
-      ObservationList.push(new Observation(OBXList.Item(i)));
+      var obs = new Observation(OBXList.Item(i));
+      ObservationList.push(obs);
     }
     return ObservationList;
   }
@@ -477,6 +481,7 @@ function Report(oOBR)
       this.Value = Set(oOBX.Field(5).Component(5));
     } else {
       this.Value = Set(oOBX.Field(5));
+      this.Value = 10.000;
     }
 
     //OBX-11 Status

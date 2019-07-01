@@ -43,6 +43,8 @@ function Main(aEvent)
         FacilityConfiguration.PrimaryMRNSystemUri = "https://www.sah.org.au/systems/fhir/pas/medical-record-number";
         //Development
         FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+        //Send the Pathology Pdf report if provided in V2 message
+        FacilityConfiguration.SendPathologyPdfReport = false;
         //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.
         //Production Token
         //FacilityConfiguration.AuthorizationToken = = "Basic aGw3OmlDSU1TMjBsNw==";
@@ -92,7 +94,15 @@ function Main(aEvent)
        var Bundle = new FhirResFactory.CreatePathologyBundle(oModels);
        
        BreakPoint;
-       var BodyData = JSON.stringify(Bundle, "", 4)
+       var BodyData = JSON.stringify(Bundle, function (key, value) {
+            //TODO: need to json stringify Quantity objects
+            if (key == "valueQuantity")
+            {
+              return "10.000";
+            } else {
+              return value;
+            }
+          }, 4)
        //EndPointMethod = "$process-message";
        EndPointMethod = "Bundle";
 
