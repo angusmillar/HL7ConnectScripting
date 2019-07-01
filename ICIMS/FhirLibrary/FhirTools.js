@@ -19,7 +19,7 @@ function FhirTools(){
     }
   };
 
-  this.SetTimeZone(dateString){
+  this.SetTimeZone = function(dateString){
     var now = new Date;
     var zone = -(now.getTimezoneOffset() / 60);
     //Asumes posative zone as all australian are, now great.
