@@ -55,23 +55,23 @@ function FhirResourceFactory(){
     oPatient.SetActive(true);
     //MRN
     var oPatMrnTypeCoding = FhirDataType.GetCoding("MR", "http://hl7.org/fhir/v2/0203", "Medical record number");
-    var oPatMrnType = FhirDataType.GetCodeableConcept(oPatMrnTypeCoding, "Medical record number")
+    var oPatMrnType = FhirDataType.GetCodeableConcept(oPatMrnTypeCoding, "Medical record number");
     var MrnIdentifier = FhirDataType.GetIdentifier("official", oPatMrnType,
       oModels.FacilityConfig.PrimaryMRNSystemUri,
-      oModels.Pathology.Patient.PrimaryMrnValue)
+      oModels.Pathology.Patient.PrimaryMrnValue);
     //MedicareNumber
     var oPatMedicareTypeCoding = FhirDataType.GetCoding("MC", "http://hl7.org/fhir/v2/0203", "Medicare Number");
-    var oPatMedicareType = FhirDataType.GetCodeableConcept(oPatMedicareTypeCoding, "Medicare Number")
+    var oPatMedicareType = FhirDataType.GetCodeableConcept(oPatMedicareTypeCoding, "Medicare Number");
     var MedicareIdentifier = FhirDataType.GetIdentifier("official", oPatMedicareType,
       "http://ns.electronichealth.net.au/id/medicare-number",
-      oModels.Pathology.Patient.MedicareNumberValue)
+      oModels.Pathology.Patient.MedicareNumberValue);
 
     oPatient.SetIdentifier([MrnIdentifier, MedicareIdentifier]);
 
     var HumanName = FhirDataType.GetHumanName("official", oModels.Pathology.Patient.FormattedName,
       oModels.Pathology.Patient.Family,
       oModels.Pathology.Patient.Given,
-      oModels.Pathology.Patient.Title)
+      oModels.Pathology.Patient.Title);
     oPatient.SetName([HumanName]);
     oPatient.SetGender(oModels.Pathology.Patient.Gender);
     oPatient.SetBirthDate(oModels.Pathology.Patient.Dob.AsXML);
@@ -85,8 +85,9 @@ function FhirResourceFactory(){
       lineArray.push(PatientAddress.AddressLine2);
     }
 
-    var oAddress = FhirDataType.GetAddressAustrlian(undefined, PatientAddress.FormattedAddress, lineArray, PatientAddress.Suburb, undefined, PatientAddress.Postcode)
-    oPatient.SetAddress([oAddress])
+    var oAddress = FhirDataType.GetAddressAustrlian(undefined, PatientAddress.FormattedAddress,
+      lineArray, PatientAddress.Suburb, undefined, PatientAddress.Postcode);
+    oPatient.SetAddress([oAddress]);
 
     //--------------------------------------------------------------------------
     //Observation Resource List
@@ -105,7 +106,8 @@ function FhirResourceFactory(){
 
           oObservation.SetCategory([ObsCategoryCodeableConcept]);
 
-          var ObsCodeCoding = FhirDataType.GetCoding(oModels.Pathology.ObservationList[i].Code, "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oModels.Pathology.ObservationList[i].CodeDescription);
+          var ObsCodeCoding = FhirDataType.GetCoding(oModels.Pathology.ObservationList[i].Code,
+            "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oModels.Pathology.ObservationList[i].CodeDescription);
           var ObsCodeCodeableConcept = FhirDataType.GetCodeableConcept(ObsCodeCoding);
           oObservation.SetCode(ObsCodeCodeableConcept);
 
@@ -127,12 +129,12 @@ function FhirResourceFactory(){
     var oDiagReport = new DiagnosticReportFhirResource(DiagnosticReportId);
 
     var oTypeCoding = FhirDataType.GetCoding("FILL", "http://hl7.org/fhir/identifier-type", "Filler Identifier");
-    var oType = FhirDataType.GetCodeableConcept(oTypeCoding, "Report Identifier")
+    var oType = FhirDataType.GetCodeableConcept(oTypeCoding, "Report Identifier");
     var ReportIdentifier = FhirDataType.GetIdentifier("official", oType,
       FhirTool.PreFixUuid(oModels.Pathology.Report.FillerOrderNumberUniversalId.toLowerCase()),
-      oModels.Pathology.Report.FillerOrderNumberValue)
+      oModels.Pathology.Report.FillerOrderNumberValue);
 
-    oDiagReport.SetIdentifierArray([ReportIdentifier])
+    oDiagReport.SetIdentifierArray([ReportIdentifier]);
     oDiagReport.SetStatus(oModels.Pathology.Report.Status);
     
     var oCategoryCoding = FhirDataType.GetCoding(oModels.Pathology.Report.DiagServSectId, "http://hl7.org/fhir/v2/0074");
@@ -198,7 +200,7 @@ function FhirResourceFactory(){
     //Provenance SAH
     //--------------------------------------------------------------------------
     
-    var provenanceId = FhirTool.GetGuid()
+    var provenanceId = FhirTool.GetGuid();
     var oProvenance = new ProvenanceFhirResource(provenanceId);
     var TargetReferenceArray = [];
     TargetReferenceArray.push(FhirDataType.GetReference(MessageHeaderId, "MessageHeader"));
@@ -227,7 +229,8 @@ function FhirResourceFactory(){
     var onBehalfOfReference = FhirDataType.GetReference(IcimsOrganizationId, "ICIMS");
     oProvenance.SetAgent(undefined, whoReference, onBehalfOfReference);
 
-    var messageControlIdIdentifier = FhirDataType.GetIdentifier("official", undefined, "https://www.sah.org.au/systems/fhir/hl7-v2/message-control-id", oModels.Pathology.Meta.MessageControlID);
+    var messageControlIdIdentifier = FhirDataType.GetIdentifier("official", undefined,
+      "https://www.sah.org.au/systems/fhir/hl7-v2/message-control-id", oModels.Pathology.Meta.MessageControlID);
     oProvenance.SetEntity("source", messageControlIdIdentifier);
 
     //Add Provenanceto Bundle
