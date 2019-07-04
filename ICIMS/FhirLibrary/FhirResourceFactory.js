@@ -44,7 +44,7 @@ function FhirResourceFactory(){
     oMsgHeader.SetSource(oModels.Pathology.Meta.SendingApplication);
     oMsgHeader.SetMessageHeaderResponseRequestExt("on-error");
     var DiagnosticReportId = FhirTool.GetGuid();
-    oMsgHeader.SetFocus(DiagnosticReportId, "DiagnosticReport");
+    oMsgHeader.SetFocus("DiagnosticReport", DiagnosticReportId, "DiagnosticReport");
     oBundle.AddEntry(FhirTool.PreFixUuid(MessageHeaderId), oMsgHeader.GetResource());
 
     //--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ function FhirResourceFactory(){
     //--------------------------------------------------------------------------
     var PatientId = FhirTool.GetGuid();
     var oPatient = new PatientFhirResource(PatientId);
-    oPatient.SetActive(true);
+    
     //MRN
     var oPatMrnTypeCoding = FhirDataType.GetCoding("MR", "http://hl7.org/fhir/v2/0203", "Medical record number");
     var oPatMrnType = FhirDataType.GetCodeableConcept(oPatMrnTypeCoding, "Medical record number");
@@ -92,7 +92,7 @@ function FhirResourceFactory(){
     //--------------------------------------------------------------------------
     //Observation Resource List
     //--------------------------------------------------------------------------
-    var oPatientReference = FhirDataType.GetReference(PatientId, oModels.Pathology.Patient.FormattedName );
+    var oPatientReference = FhirDataType.GetReference("Patient", PatientId, oModels.Pathology.Patient.FormattedName );
     var ObsCategoryCoding = FhirDataType.GetCoding("procedure", "http://hl7.org/fhir/observation-category", "Procedure");
     var ObsCategoryCodeableConcept = FhirDataType.GetCodeableConcept(ObsCategoryCoding);
     
@@ -152,7 +152,7 @@ function FhirResourceFactory(){
     //Add All the Observation References to the DiagnosticReport Resource
     var ResultReferenceArray = [];
     for (var i=0; (i < ObservationResourceList.length); i++) {
-      var oObsReference = FhirDataType.GetReference(ObservationResourceList[i].id, ObservationResourceList[i].code.coding.display );
+      var oObsReference = FhirDataType.GetReference("Observation", ObservationResourceList[i].id, ObservationResourceList[i].code.coding.display );
       ResultReferenceArray.push(oObsReference);
     }
     oDiagReport.SetResult(ResultReferenceArray);
@@ -203,14 +203,14 @@ function FhirResourceFactory(){
     var provenanceId = FhirTool.GetGuid();
     var oProvenance = new ProvenanceFhirResource(provenanceId);
     var TargetReferenceArray = [];
-    TargetReferenceArray.push(FhirDataType.GetReference(MessageHeaderId, "MessageHeader"));
-    TargetReferenceArray.push(FhirDataType.GetReference(PatientId, "Patient"));
-    TargetReferenceArray.push(FhirDataType.GetReference(DiagnosticReportId, "DiagnosticReport"));
+    TargetReferenceArray.push(FhirDataType.GetReference("MessageHeader", MessageHeaderId, "MessageHeader"));
+    TargetReferenceArray.push(FhirDataType.GetReference("Patient", PatientId, "Patient"));
+    TargetReferenceArray.push(FhirDataType.GetReference("DiagnosticReport", DiagnosticReportId, "DiagnosticReport"));
     for (var i=0; (i < ObservationResourceList.length); i++) {
-      TargetReferenceArray.push(FhirDataType.GetReference(ObservationResourceList[i].id, "Observation"));
+      TargetReferenceArray.push(FhirDataType.GetReference("Observation", ObservationResourceList[i].id, "Observation"));
     }
-    TargetReferenceArray.push(FhirDataType.GetReference(IcimsOrganizationId, "Organization ICIMS"));
-    TargetReferenceArray.push(FhirDataType.GetReference(SAHOrganizationId, "Organization SAH"));
+    TargetReferenceArray.push(FhirDataType.GetReference("Organization", IcimsOrganizationId, "Organization ICIMS"));
+    TargetReferenceArray.push(FhirDataType.GetReference("Organization", SAHOrganizationId, "Organization SAH"));
     oProvenance.SetTarget(TargetReferenceArray);
     
     BreakPoint;
@@ -225,8 +225,8 @@ function FhirResourceFactory(){
     //var roleCoding = FhirDataType.GetCoding(code, codeSystem, display, version);
     //var roleCodeableConcept = FhirDataType.GetCodeableConcept(roleCoding, text);
     
-    var whoReference = FhirDataType.GetReference(undefined, "HL7 Connect Integration Engine");
-    var onBehalfOfReference = FhirDataType.GetReference(IcimsOrganizationId, "ICIMS");
+    var whoReference = FhirDataType.GetReference(undefined, undefined, "HL7 Connect Integration Engine");
+    var onBehalfOfReference = FhirDataType.GetReference("Organization", IcimsOrganizationId, "ICIMS");
     oProvenance.SetAgent(undefined, whoReference, onBehalfOfReference);
 
     var messageControlIdIdentifier = FhirDataType.GetIdentifier("official", undefined,

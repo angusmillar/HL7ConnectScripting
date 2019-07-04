@@ -481,7 +481,6 @@ function Report(oOBR)
       this.Value = Set(oOBX.Field(5).Component(5));
     } else {
       this.Value = Set(oOBX.Field(5));
-      this.Value = 10.000;
     }
 
     //OBX-11 Status

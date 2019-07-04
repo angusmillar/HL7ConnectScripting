@@ -5,9 +5,9 @@ function FhirDataTypeTool(){
     return new Coding(code, codeSystem, display, version);
   };
 
-  this.GetReference = function(reference, display)
+  this.GetReference = function(resourceType, reference, display)
   {
-    return new Reference(reference, display);
+    return new Reference(resourceType, reference, display);
   };
 
   this.GetIdentifier = function(use, oType, system, value, oPeriod, oAssigner)
@@ -56,9 +56,9 @@ function FhirDataTypeTool(){
     return coding;
   }
   
-  function Reference(reference, display){
+  function Reference(resourceType, reference, display){
     var ref = new function(){};
-    ref.reference = reference;
+    ref.reference = resourceType + "/" + reference;
     ref.display = display;
     return ref;
   }
