@@ -1,5 +1,8 @@
+
 function FhirDataTypeTool(){
 
+  var FhirTool = new FhirTools();
+    
   this.GetCoding = function(code, codeSystem, display, version)
   {
     return new Coding(code, codeSystem, display, version);
@@ -48,27 +51,26 @@ function FhirDataTypeTool(){
   
   function Coding(code, codeSystem, display, version){
     var coding = new function(){};
-    coding.code = code;
-    coding.system = codeSystem;
-    coding.display = display;
-    if (version != "")
-      coding.version = version;
+    coding.code = FhirTool.SetFhir(code);
+    coding.system = FhirTool.SetFhir(codeSystem);
+    coding.display = FhirTool.SetFhir(display);
+    coding.version = FhirTool.SetFhir(version);
     return coding;
   }
   
   function Reference(resourceType, reference, display){
     var ref = new function(){};
-    ref.reference = resourceType + "/" + reference;
-    ref.display = display;
+    ref.reference = FhirTool.SetFhir(resourceType + "/" + reference);
+    ref.display = FhirTool.SetFhir(display);
     return ref;
   }
 
   function Identifier(use, oType, system, value, oPeriod, oAssigner){
     var id = new function(){};
-    id.use = use;
+    id.use = FhirTool.SetFhir(use);
     id.type = oType;
-    id.system = system
-    id.value = value
+    id.system = FhirTool.SetFhir(system)
+    id.value = FhirTool.SetFhir(value)
     id.period = oPeriod
     id.assigner = oAssigner
     return id;
@@ -77,48 +79,48 @@ function FhirDataTypeTool(){
   function CodeableConcept(oCoding, text){
     var CodeableConcept = new function(){};
     CodeableConcept.coding = oCoding;
-    CodeableConcept.text = text;
+    CodeableConcept.text = FhirTool.SetFhir(text);
     return CodeableConcept;
   }
 
   function Period(start, end){
     var Period = new function(){};
-    Period.start = start;
-    Period.end = end;
+    Period.start = FhirTool.SetFhir(start);
+    Period.end = FhirTool.SetFhir(end);
     return Period;
   }
 
   function Attachment(contentType, language, data){
     var Attachment = new function(){};
-    Attachment.contentType = contentType;
-    Attachment.language = language;
-    Attachment.data = data;
+    Attachment.contentType = FhirTool.SetFhir(contentType);
+    Attachment.language = FhirTool.SetFhir(language);
+    Attachment.data = FhirTool.SetFhir(data);
     return Attachment;
   }
 
   function HumanName(use, text, family, given, prefix, suffix, oPeriod){
     var HumanName = new function(){};
-    HumanName.use = use;
-    HumanName.text = text;
-    HumanName.family = family;
-    HumanName.given = given;
-    HumanName.prefix = prefix;
-    HumanName.suffix = suffix;
+    HumanName.use = FhirTool.SetFhir(use);
+    HumanName.text = FhirTool.SetFhir(text);
+    HumanName.family = FhirTool.SetFhir(family);
+    HumanName.given = FhirTool.SetFhir(given);
+    HumanName.prefix = FhirTool.SetFhir(prefix);
+    HumanName.suffix = FhirTool.SetFhir(suffix);
     HumanName.period = oPeriod;
     return HumanName;
   }
 
   function Address(use, type, text, line, city, district, state, postalCode, country, oPeriod){
     var Address = new function(){};
-    Address.use = use;
-    Address.type = type;
-    Address.text = text;
-    Address.line = line;
-    Address.city = city;
-    Address.district = district;
-    Address.state = state;
-    Address.postalCode = postalCode;
-    Address.country = country;
+    Address.use = FhirTool.SetFhir(use);
+    Address.type = FhirTool.SetFhir(type);
+    Address.text = FhirTool.SetFhir(text);
+    Address.line = FhirTool.SetFhir(line);
+    Address.city = FhirTool.SetFhir(city);
+    Address.district = FhirTool.SetFhir(district);
+    Address.state = FhirTool.SetFhir(state);
+    Address.postalCode = FhirTool.SetFhir(postalCode);
+    Address.country = FhirTool.SetFhir(country);
     Address.period = oPeriod;
     return Address;
   }

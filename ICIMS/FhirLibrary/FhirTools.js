@@ -19,6 +19,16 @@ function FhirTools(){
     }
   };
 
+  this.SetFhir = function(value)
+  {
+    if (value == null){
+      return undefined;
+    } else {
+      return value
+    }
+  };
+
+
   this.SetTimeZone = function(dateString){
     var now = new Date;
     var zone = -(now.getTimezoneOffset() / 60);
