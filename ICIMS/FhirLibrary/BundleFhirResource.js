@@ -10,7 +10,7 @@ function BundleFhirResource(){
   };
   
   Res.AddEntry = function(fullUrl, resource){
-    if (typeof Resource.entry == 'undefined'){
+    if (typeof Res.entry == 'undefined'){
       Res.entry = [];
     }
     Res.entry.push(GetEntry(fullUrl, resource));

@@ -24,9 +24,16 @@ function FhirResourceFactory(){
     var FhirDataType = new FhirDataTypeTool();
 
     var IcimsProfileBase = "https://www.icims.com.au/fhir";
-    var IcimsPatientProfileName = "StructureDefinition/icims-patient";
+
+    var IcimsMessageBundleProfileName = "StructureDefinition/icims-message-bundle";
     var IcimsMessageHeaderProfileName = "StructureDefinition/icims-messageHeader";
-    
+    var IcimsDiagnosticReportProfileName = "StructureDefinition/icims-diagnosticReport";
+    var IcimsPatientProfileName = "StructureDefinition/icims-patient";
+    var IcimsObservationProfileName = "StructureDefinition/icims-observation";
+    var IcimsOrganizationProfileName = "StructureDefinition/icims-organization";
+    var IcimsProvenanceProfileName = "StructureDefinition/icims-provenance";
+
+
     var IcimsOrganizationId = "bab13701-776a-41fd-86a9-7aa19df2825d";
     var IcimsOrganizationName = "ICIMS";
     var IcimsOrganizationAliasArray = ["Innovative Clinical Information Management Systems"];
@@ -38,12 +45,14 @@ function FhirResourceFactory(){
     //When sending to a [base]/fhir/Bundle endpoint for testing as a POST
     //you can not have an id, however, when sending to $process-message you must
     var oBundle = new BundleFhirResource();
-    //oBundle.SetId(FhirTool.GetGuid());
+    oBundle.SetId(FhirTool.GetGuid());
     oBundle.SetType("message");
+    var bundleProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsMessageBundleProfileName]);
+    oBundle.SetMetaProfile([bundleProfileUrl]);
+
     //--------------------------------------------------------------------------
     //MessageHeader Resource
     //--------------------------------------------------------------------------
-BreakPoint;
     var MessageHeaderId = FhirTool.GetGuid();
     var oMsgHeader = new MessageHeaderFhirResource();
     oMsgHeader.SetId(MessageHeaderId);
@@ -120,16 +129,17 @@ BreakPoint;
     var ObsCategoryCodeableConcept = FhirDataType.GetCodeableConcept(ObsCategoryCoding);
     
     var ObservationResourceList = [];
+    var obsProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsObservationProfileName]);
     for (var i=0; (i < oModels.Pathology.ObservationList.length); i++) {
       if (oModels.Pathology.ObservationList[i].Code != "PDF" && oModels.Pathology.ObservationList[i].CodeSystem != "AUSPDI"){
         if (oModels.Pathology.ObservationList[i].DataType == "ST"){
           var ObservationId = FhirTool.GetGuid();
           var oObservation = new ObservationFhirResource();
           oObservation.SetId(ObservationId);
+
+          oObservation.SetMetaProfile([obsProfileUrl]);
           oObservation.SetStatus(oModels.Pathology.ObservationList[i].Status);
-
           oObservation.SetCategory([ObsCategoryCodeableConcept]);
-
           var ObsCodeCoding = FhirDataType.GetCoding(oModels.Pathology.ObservationList[i].Code,
             "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oModels.Pathology.ObservationList[i].CodeDescription);
           var ObsCodeCodeableConcept = FhirDataType.GetCodeableConcept(ObsCodeCoding);
@@ -152,7 +162,8 @@ BreakPoint;
     //--------------------------------------------------------------------------
     var oDiagReport = new DiagnosticReportFhirResource();
     oDiagReport.SetId(DiagnosticReportId);
-
+    var oDiagRepProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsDiagnosticReportProfileName]);
+    oDiagReport.SetMetaProfile([oDiagRepProfileUrl]);
     var oTypeCoding = FhirDataType.GetCoding("FILL", "http://hl7.org/fhir/identifier-type", "Filler Identifier");
     var oType = FhirDataType.GetCodeableConcept(oTypeCoding, "Report Identifier");
     var ReportIdentifier = FhirDataType.GetIdentifier("official", oType,
@@ -210,6 +221,8 @@ BreakPoint;
     //--------------------------------------------------------------------------
     var oOrgIcims = new OrganizationFhirResource();
     oOrgIcims.SetId(IcimsOrganizationId);
+    var oOrgProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsOrganizationProfileName]);
+    oOrgIcims.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", oOrgProfileUrl]);
     oOrgIcims.SetName(IcimsOrganizationName);
     oOrgIcims.SetAlias(IcimsOrganizationAliasArray);
     //Add Organization ICIMS to Bundle
@@ -220,6 +233,7 @@ BreakPoint;
     //--------------------------------------------------------------------------
     var oOrgSAH = new OrganizationFhirResource(SAHOrganizationId, SAHOrganizationName);
     oOrgSAH.SetId(SAHOrganizationId);
+    oOrgSAH.SetMetaProfile([oOrgProfileUrl]);
     oOrgSAH.SetName(SAHOrganizationName);
     oOrgSAH.SetAlias(SAHOrganizationAliasArray);
     //Add Organization SAH to Bundle
@@ -228,11 +242,12 @@ BreakPoint;
     //--------------------------------------------------------------------------
     //Provenance SAH
     //--------------------------------------------------------------------------
-BreakPoint;
-
     var provenanceId = FhirTool.GetGuid();
     var oProvenance = new ProvenanceFhirResource();
     oProvenance.SetId(provenanceId);
+    var oProvenanceProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsProvenanceProfileName]);
+    oProvenance.SetMetaProfile([oProvenanceProfileUrl]);
+
     var TargetReferenceArray = [];
     TargetReferenceArray.push(FhirDataType.GetReference("MessageHeader", MessageHeaderId, "MessageHeader"));
     TargetReferenceArray.push(FhirDataType.GetReference("Patient", PatientId, "Patient"));
