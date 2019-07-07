@@ -1,4 +1,6 @@
 
+<%include $repo$\ICIMS\FhirLibrary\Resource.js%>
+<%include $repo$\ICIMS\FhirLibrary\DomainResource.js%>
 <%include $repo$\ICIMS\FhirLibrary\BundleFhirResource.js%>
 <%include $repo$\ICIMS\FhirLibrary\MessageHeaderFhirResource.js%>
 <%include $repo$\ICIMS\FhirLibrary\OrganizationFhirResource.js%>
@@ -20,6 +22,10 @@ function FhirResourceFactory(){
 
     var FhirTool = new FhirTools();
     var FhirDataType = new FhirDataTypeTool();
+
+    var IcimsProfileBase = "https://www.icims.com.au/fhir";
+    var IcimsPatientProfileName = "StructureDefinition/icims-patient";
+    var IcimsMessageHeaderProfileName = "StructureDefinition/icims-messageHeader";
     
     var IcimsOrganizationId = "bab13701-776a-41fd-86a9-7aa19df2825d";
     var IcimsOrganizationName = "ICIMS";
@@ -31,28 +37,45 @@ function FhirResourceFactory(){
 
     //When sending to a [base]/fhir/Bundle endpoint for testing as a POST
     //you can not have an id, however, when sending to $process-message you must
-    var oBundle = new BundleFhirResource(undefined);
-
-    //var oBundle = new BundleFhirResource(FhirTool.GetGuid());
+    var oBundle = new BundleFhirResource();
+    //oBundle.SetId(FhirTool.GetGuid());
+    oBundle.SetType("message");
     //--------------------------------------------------------------------------
     //MessageHeader Resource
     //--------------------------------------------------------------------------
+BreakPoint;
     var MessageHeaderId = FhirTool.GetGuid();
-    var oMsgHeader = new MessageHeaderFhirResource(MessageHeaderId, oModels);
-    oMsgHeader.SetReceiver(IcimsOrganizationId, IcimsOrganizationName);
-    oMsgHeader.SetSender(SAHOrganizationId, SAHOrganizationName);
+    var oMsgHeader = new MessageHeaderFhirResource();
+    oMsgHeader.SetId(MessageHeaderId);
+    var msgHeadProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsMessageHeaderProfileName], "/");
+    oMsgHeader.SetMetaProfile([msgHeadProfileUrl]);
+    var HeaderEventCoding = FhirDataType.GetCoding("diagnosticreport-provide", "http://hl7.org/fhir/message-events", "diagnosticreport-provide");
+    oMsgHeader.SetEvent(HeaderEventCoding);
+    oMsgHeader.SetDestination("ICIMS", undefined, oModels.FacilityConfig.EndPoint);
+    oMsgHeader.SetTimestamp(FhirTool.SetTimeZone(oModels.Pathology.Meta.MessageDateTime.AsXML));
+    var oReceiverReference = FhirDataType.GetReference("Organization", IcimsOrganizationId, IcimsOrganizationName);
+    oMsgHeader.SetReceiver(oReceiverReference);
+    var oSenderReference = FhirDataType.GetReference("Organization", SAHOrganizationId, SAHOrganizationName);
+    oMsgHeader.SetSender(oSenderReference);
     oMsgHeader.SetSource(oModels.Pathology.Meta.SendingApplication);
-    oMsgHeader.SetMessageHeaderResponseRequestExt("on-error");
+    var messageheaderResponseRequestExtension = FhirDataType.GetExtension("http://hl7.org/fhir/StructureDefinition/messageheader-response-request", "valueCode", "on-error");
+    oMsgHeader.SetExtension(messageheaderResponseRequestExtension);
     var DiagnosticReportId = FhirTool.GetGuid();
-    oMsgHeader.SetFocus("DiagnosticReport", DiagnosticReportId, "DiagnosticReport");
-    oBundle.AddEntry(FhirTool.PreFixUuid(MessageHeaderId), oMsgHeader.GetResource());
+    var oFocusReference = FhirDataType.GetReference("DiagnosticReport", DiagnosticReportId, "DiagnosticReport");
+    oBundle.AddEntry(FhirTool.PreFixUuid(MessageHeaderId), oMsgHeader);
 
     //--------------------------------------------------------------------------
     //Patient Resource
     //--------------------------------------------------------------------------
+
     var PatientId = FhirTool.GetGuid();
-    var oPatient = new PatientFhirResource(PatientId);
-    
+    var oPatient = new PatientFhirResource();
+    oPatient.SetId(PatientId);
+
+    var patientProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsPatientProfileName], "/");
+    //var oMeta = FhirDataType.GetMeta(undefined, undefined, [patientProfileUrl], undefined, undefined);
+    //oPatient.SetMeta(oMeta);
+    oPatient.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-patient", patientProfileUrl]);
     //MRN
     var oPatMrnTypeCoding = FhirDataType.GetCoding("MR", "http://hl7.org/fhir/v2/0203", "Medical record number");
     var oPatMrnType = FhirDataType.GetCodeableConcept(oPatMrnTypeCoding, "Medical record number");
@@ -101,7 +124,8 @@ function FhirResourceFactory(){
       if (oModels.Pathology.ObservationList[i].Code != "PDF" && oModels.Pathology.ObservationList[i].CodeSystem != "AUSPDI"){
         if (oModels.Pathology.ObservationList[i].DataType == "ST"){
           var ObservationId = FhirTool.GetGuid();
-          var oObservation = new ObservationFhirResource(ObservationId);
+          var oObservation = new ObservationFhirResource();
+          oObservation.SetId(ObservationId);
           oObservation.SetStatus(oModels.Pathology.ObservationList[i].Status);
 
           oObservation.SetCategory([ObsCategoryCodeableConcept]);
@@ -118,7 +142,7 @@ function FhirResourceFactory(){
           oObservation.SetIssued(oModels.Pathology.ObservationList[i].ObsDateTime.AsXML);
           //The Result
           oObservation.SetValueString(oModels.Pathology.ObservationList[i].Value);
-          ObservationResourceList.push(oObservation.GetResource());
+          ObservationResourceList.push(oObservation);
         }
       }
     }
@@ -126,7 +150,8 @@ function FhirResourceFactory(){
     //--------------------------------------------------------------------------
     //DiagnosticReport Resource
     //--------------------------------------------------------------------------
-    var oDiagReport = new DiagnosticReportFhirResource(DiagnosticReportId);
+    var oDiagReport = new DiagnosticReportFhirResource();
+    oDiagReport.SetId(DiagnosticReportId);
 
     var oTypeCoding = FhirDataType.GetCoding("FILL", "http://hl7.org/fhir/identifier-type", "Filler Identifier");
     var oType = FhirDataType.GetCodeableConcept(oTypeCoding, "Report Identifier");
@@ -170,10 +195,10 @@ function FhirResourceFactory(){
     }
 
     //Add DiagnosticReport to Bundle
-    oBundle.AddEntry(FhirTool.PreFixUuid(DiagnosticReportId), oDiagReport.GetResource());
+    oBundle.AddEntry(FhirTool.PreFixUuid(DiagnosticReportId), oDiagReport);
 
     //Add Patient to Bundle
-    oBundle.AddEntry(FhirTool.PreFixUuid(PatientId), oPatient.GetResource());
+    oBundle.AddEntry(FhirTool.PreFixUuid(PatientId), oPatient);
 
     //Add Observations to Bundle
     for (var i=0; (i < ObservationResourceList.length); i++) {
@@ -183,25 +208,31 @@ function FhirResourceFactory(){
     //--------------------------------------------------------------------------
     //Organization ICIMS
     //--------------------------------------------------------------------------
-    var oOrgIcims = new OrganizationFhirResource(IcimsOrganizationId, IcimsOrganizationName);
+    var oOrgIcims = new OrganizationFhirResource();
+    oOrgIcims.SetId(IcimsOrganizationId);
+    oOrgIcims.SetName(IcimsOrganizationName);
     oOrgIcims.SetAlias(IcimsOrganizationAliasArray);
     //Add Organization ICIMS to Bundle
-    oBundle.AddEntry(FhirTool.PreFixUuid(IcimsOrganizationId), oOrgIcims.GetResource());
+    oBundle.AddEntry(FhirTool.PreFixUuid(IcimsOrganizationId), oOrgIcims);
 
     //--------------------------------------------------------------------------
     //Organization SAH
     //--------------------------------------------------------------------------
     var oOrgSAH = new OrganizationFhirResource(SAHOrganizationId, SAHOrganizationName);
+    oOrgSAH.SetId(SAHOrganizationId);
+    oOrgSAH.SetName(SAHOrganizationName);
     oOrgSAH.SetAlias(SAHOrganizationAliasArray);
     //Add Organization SAH to Bundle
-    oBundle.AddEntry(FhirTool.PreFixUuid(SAHOrganizationId), oOrgSAH.GetResource());
+    oBundle.AddEntry(FhirTool.PreFixUuid(SAHOrganizationId), oOrgSAH);
 
     //--------------------------------------------------------------------------
     //Provenance SAH
     //--------------------------------------------------------------------------
-    
+BreakPoint;
+
     var provenanceId = FhirTool.GetGuid();
-    var oProvenance = new ProvenanceFhirResource(provenanceId);
+    var oProvenance = new ProvenanceFhirResource();
+    oProvenance.SetId(provenanceId);
     var TargetReferenceArray = [];
     TargetReferenceArray.push(FhirDataType.GetReference("MessageHeader", MessageHeaderId, "MessageHeader"));
     TargetReferenceArray.push(FhirDataType.GetReference("Patient", PatientId, "Patient"));
@@ -234,9 +265,9 @@ function FhirResourceFactory(){
     oProvenance.SetEntity("source", messageControlIdIdentifier);
 
     //Add Provenanceto Bundle
-    oBundle.AddEntry(FhirTool.PreFixUuid(provenanceId), oProvenance.GetResource());
+    oBundle.AddEntry(FhirTool.PreFixUuid(provenanceId), oProvenance);
 
-    return oBundle.GetResource();
+    return oBundle;
   }
 
   

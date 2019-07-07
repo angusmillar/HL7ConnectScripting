@@ -5,6 +5,20 @@ function FhirTools(){
     return "urn:uuid:" + Uuid;
   };
 
+  this.PathCombine = function(pathArray, delimiter){
+    path = "";
+    if (delimiter == undefined || null)
+      delimiter = "/";
+    for (var i=0; (i < pathArray.length); i++) {
+      if (i == 0){
+        path = pathArray[i];
+      } else {
+        path = path + "/" + pathArray[i];
+      }
+    }
+    return path;
+  }
+    
   this.GetGuid = function()
   {
     return GUID().toLowerCase();

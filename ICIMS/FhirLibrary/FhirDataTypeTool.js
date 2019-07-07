@@ -2,7 +2,12 @@
 function FhirDataTypeTool(){
 
   var FhirTool = new FhirTools();
-    
+
+  this.GetMeta = function(versionId, lastUpdatedInstant, profileUriArray, oSecurityCodingArray, oTagCodingArray)
+  {
+    return new Meta(versionId, lastUpdatedInstant, profileUriArray, oSecurityCodingArray, oTagCodingArray);
+  };
+
   this.GetCoding = function(code, codeSystem, display, version)
   {
     return new Coding(code, codeSystem, display, version);
@@ -47,6 +52,30 @@ function FhirDataTypeTool(){
   {
     return new Address(use, undefined, text, line, suburb, undefined, state, postalCode, country, oPeriod);
   };
+
+  this.GetNarrative = function(status, div)
+  {
+    return new Narrative(status, div);
+  };
+
+  this.GetExtension = function(url, valueXname, valueXvalue)
+  {
+    return new Extension(url, valueXname, valueXvalue);
+  };
+
+  function Extension(url, valueXname, valueXvalue){
+    var Extension = new function(){};
+    Extension.url = FhirTool.SetFhir(url);
+    Extension[valueXname] = FhirTool.SetFhir(valueXvalue);
+    return Extension;
+  }
+
+  function Narrative(status, div){
+    var Narrative = new function(){};
+    Narrative.status = FhirTool.SetFhir(status);
+    Narrative.div = FhirTool.SetFhir(div);
+    return Narrative;
+  }
 
   
   function Coding(code, codeSystem, display, version){
@@ -124,5 +153,17 @@ function FhirDataTypeTool(){
     Address.period = oPeriod;
     return Address;
   }
+
+  function Meta(versionId, lastUpdatedInstant, profileUriArray, oSecurityCodingArray, oTagCodingArray){
+    var Meta = new function(){};
+    Meta.versionId = FhirTool.SetFhir(versionId);
+    Meta.lastUpdated = FhirTool.SetFhir(lastUpdatedInstant);
+    Meta.profile = FhirTool.SetFhir(profileUriArray);
+    Meta.security = oSecurityCodingArray;
+    Meta.tag = oTagCodingArray;
+    return Meta;
+  }
+
+
 
 }

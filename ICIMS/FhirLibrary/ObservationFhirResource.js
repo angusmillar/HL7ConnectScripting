@@ -1,48 +1,45 @@
 
-function ObservationFhirResource(id){
+function ObservationFhirResource(){
+  var FhirTool = new FhirTools();
 
-  var Resource = new function(){};
+  var Resource = new DomainResource();
   Resource.resourceType = "Observation";
-  Resource.id = id;
 
-  this.GetResource = function(){
-    return Resource;
+  Resource.SetIdentifierArray = function(identifierArray){
+    Resource.identifier = FhirTool.SetFhir(identifierArray);
   };
 
-  this.SetIdentifierArray = function(identifierArray){
-    Resource.identifier = identifierArray;
-  };
-
-  this.SetStatus = function(statusCode){
-    Resource.status = statusCode;
+  Resource.SetStatus = function(statusCode){
+    Resource.status = FhirTool.SetFhir(statusCode);
   }
 
-  this.SetCategory = function(codeableConceptArray){
-    Resource.category = codeableConceptArray;
+  Resource.SetCategory = function(codeableConceptArray){
+    Resource.category = FhirTool.SetFhir(codeableConceptArray);
   }
 
-  this.SetCode = function(codeableConcept){
-    Resource.code = codeableConcept;
+  Resource.SetCode = function(codeableConcept){
+    Resource.code = FhirTool.SetFhir(codeableConcept);
   }
 
-  this.SetSubject = function(reference){
-    Resource.subject = reference;
+  Resource.SetSubject = function(reference){
+    Resource.subject = FhirTool.SetFhir(reference);
   }
 
-  this.SetEffectiveDateTime = function(dateTime){
-    Resource.effectiveDateTime = dateTime;
+  Resource.SetEffectiveDateTime = function(dateTime){
+    Resource.effectiveDateTime = FhirTool.SetFhir(dateTime);
   }
 
-  this.SetIssued = function(instant){
-    Resource.issued = instant;
+  Resource.SetIssued = function(instant){
+    Resource.issued = FhirTool.SetFhir(instant);
   }
   
-  this.SetValueString = function(string){
-    Resource.valueString = string;
+  Resource.SetValueString = function(string){
+    Resource.valueString = FhirTool.SetFhir(string);
   }
 
-  this.SetValueString = function(string){
-    Resource.valueString = string;
+  Resource.SetValueString = function(string){
+    Resource.valueString = FhirTool.SetFhir(string);
   }
   
+  return Resource;
 }

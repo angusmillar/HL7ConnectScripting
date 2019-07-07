@@ -1,24 +1,28 @@
-function BundleFhirResource(id){
+function BundleFhirResource(){
+  var FhirTool = new FhirTools();
 
-  var Bundle = new function(){};
-  Bundle.resourceType = "Bundle";
-  Bundle.id = id;
-  Bundle.type = "message";
-  Bundle.entry = [];
+  var Resource = new DomainResource();
+  Resource.resourceType = "Bundle";
+  
 
-  this.GetResource = function(){
-    return Bundle;
+  Resource.SetType = function(code){
+    Resource.type = FhirTool.SetFhir(code);
   };
-
-  this.AddEntry = function(fullUrl, resource){
-    Bundle.entry.push(GetEntry(fullUrl, resource));
+  
+  Resource.AddEntry = function(fullUrl, resource){
+    if (typeof Resource.entry == 'undefined'){
+      Resource.entry = [];
+    }
+    Resource.entry.push(GetEntry(fullUrl, resource));
   }
 
   function GetEntry(fullURL, resource)
   {
     var Entry = new function(){};
-    Entry.fullUrl = fullURL;
-    Entry.resource = resource;
+    Entry.fullUrl = FhirTool.SetFhir(fullURL);
+    Entry.resource = FhirTool.SetFhir(resource);
     return Entry;
   }
+  
+  return Resource;
 }

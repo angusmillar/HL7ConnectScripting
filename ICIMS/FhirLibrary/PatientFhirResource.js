@@ -1,42 +1,36 @@
 
-function PatientFhirResource(id){
+function PatientFhirResource(){
 
   var FhirTool = new FhirTools();
-  var Resource = new function(){};
+
+  var Resource = new DomainResource();
+  
   Resource.resourceType = "Patient";
-  Resource.id = id;
 
-  this.GetResource = function(){
-    return Resource;
-  };
-
-  this.SetIdentifierArray = function(identifierArray){
-    Resource.identifier = identifierArray;
-  };
-
-  this.SetActive = function(bool){
+  Resource.SetActive = function(bool){
     Resource.active = FhirTool.GetBool(bool);
   };
 
-  this.SetIdentifier = function(identifierArray){
-    Resource.identifier = identifierArray;
+  Resource.SetIdentifier = function(oIdentifierArray){
+    Resource.identifier = oIdentifierArray;
   };
 
-  this.SetName = function(humanNameArray){
-    Resource.name = humanNameArray;
+  Resource.SetName = function(oHumanNameArray){
+    Resource.name = oHumanNameArray;
   };
 
-  this.SetGender = function(code){
-    Resource.gender = code;
+  Resource.SetGender = function(oCode){
+    Resource.gender = oCode;
   };
 
-  this.SetBirthDate = function(date){
+  Resource.SetBirthDate = function(date){
     Resource.birthDate = date;
   };
 
-  this.SetAddress = function(addressArray){
-    Resource.address = addressArray;
+  Resource.SetAddress = function(oAddressArray){
+    Resource.address = oAddressArray;
   };
 
+  return Resource;
 
 }

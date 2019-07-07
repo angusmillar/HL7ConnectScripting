@@ -1,73 +1,58 @@
 
-<%include $repo$\ICIMS\FhirLibrary\FhirDataTypeTool.js%>
+function MessageHeaderFhirResource(){
+  var FhirTool = new FhirTools();
 
-function MessageHeaderFhirResource(id, oModels){
-  var oModels = oModels;
-  var Resource = new function(){};
+  var Resource = new DomainResource();
   Resource.resourceType = "MessageHeader";
-  Resource.id = id;
-  var DataType = new FhirDataTypeTool();
-  Resource.event = DataType.GetCoding("diagnosticreport-provide", "http://hl7.org/fhir/message-events", "diagnosticreport-provide");
-  Resource.destination = GetDestination("ICIMS", oModels.FacilityConfig.EndPoint);
-  Resource.timestamp = oModels.Pathology.Meta.MessageDateTime.AsXML;
-  
-  this.GetResource = function(){
-    return Resource;
+
+  Resource.SetEvent = function(oCoding){
+    Resource.event = FhirTool.SetFhir(oCoding);
   };
-  
-  this.SetReceiver = function(endpoint, name){
-    Resource.receiver = DataType.GetReference(endpoint, name);
+
+  Resource.SetDestination = function(nameString, oTargetReference, endpointUri){
+    Resource.destination = GetDestination(nameString, oTargetReference, endpointUri);
   };
-  
-  this.SetSender = function(endpoint, name){
-    Resource.sender = DataType.GetReference(endpoint, name);
+
+  Resource.SetTimestamp = function(instant){
+    Resource.timestamp = FhirTool.SetFhir(instant);
   };
-  
-  this.SetSource = function(name, software, version, oContact, endpoint){
+
+  Resource.SetReceiver = function(oReferece){
+    Resource.receiver = FhirTool.SetFhir(oReferece);
+  };
+
+  Resource.SetSender = function(oReferece){
+    Resource.sender =  FhirTool.SetFhir(oReferece);
+  };
+
+  Resource.SetSource = function(name, software, version, oContact, endpoint){
     Resource.source = GetSource(name, software, version, oContact, endpoint);
   };
   
-  this.SetMessageHeaderResponseRequestExt = function(code){
-    Resource.extension = [{
-        url: "http://hl7.org/fhir/StructureDefinition/messageheader-response-request",
-        valueCode: code
-      }];
+  Resource.SetFocus = function(oReferece){
+    Resource.focus = FhirTool.SetFhir(oReferece);
   };
-  
-  this.SetFocus = function(endpoint, name){
-    Resource.focus = DataType.GetReference(endpoint, name);
-  };
-  
-  function GetDestination(name, endpoint)
+
+  function GetDestination(nameString, oTargetReference, endpointUri)
   {
     var Destination = new function(){};
-    if (name != "")
-      Destination.name = name;
-    if (endpoint != "")
-      Destination.endpoint = endpoint;
+    Destination.name = FhirTool.SetFhir(nameString);
+    Destination.reference = FhirTool.SetFhir(oTargetReference);
+    Destination.endpoint = FhirTool.SetFhir(endpointUri);
     return Destination;
   }
-  
+
   function GetSource(name, software, version, oContact, endpoint)
   {
     var Source = new function(){};
-    if (name != "")
-      Source.name = name;
-      
-    if (software != "")
-      Source.endpoint = software;
-      
-    if (version != "")
-      Source.endpoint = version;
-      
-    if (oContact != "")
-      Source.endpoint = oContact;
-
-    if (endpoint != "")
-      Source.endpoint = endpoint;
-
+    Source.name = FhirTool.SetFhir(name);
+    Source.endpoint = FhirTool.SetFhir(software);
+    Source.endpoint = FhirTool.SetFhir(version);
+    Source.endpoint = FhirTool.SetFhir(oContact);
+    Source.endpoint = FhirTool.SetFhir(endpoint);
     return Source;
   }
-  
-  
+
+  return Resource;
+
 }

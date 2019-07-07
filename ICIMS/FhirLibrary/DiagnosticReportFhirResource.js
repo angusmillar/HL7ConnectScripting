@@ -1,48 +1,46 @@
 
-function DiagnosticReportFhirResource(id){
+function DiagnosticReportFhirResource(){
+  var FhirTool = new FhirTools();
 
-  var Resource = new function(){};
+  var Resource = new DomainResource();
   Resource.resourceType = "DiagnosticReport";
-  Resource.id = id;
- 
-  this.GetResource = function(){
-    return Resource;
+
+  Resource.SetIdentifierArray = function(identifierArray){
+    Resource.identifier = FhirTool.SetFhir(identifierArray);
   };
 
-  this.SetIdentifierArray = function(identifierArray){
-    Resource.identifier = identifierArray;
+  Resource.SetStatus = function(code){
+    Resource.status = FhirTool.SetFhir(code);
   };
 
-  this.SetStatus = function(code){
-    Resource.status = code;
-  };
-
-  this.SetCategory = function(codableConcept){
-    Resource.category = codableConcept;
+  Resource.SetCategory = function(codableConcept){
+    Resource.category = FhirTool.SetFhir(codableConcept);
   };
   
-  this.SetCode = function(codableConcept){
-    Resource.code = codableConcept;
+  Resource.SetCode = function(codableConcept){
+    Resource.code = FhirTool.SetFhir(codableConcept);
   };
 
-  this.SetSubject = function(reference){
-    Resource.subject = reference;
+  Resource.SetSubject = function(reference){
+    Resource.subject = FhirTool.SetFhir(reference);
   };
 
-  this.SetEffectiveDateTime = function(dateTime){
-    Resource.effectiveDateTime = dateTime;
+  Resource.SetEffectiveDateTime = function(dateTime){
+    Resource.effectiveDateTime = FhirTool.SetFhir(dateTime);
   };
 
-  this.SetIssued = function(dateTime){
-    Resource.issued = dateTime;
+  Resource.SetIssued = function(dateTime){
+    Resource.issued = FhirTool.SetFhir(dateTime);
   };
 
-  this.SetResult = function(resultReferenceArray){
-    Resource.result = resultReferenceArray;
+  Resource.SetResult = function(resultReferenceArray){
+    Resource.result = FhirTool.SetFhir(resultReferenceArray);
   };
 
-  this.SetPresentedForm = function(AttachmentArray){
-    Resource.presentedForm = AttachmentArray;
+  Resource.SetPresentedForm = function(AttachmentArray){
+    Resource.presentedForm = FhirTool.SetFhir(AttachmentArray);
   };
+
+  return Resource
 
 }
