@@ -1,19 +1,19 @@
 function BundleFhirResource(){
   var FhirTool = new FhirTools();
 
-  var Resource = new DomainResource();
-  Resource.resourceType = "Bundle";
+  var Res = new Resource();
+  Res.resourceType = "Bundle";
   
 
-  Resource.SetType = function(code){
-    Resource.type = FhirTool.SetFhir(code);
+  Res.SetType = function(code){
+    Res.type = FhirTool.SetFhir(code);
   };
   
-  Resource.AddEntry = function(fullUrl, resource){
+  Res.AddEntry = function(fullUrl, resource){
     if (typeof Resource.entry == 'undefined'){
-      Resource.entry = [];
+      Res.entry = [];
     }
-    Resource.entry.push(GetEntry(fullUrl, resource));
+    Res.entry.push(GetEntry(fullUrl, resource));
   }
 
   function GetEntry(fullURL, resource)
@@ -24,5 +24,5 @@ function BundleFhirResource(){
     return Entry;
   }
   
-  return Resource;
+  return Res;
 }
