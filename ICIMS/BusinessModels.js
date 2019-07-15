@@ -418,6 +418,9 @@ function Report(oOBR)
       case "P":
         this.Status = "preliminary";
         break;
+      case "X":
+        this.Status = "cancelled";
+        break;
       default:
         throw "The Report status found in OBR-25 was not expected, value is : " + oOBR.Field(25).AsString;
     }
