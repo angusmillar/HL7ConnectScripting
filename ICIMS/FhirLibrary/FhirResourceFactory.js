@@ -147,9 +147,9 @@ function FhirResourceFactory(){
 
           oObservation.SetSubject(oPatientReference);
           //Collection DateTime Clinically relevant date Time
-          oObservation.SetEffectiveDateTime(oModels.Pathology.Report.ReportIssuedDateTime.AsXML);
+          oObservation.SetEffectiveDateTime(FhirTool.SetTimeZone(oModels.Pathology.Report.ReportIssuedDateTime.AsXML));
           //Time off analyser, when the observation was observerd
-          oObservation.SetIssued(oModels.Pathology.ObservationList[i].ObsDateTime.AsXML);
+          oObservation.SetIssued(FhirTool.SetTimeZone(oModels.Pathology.ObservationList[i].ObsDateTime.AsXML));
           //The Result
           oObservation.SetValueString(oModels.Pathology.ObservationList[i].Value);
           ObservationResourceList.push(oObservation);
