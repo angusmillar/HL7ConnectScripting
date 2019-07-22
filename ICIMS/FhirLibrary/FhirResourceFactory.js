@@ -53,7 +53,7 @@ function FhirResourceFactory(){
     //--------------------------------------------------------------------------
     //MessageHeader Resource
     //--------------------------------------------------------------------------
-    var MessageHeaderId = FhirTool.GetGuid();
+    var MessageHeaderId = oModels.Pathology.Meta.MessageControlID;
     var oMsgHeader = new MessageHeaderFhirResource();
     oMsgHeader.SetId(MessageHeaderId);
     var msgHeadProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsMessageHeaderProfileName], "/");
