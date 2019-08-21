@@ -8,9 +8,9 @@
 
 /**
  * @module
- * @description The IcimsRunner script is the entry point for HL7 Connect.
+ * @description The IcimsPathologyRunner script is the entry point for HL7 Connect.
  * This script is to be referanced on a HL7 Connect outgoing scripted interface with the procedure name
- * '<code>IcimsRunner</code>' and a single parameter equal to one of the 'SiteContextEnum' values <code>'RMH'</code> for example.
+ * '<code>Main</code>' and a single parameter equal to one of the 'SiteContextEnum' values <code>'SAH'</code> for example.
 */
 
 /**
@@ -27,7 +27,7 @@ function Main(aEvent)
 {
    //Validate and set the site context for the script
    //This is so the script can be adjusted for new sites as required.
-   //For instance the string "RMH" must be passed in as a script parameter from HL7 Connect.
+   //For instance the string "SAH" must be passed in as a script parameter from HL7 Connect.
    var SiteContext = ValidateSiteContext(aEvent.Parameter);
 
    var oModels = new BusinessModels(SiteContext);
@@ -42,7 +42,14 @@ function Main(aEvent)
         //EndPoint - The REST endpoint url for ICIMS
         FacilityConfiguration.PrimaryMRNSystemUri = "https://www.sah.org.au/systems/fhir/pas/medical-record-number";
         //Development
-        FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+        //FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+        //Production
+        FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+        //Operation name
+        //Development
+        //FacilityConfiguration.OperationName = "Bundle";
+        //Production
+        FacilityConfiguration.OperationName = "$process-message";
         //Send the Pathology Pdf report if provided in V2 message
         FacilityConfiguration.SendPathologyPdfReport = false;
         //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.
@@ -83,7 +90,6 @@ function Main(aEvent)
   {
    if (MessageType == "ORU")
    {
-
      if (MessageEvent == "R01")
      {
        BreakPoint;
@@ -95,23 +101,20 @@ function Main(aEvent)
        
        BreakPoint;
        var BodyData = JSON.stringify(Bundle, function (key, value) {
-            //TODO: need to json stringify Quantity objects
+            //TODO: need to json stringify Quantity objects, we have none at present
+            //but may do in the future.
             if (key == "valueQuantity"){
               return "10.000";
             } else {
               return value;
             }
           }, 4);
-       //EndPointMethod = "$process-message";
-       EndPointMethod = "Bundle";
-
        BreakPoint;
-
        CallRESTService = true;
      }
      else {
        var ErrorMsg = "ICIMS Unknown Message Event of: " + MessageEvent;
-	   IcimsLog("ICIMS Unknown Message Event, expect the events 'R01', found event: " + MessageEvent);
+	   IcimsLog("ICIMS unknown Message Event, expect the events 'R01', found event: " + MessageEvent);
        RejectMessage(ErrorMsg);
        StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
      }
@@ -123,7 +126,7 @@ function Main(aEvent)
        IcimsLog(BodyData);
 
        var Client = new FhirClient();
-       var POSTOutcome = new Client.POST(FacilityConfiguration.EndPoint, EndPointMethod, FacilityConfiguration.AuthorizationToken, BodyData);
+       var POSTOutcome = new Client.POST(FacilityConfiguration.EndPoint, FacilityConfiguration.OperationName, FacilityConfiguration.AuthorizationToken, BodyData);
        if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 200){
          IcimsLog("Data received: " + POSTOutcome.DataReceived);
          //Message has been sent successfully to ICIMS, event complete!
@@ -301,6 +304,5 @@ function Main(aEvent)
 */
 var SiteContextEnum = {
   /** RMH */
-  RMH : "RMH",
   SAH : "SAH"
 };
