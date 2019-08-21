@@ -42,14 +42,14 @@ function IcimsRunner(aEvent)
         FacilityConfiguration.PrimaryMRNAssigningAuthority = "RMH";
         //EndPoint - The REST endpoint url for ICIMS
 
-        //FacilityConfiguration.EndPoint = "http://mhicimsprod.ssg.org.au/staging/api/pas.py";
-        FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
+        FacilityConfiguration.EndPoint = "http://mhicimsprod.ssg.org.au/staging/api/pas.py";
+        //FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
                 
         //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.
         //Production Token
-        //FacilityConfiguration.AuthorizationToken = = "Basic aGw3OmlDSU1TMjBsNw==";
+        FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
         //Test Token
-        FacilityConfiguration.AuthorizationToken = "Basic aGw3dGVzdDppY2ltczIwMTc=";
+        //FacilityConfiguration.AuthorizationToken = "Basic aGw3dGVzdDppY2ltczIwMTc=";
         //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
         FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutboundProd";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
@@ -64,15 +64,15 @@ function IcimsRunner(aEvent)
         //EndPoint - The REST endpoint url for ICIMS
 
         //Development
-        FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
+        //FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
         //Test
-        //FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py";
+        FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py";
 
         //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.
         //Production Token
-        //FacilityConfiguration.AuthorizationToken = = "Basic aGw3OmlDSU1TMjBsNw==";
-        //Test Token
         FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+        //Test Token
+        //FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
         //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
         FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
