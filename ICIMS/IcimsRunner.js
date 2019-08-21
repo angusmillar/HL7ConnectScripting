@@ -5,8 +5,6 @@
 <%include $repo$\ICIMS\RestClient.js%>
 <%include $repo$\ICIMS\Json2.js%>
 
-<%include $repo$\ICIMS\FhirClient.js%>
-
 /**
  * @module
  * @description The IcimsRunner script is the entry point for HL7 Connect.
@@ -27,7 +25,6 @@
 function IcimsRunner(aEvent)
 {
 
-  TestFhir();
   BreakPoint;
    //Validate and set the site context for the script
    //This is so the script can be adjusted for new sites as required.
@@ -324,52 +321,7 @@ function IcimsRunner(aEvent)
     Kernel.WriteToCustomLog("IcimsLog", datetime + ": " + message + "\r" + "\n")
   }
 
-
-
-
-  function TestFhir(){
-    var resourceName = "Patient";
-
-    BreakPoint;
-    var Client = new FhirClient();
-    var patientResource = new function(){};
-
-    if (resourceName != "")
-    {
-      patientResource.resourceType = resourceName;
-    }
-
-    var name1 = new function(){};
-    name1.family = "Angus";
-    name1.given = "Millar";
-    name1.use = "official"
-    
-    var name2 = new function(){};
-    
-    name2.given = "Gus";
-    name2.use = "nickname";
-
-    var nameList = [name1, name2];
-    patientResource.name = nameList;
-
-    patientResource.gender = "male";
-    patientResource.birthDate = "1973-09-30";
-     
-    
-    var JsonStr = JSON.stringify(patientResource, "", 4)
-
-    BreakPoint;
-    var POSTOutcome = new Client.POST("https://stu3.test.pyrohealth.net/fhir", "Patient", "NotInUse", JsonStr);
-
-  }
-
-
-
 }
-
-
-
-
 
 
 //======= Global ===============================================================
