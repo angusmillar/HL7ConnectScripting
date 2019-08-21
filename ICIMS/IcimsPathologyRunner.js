@@ -28,6 +28,7 @@ function Main(aEvent)
    //Validate and set the site context for the script
    //This is so the script can be adjusted for new sites as required.
    //For instance the string "SAH" must be passed in as a script parameter from HL7 Connect.
+   BreakPoint;
    var SiteContext = ValidateSiteContext(aEvent.Parameter);
 
    var oModels = new BusinessModels(SiteContext);
@@ -42,14 +43,14 @@ function Main(aEvent)
         //EndPoint - The REST endpoint url for ICIMS
         FacilityConfiguration.PrimaryMRNSystemUri = "https://www.sah.org.au/systems/fhir/pas/medical-record-number";
         //Development
-        //FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+        FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
         //Production
-        FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+        //FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
         //Operation name
         //Development
-        //FacilityConfiguration.OperationName = "Bundle";
+        FacilityConfiguration.OperationName = "Bundle";
         //Production
-        FacilityConfiguration.OperationName = "$process-message";
+        //FacilityConfiguration.OperationName = "$process-message";
         //Send the Pathology Pdf report if provided in V2 message
         FacilityConfiguration.SendPathologyPdfReport = false;
         //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.

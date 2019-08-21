@@ -77,7 +77,7 @@ function IcimsRunner(aEvent)
         FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
         FacilityConfiguration.MaxRejectBeforeInterfaceStop = 20;
-        Models.FacilityConfig = FacilityConfiguration
+        //Models.FacilityConfig = FacilityConfiguration
         break;
     default:
         throw "No SiteContext script parameter passed to the running script";
@@ -109,23 +109,25 @@ function IcimsRunner(aEvent)
      var IcimsInterface= new IcimsInterfaceModels();
      if (MessageEvent == "A04" || MessageEvent == "A05")    //Register a patient
      {
-       var Add = new Models.Add(oHL7);
-       FormData = IcimsInterface.MapToIcimsInterface(Add);
-       EndPointMethod = Add.Meta.Action;
+       Models.AddMessage(oHL7);
+       FormData = IcimsInterface.MapToIcimsInterface(Models);
+       EndPointMethod = Models.Action;
        CallRESTService = true;
      }
      else if (MessageEvent == "A01" || MessageEvent == "A08" || MessageEvent == "A02" || MessageEvent == "A03")  //Update patient information
      {
-       var Update = new Models.Update(oHL7);
-       FormData = IcimsInterface.MapToIcimsInterface(Update);
-       EndPointMethod = Update.Meta.Action;
+       Models.UpdateMessage(oHL7);
+       FormData = IcimsInterface.MapToIcimsInterface(Models);
+       EndPointMethod = Models.Action;
        CallRESTService = true;
      }
      else if (MessageEvent == "A40")  //Merge patient - internal ID
      {
-       var Merge = new Models.Merge(oHL7);
-       FormData = IcimsInterface.MapToIcimsInterface(Merge);
-       EndPointMethod = Merge.Meta.Action;
+       //var Merge = new Models.MergeA40Message(oHL7);
+       Models.MergeMessage(oHL7);
+       FormData = IcimsInterface.MapToIcimsInterface(Models);
+       Breakpoint;
+       EndPointMethod = Models.Action;
        CallRESTService = true;
      }
      else

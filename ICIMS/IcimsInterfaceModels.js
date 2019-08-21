@@ -84,9 +84,9 @@ Breakpoint;
     //datetime string sent by the HL7 caller
     Model.msg_datetime = BusinessModel.Meta.MessageDateTime.AsXML;
     //patient UR number (string)
-    Model.ur_num = BusinessModel.Patient.RMHMrnValue;
+    Model.ur_num = BusinessModel.Patient.PrimaryMrnValue;
     //institution id (string)
-    Model.assigning_authority = BusinessModel.Patient.RMHMrnAssigningAuthority;
+    Model.assigning_authority = BusinessModel.Patient.PrimaryMrnAssigningAuthority;
 BreakPoint;
     //patient Medicare Number (string)
     Model.MedicareNumberValue = BusinessModel.Patient.MedicareNumberValue

@@ -2,9 +2,14 @@
 function BusinessModels(SiteContext)
 {
   this.FacilityConfig = null;
+  this.Action = null;
+  this.Patient = null;
+  this.Doctor = null;
   this.Pathology = null;
+  this.Merge = null;
+  this.MergeIdentifers = null;
+  this.Meta = null;
 
-  
   this.FacilityConfiguration = function()
   {
     this.FacilityConfig = new FacilityConfiguration(SiteContext);
@@ -17,19 +22,55 @@ function BusinessModels(SiteContext)
     return this.Pathology;
   };
   
-  this.Add = function(oHL7)
+  this.AddMessage = function(oHL7)
   {
-    return new Add(oHL7);
+    this.Action = IcimsPostAction.Add;
+    this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
+
+    //Doctor
+    if (this.FacilityConfig.SiteContext == SiteContextEnum.RMH)
+    {
+      var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
+      if (oROL_GP !== null)
+      {
+        this.Doctor = new Doctor(oROL_GP);
+      }
+    }
+
+    //Meta-data
+    this.Meta = new Meta(this.Action, oHL7.Segment("MSH",0));
   };
 
-  this.Update = function(oHL7)
+  this.UpdateMessage = function(oHL7)
   {
-    return new Update(oHL7);
+    this.Action = IcimsPostAction.Update;
+    this.Patient = null;
+    this.Doctor = null;
+    this.Meta = null;
+    this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
+
+    //Doctor
+    if (this.FacilityConfig.SiteContext == SiteContextEnum.RMH)
+    {
+      var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
+      if (oROL_GP !== null)
+      {
+        this.Doctor = new Doctor(oROL_GP);
+      }
+      else
+      {
+        this.Doctor = null;
+      }
+    }
+    this.Meta = new Meta(this.Action, oHL7.Segment("MSH",0));
   };
 
-  this.Merge = function(oHL7)
+  this.MergeMessage = function(oHL7)
   {
-    return new Merge(oHL7);
+    this.Action = IcimsPostAction.Merge;
+    this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
+    this.Meta = new Meta(this.Action, oHL7.Segment("MSH",0));
+    this.MergeIdentifers = new MergeIdentifers(oHL7.Segment("MRG", 0), this.FacilityConfig);
   };
 
   
@@ -46,6 +87,9 @@ function BusinessModels(SiteContext)
     
     // The REST endpoint url for ICIMS.*/
     this.EndPoint = null;
+
+    // The REST endpoint Operation Name for ICIMS.*/
+    this.OperationName = null;
 
     // The REST endpoint url for ICIMS.*/
     this.SendPathologyPdfReport = false;
@@ -82,88 +126,6 @@ function BusinessModels(SiteContext)
     } else {
       throw "There were zero OBX segments found in the ORU message.";
     }
-  }
-
-  function Add(oHL7)
-  {
-    /** @property {string}  AddActionName - The static action name required by ICIMS for AddPatient requests.
-      * @default
-    */
-    var AddActionName = IcimsPostAction.Add
-    /** @property {Patient}  Patient - Patient object*/
-    this.Patient = null;
-    /** @property {Doctor}  Doctor - Doctor object*/
-    this.Doctor = null;
-    /** @property {Meta}  Meta - Meta object*/
-    this.Meta = null;
-
-    //Patient
-    this.Patient = new Patient(oHL7.Segment("PID", 0));
-
-    //Doctor
-    if (FacilityConfig.SiteContext == SiteContextEnum.RMH)
-    {
-      var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
-      if (oROL_GP !== null)
-      {
-        this.Doctor = new Doctor(oROL_GP);
-      }
-    }
-    
-    //Meta-data
-    this.Meta = new Meta(AddActionName, oHL7.Segment("MSH",0));
-  }
-  
-  function Update(oHL7)
-  {
-    /** @property {string}  UpdateActionName - The static action name required by ICIMS for UpdatePatient requests.
-      * @default
-    */
-    var UpdateActionName = IcimsPostAction.Update;
-    /** @property {Patient}  Patient - Patient object
-    */
-    this.Patient = null;
-
-    /** @property {Doctor}  Doctor - Doctor object
-    */
-    this.Doctor = null;
-
-    /** @property {Meta}  Meta - Meta object
-    */
-    this.Meta = null;
-
-    //Patient
-    this.Patient = new Patient(oHL7.Segment("PID", 0));
-
-    //Doctor
-    if (FacilityConfig.SiteContext == SiteContextEnum.RMH)
-    {
-      var oROL_GP = ResolveGeneralPractitionerROL(oHL7);
-      if (oROL_GP !== null)
-      {
-        this.Doctor = new Doctor(oROL_GP);
-      }
-      else
-      {
-        this.Doctor = null;
-      }
-    }
-
-    //Meta-data
-    this.Meta = new Meta(UpdateActionName, oHL7.Segment("MSH",0));
-  }
-
-  function Merge(oHL7)
-  {
-    /** @property {string}  MergeActionName - The static action name required by ICIMS for Merge requests.
-      * @default*/
-    var MergeActionName = IcimsPostAction.Merge;
-    /** @property {Patient}  Patient - Patient object */
-    this.Patient = new Patient(oHL7.Segment("PID", 0));
-    /** @property {Meta}  Meta - Meta bject    */
-    this.Meta = new Meta(MergeActionName, oHL7.Segment("MSH",0));
-    /** @property {Merge}  Merge - Merge object    */
-    this.MergeIdentifers = new MergeIdentifers(oHL7.Segment("MRG", 0));
   }
 
 //==============================================================================
@@ -581,7 +543,7 @@ BreakPoint;
     this.SendingApplication = Set(oMSH.Field(3));
   }
 
-  function MergeIdentifers(oMRG)
+  function MergeIdentifers(oMRG, FacilityConfig)
   {
     /** @property {string} PriorMRNValue - The prior Medical Record Number value for merge events*/
     this.PriorMRNValue = null;
