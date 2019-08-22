@@ -182,8 +182,8 @@ function FhirResourceFactory(){
     oDiagReport.SetCode(oCodeCodeableConcept);
     oDiagReport.SetSubject(oPatientReference);
 
-    oDiagReport.SetEffectiveDateTime(oModels.Pathology.Report.CollectionDateTime.AsXML);
-    oDiagReport.SetIssued(oModels.Pathology.Report.ReportIssuedDateTime.AsXML);
+    oDiagReport.SetEffectiveDateTime(FhirTool.SetTimeZone(oModels.Pathology.Report.CollectionDateTime.AsXML));
+    oDiagReport.SetIssued(FhirTool.SetTimeZone(oModels.Pathology.Report.ReportIssuedDateTime.AsXML));
 
     //Add All the Observation References to the DiagnosticReport Resource
     var ResultReferenceArray = [];
