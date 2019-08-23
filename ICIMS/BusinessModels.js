@@ -121,11 +121,11 @@ function BusinessModels(SiteContext)
     this.Report = new Report(oHL7.Segment("OBR", 0), FacilityConfig);
 
     var OBXList = oHL7.SegmentQuery("OBX");
-    if (OBXList.Count > 0){
+    //if (OBXList.Count > 0){
       this.ObservationList = GetObservationList(OBXList);
-    } else {
-      throw "There were zero OBX segments found in the ORU message.";
-    }
+    //} else {
+      //throw "There were zero OBX segments found in the ORU message.";
+    //}
   }
 
 //==============================================================================
@@ -418,7 +418,9 @@ function Report(oOBR)
     var ObservationList = [];
     for (var i=0; (i < OBXList.Count); i++) {
       var obs = new Observation(OBXList.Item(i));
-      ObservationList.push(obs);
+      BreakPoint;
+      if (obs.Code != null && obs.CodeDescription != null)
+        ObservationList.push(obs);
     }
     return ObservationList;
   }
@@ -433,49 +435,61 @@ function Report(oOBR)
     this.Value = null;
     this.Status = null;
     this.ObsDateTime = null;
-
-    this.Index = Set(oOBX.Field(1));
-    this.DataType = Set(oOBX.Field(2));
-    this.Code = Set(oOBX.Field(3).Component(1));
-    this.CodeDescription = Set(oOBX.Field(3).Component(2));
-
-    this.CodeSystem = Set(oOBX.Field(3).Component(3));
-
-    //OBX-2 DataType
-    if (this.DataType.toUpperCase() == "ED" && this.Code.toUpperCase() == "PDF" ){
-      this.Value = Set(oOBX.Field(5).Component(5));
+    BreakPoint;
+    
+    if (!oOBX.Field(3).Component(1).Defined){
+      if (oOBX.Field(5).Defined){
+        throw "There is an OBX Segment that has an empty OBX-3.1 yet OBX-5 is populated. If we have a result value in OBX-5 then we must have a code in OBX-3.1 to tell us what the result value is.";
+      }
     } else {
-      this.Value = Set(oOBX.Field(5));
-    }
-
-    //OBX-11 Status
-    if (oOBX.Field(11).AsString != ""){
-      switch(oOBX.Field(11).AsString) {
-      case "F":
-        this.Status = "final";
-        break;
-      case "C":
-        this.Status = "amended";
-        break;
-      case "P":
-        this.Status = "preliminary";
-      case "D":
-        this.Status = "entered-in-error";
-        break;
-      default:
-        throw "The Observation status found in OBX-11 of the OBX segment index " + this.Index + " was not expected, value is : " + oOBX.Field(11).AsString + ", allowed values are (F,C,D,P).";
+    
+      if (!oOBX.Field(2).Defined && oOBX.Field(5).Defined){
+        throw "There is an OBX Segment that has an empty OBX-2 (DataType) and yet a populated OBX-5 result value. We must know the datatype to process the result value.";
       }
-    }
+    
+      this.Index = Set(oOBX.Field(1));
+      this.DataType = Set(oOBX.Field(2));
+      this.Code = Set(oOBX.Field(3).Component(1));
+      this.CodeDescription = Set(oOBX.Field(3).Component(2));
 
-    //OBX-14 Observation DateTime perfomred
-    if (oOBX.Field(14).AsString != ""){
-      try
-      {
-        this.ObsDateTime = DateAndTimeFromHL7(oOBX.Field(14).AsString);
+      this.CodeSystem = Set(oOBX.Field(3).Component(3));
+
+      //OBX-2 DataType
+      if (this.DataType.toUpperCase() == "ED" && this.Code.toUpperCase() == "PDF" ){
+        this.Value = Set(oOBX.Field(5).Component(5));
+      } else {
+        this.Value = Set(oOBX.Field(5));
       }
-      catch(Exec)
-      {
-        throw "Observation Date & Time in OBX-14 for OBX index " + this.Index +" can not be parsed as a Date or Date time, vaule was: " + oOBX.Field(14).AsString;
+
+      //OBX-11 Status
+      if (oOBX.Field(11).AsString != ""){
+        switch(oOBX.Field(11).AsString) {
+        case "F":
+          this.Status = "final";
+          break;
+        case "C":
+          this.Status = "amended";
+          break;
+        case "P":
+          this.Status = "preliminary";
+        case "D":
+          this.Status = "entered-in-error";
+          break;
+        default:
+          throw "The Observation status found in OBX-11 of the OBX segment index " + this.Index + " was not expected, value is : " + oOBX.Field(11).AsString + ", allowed values are (F,C,D,P).";
+        }
+      }
+
+      //OBX-14 Observation DateTime perfomred
+      if (oOBX.Field(14).AsString != ""){
+        try
+        {
+          this.ObsDateTime = DateAndTimeFromHL7(oOBX.Field(14).AsString);
+        }
+        catch(Exec)
+        {
+          throw "Observation Date & Time in OBX-14 for OBX index " + this.Index +" can not be parsed as a Date or Date time, vaule was: " + oOBX.Field(14).AsString;
+        }
       }
     }
   }
