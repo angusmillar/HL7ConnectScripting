@@ -37,8 +37,8 @@ function ObservationFhirResource(){
     Resource.valueString = FhirTool.SetFhir(string);
   }
 
-  Resource.SetValueString = function(string){
-    Resource.valueString = FhirTool.SetFhir(string);
+  Resource.SetValueQuantity = function(quantity){
+    Resource.valueQuantity = quantity;
   }
   
   return Resource;

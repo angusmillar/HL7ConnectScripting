@@ -63,6 +63,21 @@ function FhirDataTypeTool(){
     return new Extension(url, valueXname, valueXvalue);
   };
 
+  this.GetQuantity = function(value, comparator, unit, system, code)
+  {
+    return new Quantity(value, comparator, unit, system, code);
+  };
+
+  function Quantity(value, comparator, unit, system, code){
+    var Quantity = new function(){};
+    Quantity.value = FhirTool.SetFhir(value);
+    Quantity.comparator = FhirTool.SetFhir(comparator);
+    Quantity.unit = FhirTool.SetFhir(unit);
+    Quantity.system = FhirTool.SetFhir(system);
+    Quantity.code = FhirTool.SetFhir(code);
+    return Quantity;
+  }
+
   function Extension(url, valueXname, valueXvalue){
     var Extension = new function(){};
     Extension.url = FhirTool.SetFhir(url);
@@ -77,7 +92,6 @@ function FhirDataTypeTool(){
     return Narrative;
   }
 
-  
   function Coding(code, codeSystem, display, version){
     var coding = new function(){};
     coding.code = FhirTool.SetFhir(code);

@@ -42,6 +42,12 @@ function FhirResourceFactory(){
     var SAHOrganizationName = "SAH";
     var SAHOrganizationAliasArray = ["SAN", "Sydney Adventist Hospital"];
 
+    var EpiSoftTypeCode = "EPISOFT";
+    var EpiSoftSystemGuid = "70a870ef-2a29-4475-bd1d-1604a7eacbe9";
+
+    var SanAppsSendingApplicationCode = "SANAPPS";
+    var CareZoneSendingApplicationCode = "CareZone";
+
     //When sending to a [base]/fhir/Bundle endpoint for testing as a POST
     //you can not have an id, however, when sending to $process-message you must
     var oBundle = new BundleFhirResource();
@@ -85,20 +91,28 @@ function FhirResourceFactory(){
     //var oMeta = FhirDataType.GetMeta(undefined, undefined, [patientProfileUrl], undefined, undefined);
     //oPatient.SetMeta(oMeta);
     oPatient.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-patient", patientProfileUrl]);
+
+    var PatientIdentifierArray = [];
+
     //MRN
     var oPatMrnTypeCoding = FhirDataType.GetCoding("MR", "http://hl7.org/fhir/v2/0203", "Medical record number");
     var oPatMrnType = FhirDataType.GetCodeableConcept(oPatMrnTypeCoding, "Medical record number");
     var MrnIdentifier = FhirDataType.GetIdentifier("official", oPatMrnType,
       oModels.FacilityConfig.PrimaryMRNSystemUri,
       oModels.Pathology.Patient.PrimaryMrnValue);
-    //MedicareNumber
-    var oPatMedicareTypeCoding = FhirDataType.GetCoding("MC", "http://hl7.org/fhir/v2/0203", "Medicare Number");
-    var oPatMedicareType = FhirDataType.GetCodeableConcept(oPatMedicareTypeCoding, "Medicare Number");
-    var MedicareIdentifier = FhirDataType.GetIdentifier("official", oPatMedicareType,
-      "http://ns.electronichealth.net.au/id/medicare-number",
-      oModels.Pathology.Patient.MedicareNumberValue);
+    PatientIdentifierArray.push(MrnIdentifier);
 
-    oPatient.SetIdentifier([MrnIdentifier, MedicareIdentifier]);
+    //MedicareNumber
+    if (oModels.Pathology.Patient.MedicareNumberValue != null){
+      var oPatMedicareTypeCoding = FhirDataType.GetCoding("MC", "http://hl7.org/fhir/v2/0203", "Medicare Number");
+      var oPatMedicareType = FhirDataType.GetCodeableConcept(oPatMedicareTypeCoding, "Medicare Number");
+      var MedicareIdentifier = FhirDataType.GetIdentifier("official", oPatMedicareType,
+        "http://ns.electronichealth.net.au/id/medicare-number",
+        oModels.Pathology.Patient.MedicareNumberValue);
+      PatientIdentifierArray.push(MedicareIdentifier);
+    }
+    
+    oPatient.SetIdentifier(PatientIdentifierArray);
 
     var HumanName = FhirDataType.GetHumanName("official", oModels.Pathology.Patient.FormattedName,
       oModels.Pathology.Patient.Family,
@@ -129,10 +143,12 @@ function FhirResourceFactory(){
     var ObsCategoryCodeableConcept = FhirDataType.GetCodeableConcept(ObsCategoryCoding);
     
     var ObservationResourceList = [];
+    var AllowedObservationDataTypes = ["ST", "NM"];
     var obsProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsObservationProfileName]);
     for (var i=0; (i < oModels.Pathology.ObservationList.length); i++) {
       if (oModels.Pathology.ObservationList[i].Code != "PDF" && oModels.Pathology.ObservationList[i].CodeSystem != "AUSPDI"){
-        if (oModels.Pathology.ObservationList[i].DataType == "ST"){
+ BreakPoint;
+        if (oModels.Pathology.ObservationList[i].DataType == "ST" || oModels.Pathology.ObservationList[i].DataType == "NM"){
           var ObservationId = FhirTool.GetGuid();
           var oObservation = new ObservationFhirResource();
           oObservation.SetId(ObservationId);
@@ -151,7 +167,11 @@ function FhirResourceFactory(){
           //Time off analyser, when the observation was observerd
           oObservation.SetIssued(FhirTool.SetTimeZone(oModels.Pathology.ObservationList[i].ObsDateTime.AsXML));
           //The Result
-          oObservation.SetValueString(oModels.Pathology.ObservationList[i].Value);
+          if (oModels.Pathology.ObservationList[i].DataType == "ST"){
+            oObservation.SetValueString(oModels.Pathology.ObservationList[i].Value);
+          } else if (oModels.Pathology.ObservationList[i].DataType == "NM"){
+            oObservation.SetValueQuantity(FhirDataType.GetQuantity(oModels.Pathology.ObservationList[i].Value, undefined, undefined, undefined, undefined));
+          }
           ObservationResourceList.push(oObservation);
         }
       }
@@ -166,9 +186,17 @@ function FhirResourceFactory(){
     oDiagReport.SetMetaProfile([oDiagRepProfileUrl]);
     var oTypeCoding = FhirDataType.GetCoding("FILL", "http://hl7.org/fhir/identifier-type", "Filler Identifier");
     var oType = FhirDataType.GetCodeableConcept(oTypeCoding, "Report Identifier");
-    var ReportIdentifier = FhirDataType.GetIdentifier("official", oType,
-      FhirTool.PreFixUuid(oModels.Pathology.Report.FillerOrderNumberUniversalId.toLowerCase()),
-      oModels.Pathology.Report.FillerOrderNumberValue);
+
+    var ReportIdentifier = null;
+    if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == CareZoneSendingApplicationCode.toUpperCase()){
+      ReportIdentifier = FhirDataType.GetIdentifier("official", oType,
+        FhirTool.PreFixUuid(EpiSoftSystemGuid),
+        oModels.Pathology.Report.FillerOrderNumberValue);
+    } else if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == SanAppsSendingApplicationCode.toUpperCase()){
+      ReportIdentifier = FhirDataType.GetIdentifier("official", oType,
+        FhirTool.PreFixUuid(oModels.Pathology.Report.FillerOrderNumberUniversalId.toLowerCase()),
+        oModels.Pathology.Report.FillerOrderNumberValue);
+    }
 
     oDiagReport.SetIdentifierArray([ReportIdentifier]);
     oDiagReport.SetStatus(oModels.Pathology.Report.Status);
@@ -177,7 +205,13 @@ function FhirResourceFactory(){
     var oCategoryCodeableConcept = FhirDataType.GetCodeableConcept(oCategoryCoding, "Diagnostic Service Section Codes");
     oDiagReport.SetCategory(oCategoryCodeableConcept);
 
-    var oCodeCoding = FhirDataType.GetCoding(oModels.Pathology.Report.ReportCode, "http://loinc.org", oModels.Pathology.Report.ReportCodeDescription);
+    var oCodeCoding = null;
+    if (oModels.Pathology.Report.ReportCode == null && oModels.Pathology.Report.ReportCodeDescription != null) {
+      oCodeCoding = FhirDataType.GetCoding(undefined, undefined, oModels.Pathology.Report.ReportCodeDescription);
+    } else {
+      oCodeCoding = FhirDataType.GetCoding(oModels.Pathology.Report.ReportCode, "http://loinc.org", oModels.Pathology.Report.ReportCodeDescription);
+    }
+    
     var oCodeCodeableConcept = FhirDataType.GetCodeableConcept(oCodeCoding);
     oDiagReport.SetCode(oCodeCodeableConcept);
     oDiagReport.SetSubject(oPatientReference);
@@ -191,7 +225,9 @@ function FhirResourceFactory(){
       var oObsReference = FhirDataType.GetReference("Observation", ObservationResourceList[i].id, ObservationResourceList[i].code.coding.display );
       ResultReferenceArray.push(oObsReference);
     }
-    oDiagReport.SetResult(ResultReferenceArray);
+    if (ResultReferenceArray.length > 0){
+      oDiagReport.SetResult(ResultReferenceArray);
+    }
 
     //Get the base64 encoded PDF from the ObservationList and add to the DiagnosticReport Resource
     //property named 'presentedForm'

@@ -105,7 +105,7 @@ function Main(aEvent)
             //TODO: need to json stringify Quantity objects, we have none at present
             //but may do in the future.
             if (key == "valueQuantity"){
-              return "10.000";
+              return value.value;
             } else {
               return value;
             }

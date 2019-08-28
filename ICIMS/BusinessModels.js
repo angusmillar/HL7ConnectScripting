@@ -418,8 +418,8 @@ function Report(oOBR)
     var ObservationList = [];
     for (var i=0; (i < OBXList.Count); i++) {
       var obs = new Observation(OBXList.Item(i));
-      BreakPoint;
-      if (obs.Code != null && obs.CodeDescription != null)
+      //BreakPoint;
+      if (obs.Code != null)
         ObservationList.push(obs);
     }
     return ObservationList;
