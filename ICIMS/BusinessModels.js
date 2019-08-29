@@ -434,6 +434,7 @@ function Report(oOBR)
     this.CodeSystem = null;
     this.Value = null;
     this.Units = null;
+    this.ReferenceRangeText = null;
     this.Status = null;
     this.ObsDateTime = null;
     
@@ -460,9 +461,15 @@ function Report(oOBR)
       } else {
         this.Value = Set(oOBX.Field(5));
       }
-
+      
+      //Units
       if (oOBX.Field(6).AsString != ""){
         this.Units = Set(oOBX.Field(6));
+      }
+
+      //ReferenceRangeText
+      if (oOBX.Field(7).AsString != ""){
+        this.ReferenceRangeText = Set(oOBX.Field(7));
       }
 
       //OBX-11 Status

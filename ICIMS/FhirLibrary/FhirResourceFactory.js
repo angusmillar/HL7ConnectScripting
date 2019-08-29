@@ -170,6 +170,12 @@ function FhirResourceFactory(){
             oObservation.SetValueString(oModels.Pathology.ObservationList[i].Value);
           } else if (oModels.Pathology.ObservationList[i].DataType == "NM"){
             oObservation.SetValueQuantity(FhirDataType.GetQuantity(oModels.Pathology.ObservationList[i].Value, undefined, oModels.Pathology.ObservationList[i].Units, undefined, undefined));
+            if (oModels.Pathology.ObservationList[i].ReferenceRangeText != null){
+              var RangeTypeCodeCoding = FhirDataType.GetCoding("normal",
+                "http://hl7.org/fhir/referencerange-meaning", "Normal Range");
+              var RangeTypeCodeCodeableConcept = FhirDataType.GetCodeableConcept(RangeTypeCodeCoding);
+              oObservation.SetReferenceRange(undefined, undefined, RangeTypeCodeCodeableConcept, undefined, undefined, oModels.Pathology.ObservationList[i].ReferenceRangeText);
+            }
           }
           ObservationResourceList.push(oObservation);
         }
