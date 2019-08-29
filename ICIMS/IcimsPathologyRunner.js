@@ -101,15 +101,7 @@ function Main(aEvent)
        var Bundle = new FhirResFactory.CreatePathologyBundle(oModels);
        
        BreakPoint;
-       var BodyData = JSON.stringify(Bundle, function (key, value) {
-            //TODO: need to json stringify Quantity objects, we have none at present
-            //but may do in the future.
-            if (key == "valuexxx"){
-              return value + "Hit"; // .value + "0123";
-            } else {
-              return value;
-            }
-          }, 4);
+       var BodyData = JSON.stringify(Bundle, null, 4);
        BreakPoint;
 
        if (IsTestCase){
