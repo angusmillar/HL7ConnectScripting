@@ -257,8 +257,16 @@ if (typeof JSON !== "object") {
 
         switch (typeof value) {
         case "string":
-            return quote(value);
-
+            {
+              //This is a hack to ensure decimals persist their pression in JSON,
+              //Without this 13.000 is out put as 13.
+              //To use it all decimals must be prefixed with the escape sequence of "##*##", i.e "##*##13.000"
+              if (value.indexOf("##*##") > -1){
+                return String(value.substr(5, value.length));
+              } else {
+                return quote(value);
+              }
+            }
         case "number":
 
 // JSON numbers must be finite. Encode non-finite numbers as null.

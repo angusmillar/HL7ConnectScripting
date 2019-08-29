@@ -104,13 +104,21 @@ function Main(aEvent)
        var BodyData = JSON.stringify(Bundle, function (key, value) {
             //TODO: need to json stringify Quantity objects, we have none at present
             //but may do in the future.
-            if (key == "valueQuantity"){
-              return value.value;
+            if (key == "valuexxx"){
+              return value + "Hit"; // .value + "0123";
             } else {
               return value;
             }
           }, 4);
        BreakPoint;
+
+       if (IsTestCase){
+         var fso = new ActiveXObject("Scripting.FileSystemObject");
+         var fh = fso.CreateTextFile("C:\\temp\\HL7Connect\\Logging\\Output.json", true);
+         fh.Write(BodyData);
+         fh.Close();
+       }
+       
        CallRESTService = true;
      }
      else {

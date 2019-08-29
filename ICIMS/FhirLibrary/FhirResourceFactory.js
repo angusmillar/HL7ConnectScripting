@@ -147,7 +147,6 @@ function FhirResourceFactory(){
     var obsProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsObservationProfileName]);
     for (var i=0; (i < oModels.Pathology.ObservationList.length); i++) {
       if (oModels.Pathology.ObservationList[i].Code != "PDF" && oModels.Pathology.ObservationList[i].CodeSystem != "AUSPDI"){
- BreakPoint;
         if (oModels.Pathology.ObservationList[i].DataType == "ST" || oModels.Pathology.ObservationList[i].DataType == "NM"){
           var ObservationId = FhirTool.GetGuid();
           var oObservation = new ObservationFhirResource();
@@ -170,7 +169,7 @@ function FhirResourceFactory(){
           if (oModels.Pathology.ObservationList[i].DataType == "ST"){
             oObservation.SetValueString(oModels.Pathology.ObservationList[i].Value);
           } else if (oModels.Pathology.ObservationList[i].DataType == "NM"){
-            oObservation.SetValueQuantity(FhirDataType.GetQuantity(oModels.Pathology.ObservationList[i].Value, undefined, undefined, undefined, undefined));
+            oObservation.SetValueQuantity(FhirDataType.GetQuantity(oModels.Pathology.ObservationList[i].Value, undefined, oModels.Pathology.ObservationList[i].Units, undefined, undefined));
           }
           ObservationResourceList.push(oObservation);
         }
@@ -295,7 +294,6 @@ function FhirResourceFactory(){
     TargetReferenceArray.push(FhirDataType.GetReference("Organization", SAHOrganizationId, "Organization SAH"));
     oProvenance.SetTarget(TargetReferenceArray);
     
-    BreakPoint;
     var Today = FhirTool.GetNow();
     
     //var xDate = Date().toLocaleString();

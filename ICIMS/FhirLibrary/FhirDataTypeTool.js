@@ -70,12 +70,22 @@ function FhirDataTypeTool(){
 
   function Quantity(value, comparator, unit, system, code){
     var Quantity = new function(){};
-    Quantity.value = FhirTool.SetFhir(value);
+    Quantity.value = QuantityValue(value);
     Quantity.comparator = FhirTool.SetFhir(comparator);
     Quantity.unit = FhirTool.SetFhir(unit);
     Quantity.system = FhirTool.SetFhir(system);
     Quantity.code = FhirTool.SetFhir(code);
     return Quantity;
+  }
+
+  function QuantityValue(value){
+    var QuantityValue = new function(){};
+    //QuantityValue.StringQuantityValue = value
+    QuantityValue.toJSON = function (key) {
+    //  BreakPoint;
+      return "##*##" + value;
+    };
+    return QuantityValue;
   }
 
   function Extension(url, valueXname, valueXvalue){
