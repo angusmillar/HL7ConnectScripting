@@ -38,7 +38,27 @@ function ObservationFhirResource(){
   }
 
   Resource.SetValueQuantity = function(quantity){
-    Resource.valueQuantity = quantity;
+    Resource.valueQuantity = FhirTool.SetFhir(quantity);
+  }
+
+  Resource.SetReferenceRange = function(lowSimpleQuantity, highSimpleQuantity, typeCodeableConcept, appliesToCodeableConcept, ageRange, text){
+    Resource.referenceRange = GetReferenceRange(lowSimpleQuantity, highSimpleQuantity, typeCodeableConcept, appliesToCodeableConcept, ageRange, text);
+  }
+
+  Resource.SetInterpretation = function(codeableConcept){
+    Resource.interpretation = FhirTool.SetFhir(codeableConcept);
+  }
+
+  function GetReferenceRange(lowSimpleQuantity, highSimpleQuantity, typeCodeableConcept, appliesToCodeableConcept, ageRange, text)
+  {
+    var ReferenceRange = new function(){};
+    ReferenceRange.low = lowSimpleQuantity;
+    ReferenceRange.high = highSimpleQuantity;
+    ReferenceRange.type = typeCodeableConcept;
+    ReferenceRange.appliesTo = appliesToCodeableConcept;
+    ReferenceRange.age = ageRange;
+    ReferenceRange.text = FhirTool.SetFhir(text);
+    return ReferenceRange;
   }
   
   return Resource;

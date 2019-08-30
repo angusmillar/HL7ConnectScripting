@@ -435,6 +435,8 @@ function Report(oOBR)
     this.Value = null;
     this.Units = null;
     this.ReferenceRangeText = null;
+    this.InterpretationCode = null;
+    this.InterpretationDesciption = null;
     this.Status = null;
     this.ObsDateTime = null;
     
@@ -472,7 +474,58 @@ function Report(oOBR)
         this.ReferenceRangeText = Set(oOBX.Field(7));
       }
 
-      //OBX-11 Status
+      //Interpretation (Abnormal Flag)
+      if (oOBX.Field(8).AsString != ""){
+        this.Interpretation = Set(oOBX.Field(8));
+      }
+      if (oOBX.Field(8).AsString != ""){
+        switch(oOBX.Field(8).AsString.toUpperCase()) {
+        case "N":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "Normal";
+          break;
+        case "L":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "Low";
+          break;
+        case "LL":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "Critically low";
+        case "H":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "High";
+          break;
+        case "HH":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "Critically high";
+          break;
+        case "A":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "Abnormal";
+          break;
+        case "AA":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "Critically abnormal";
+          break;
+        case "R":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "Resistant";
+          break;
+        case "S":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "Susceptible";
+          break;
+        case "I":
+          this.InterpretationCode = oOBX.Field(8).AsString.toUpperCase();
+          this.InterpretationCode = "Intermediate";
+          break;
+        default:
+          throw "The Observation abnormal status found in OBX-8 of the OBX segment index " + this.Index + " was not expected, value is : " + oOBX.Field(8).AsString + ", allowed values are (N,L,LL,H,HH,A,R,S,I).";
+        }
+      }
+
+
+      //OBX-11 Observation Status
       if (oOBX.Field(11).AsString != ""){
         switch(oOBX.Field(11).AsString) {
         case "F":

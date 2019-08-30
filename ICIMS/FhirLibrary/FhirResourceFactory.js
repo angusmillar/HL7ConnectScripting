@@ -165,6 +165,13 @@ function FhirResourceFactory(){
           oObservation.SetEffectiveDateTime(FhirTool.SetTimeZone(oModels.Pathology.Report.ReportIssuedDateTime.AsXML));
           //Time off analyser, when the observation was observerd
           oObservation.SetIssued(FhirTool.SetTimeZone(oModels.Pathology.ObservationList[i].ObsDateTime.AsXML));
+          //Abnormal Flag (Interpretation)
+          if (oModels.Pathology.ObservationList[i].InterpretationCode != null){
+            var InterpCoding = FhirDataType.GetCoding(oModels.Pathology.ObservationList[i].InterpretationCode,
+              "http://hl7.org/fhir/v2/0078", oModels.Pathology.ObservationList[i].InterpretationDesciption);
+            var InterpCodeableConcept = FhirDataType.GetCodeableConcept(InterpCoding);
+            oObservation.SetInterpretation(InterpCodeableConcept);
+          }
           //The Result
           if (oModels.Pathology.ObservationList[i].DataType == "ST"){
             oObservation.SetValueString(oModels.Pathology.ObservationList[i].Value);
