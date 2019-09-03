@@ -1,15 +1,15 @@
 
-<%include $repo$\ICIMS\FhirLibrary\Resource.js%>
-<%include $repo$\ICIMS\FhirLibrary\DomainResource.js%>
-<%include $repo$\ICIMS\FhirLibrary\BundleFhirResource.js%>
-<%include $repo$\ICIMS\FhirLibrary\MessageHeaderFhirResource.js%>
-<%include $repo$\ICIMS\FhirLibrary\OrganizationFhirResource.js%>
-<%include $repo$\ICIMS\FhirLibrary\DiagnosticReportFhirResource.js%>
-<%include $repo$\ICIMS\FhirLibrary\PatientFhirResource.js%>
-<%include $repo$\ICIMS\FhirLibrary\ObservationFhirResource.js%>
-<%include $repo$\ICIMS\FhirLibrary\ProvenanceFhirResource.js%>
-<%include $repo$\ICIMS\FhirLibrary\FhirDataTypeTool.js%>
-<%include $repo$\ICIMS\FhirLibrary\FhirTools.js%>
+<%include $repo$\FhirLibrary\Resource.js%>
+<%include $repo$\FhirLibrary\DomainResource.js%>
+<%include $repo$\FhirLibrary\BundleFhirResource.js%>
+<%include $repo$\FhirLibrary\MessageHeaderFhirResource.js%>
+<%include $repo$\FhirLibrary\OrganizationFhirResource.js%>
+<%include $repo$\FhirLibrary\DiagnosticReportFhirResource.js%>
+<%include $repo$\FhirLibrary\PatientFhirResource.js%>
+<%include $repo$\FhirLibrary\ObservationFhirResource.js%>
+<%include $repo$\FhirLibrary\ProvenanceFhirResource.js%>
+<%include $repo$\FhirLibrary\FhirDataTypeTool.js%>
+<%include $repo$\FhirLibrary\FhirTools.js%>
 
 function FhirResourceFactory(){
  
