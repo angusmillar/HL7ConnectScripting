@@ -1,7 +1,7 @@
 
 //Debugging
 <%include $repo$\ICIMS\BusinessModels.js%>
-<%include $repo$\ICIMS\Json2.js%>
+<%include $repo$\FhirLibrary\FhirJson.js%>
 <%include $repo$\FhirLibrary\FhirClient.js%>
 <%include $repo$\ICIMS\FhirResourceFactory.js%>
 
