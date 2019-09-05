@@ -8,7 +8,7 @@ function FacilityConfig() {
   };
 
   //Config for fhir
-  this.FhirConfig = null;
+  this.Fhir = null;
 
   // The static action name required by ICIMS for AddPatient requests.*/
   this.SiteContext = null;

@@ -10,4 +10,6 @@ function FacilityFhirConfig() {
   this.ReceivingOrganizationName = null;
   this.ReceivingOrganizationAliasArray = [];
 
+  this.HL7V2MessageControlIdSystemUri = null;
+
 }

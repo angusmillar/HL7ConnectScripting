@@ -121,7 +121,7 @@ function Patient(oSeg, oFacilityConfig) {
       this.Language = oHl7Support.Set(oSeg.Field(15));
     }
 
-    BreakPoint;
+    //BreakPoint;
     //The Patient ATSI code value
     if (oSeg.Field(10).AsString != "" && oSeg.Field(10).ComponentCount > 1 && oSeg.Field(10).Component(1).AsString != "") {
       this.Aboriginality = oHl7Support.Set(oSeg.Field(10).Component(1));
@@ -130,7 +130,7 @@ function Patient(oSeg, oFacilityConfig) {
     //Patient Address
     //(1: Business, 2: Mailing Address, 3:Temporary Address, 4:ResidentialHome, 9: Not Specified)
     //ToDo: What to do is we don't first get 4:Residential/Home, do we look for others or send empty fields?
-    BreakPoint;
+
     //Collect the following addresses in this order.
 
     for (var i = 0; i <= ((oSeg.Field(11).RepeatCount) - 1); i++) {
