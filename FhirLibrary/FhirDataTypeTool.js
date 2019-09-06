@@ -11,8 +11,8 @@ function FhirDataTypeTool() {
     return new Coding(code, codeSystem, display, version);
   };
 
-  this.GetReference = function (resourceType, reference, display) {
-    return new Reference(resourceType, reference, display);
+  this.GetReference = function (reference, typeUri, oIdentifer, display) {
+    return new Reference(reference, typeUri, oIdentifer, display);
   };
 
   this.GetIdentifier = function (use, oType, system, value, oPeriod, oAssigner) {
@@ -98,17 +98,15 @@ function FhirDataTypeTool() {
     return coding;
   }
 
-  function Reference(resourceType, reference, display) {
+  function Reference(reference, typeUri, oIdentifer, display) {
     var ref = new function () { };
-    if ((resourceType == null || resourceType == undefined) && (reference == null || reference == undefined)) {
-      ref.display = FhirTool.SetFhir(display);
-      return ref;
-    } else {
-      ref.reference = FhirTool.SetFhir(resourceType + "/" + reference);
-      ref.display = FhirTool.SetFhir(display);
-      return ref;
-    }
+    ref.reference = FhirTool.SetFhir(reference);
+    ref.type = FhirTool.SetFhir(typeUri);
+    ref.identifier = FhirTool.SetFhir(oIdentifer);
+    ref.display = FhirTool.SetFhir(display);
+    return ref;
   }
+
 
   function Identifier(use, oType, system, value, oPeriod, oAssigner) {
     var id = new function () { };

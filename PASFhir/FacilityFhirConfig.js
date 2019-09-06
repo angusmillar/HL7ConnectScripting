@@ -1,6 +1,8 @@
 function FacilityFhirConfig() {
 
   this.FhirEndpoint = null;
+  this.OperationName = null;
+  this.AuthorizationToken = null;
 
   this.SendingOrganizationResourceId = null;
   this.SendingOrganizationName = null;

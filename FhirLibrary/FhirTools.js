@@ -38,6 +38,9 @@ function FhirTools() {
     }
   };
 
+  this.GetRelativeReference = function (ResourceName, ResourceId) {
+    return ResourceName + "/" + ResourceId;
+  }
 
   this.SetTimeZone = function (dateString) {
     var now = new Date;

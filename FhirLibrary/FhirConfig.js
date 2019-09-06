@@ -7,11 +7,14 @@ function FhirConfig() {
 
   this.MedicareNumberSystemUri = "http://ns.electronichealth.net.au/id/medicare-number";
 
+  this.PyroServerDeviceResourceId = "Pyro-Fhir-Server";
+
   this.ResourceName = {
     Patient: "Patient",
     MessageHeader: "MessageHeader",
     Organization: "Organization",
-    DiagnosticReport: "DiagnosticReport"
+    DiagnosticReport: "DiagnosticReport",
+    Device: "Device"
   };
 
 }

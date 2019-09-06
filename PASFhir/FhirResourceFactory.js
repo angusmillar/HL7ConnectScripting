@@ -42,18 +42,20 @@
       //var msgHeadProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsMessageHeaderProfileName], "/");
       //oMsgHeader.SetMetaProfile([msgHeadProfileUrl]);
       var HeaderEventCoding = oFhirDataType.GetCoding(oModels.MessageHeader.MessageType + oModels.MessageHeader.MessageEvent, oFhirConfig.HL7V2MessageTypeEventCodeSystemUri, "HL7 V2 Message Type Event");
-      oMsgHeader.SetEvent(HeaderEventCoding);
-      oMsgHeader.SetDestination(oModels.FacilityConfig.Fhir.ReceivingOrganizationName, undefined, oModels.FacilityConfig.Fhir.FhirEndpoint);
-      oMsgHeader.SetTimestamp(oFhirTool.SetTimeZone(oModels.MessageHeader.MessageDateTime.AsXML));
-      var oReceiverReference = oFhirDataType.GetReference(oFhirConfig.ResourceName.Organization, oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId, oModels.FacilityConfig.Fhir.ReceivingOrganizationName);
-      oMsgHeader.SetReceiver(oReceiverReference);
-      var oSenderReference = oFhirDataType.GetReference(oFhirConfig.ResourceName.Organization, oModels.FacilityConfig.Fhir.SendingOrganizationResourceId, oModels.FacilityConfig.Fhir.SendingOrganizationName);
+      oMsgHeader.SetEventCoding(HeaderEventCoding);
+      BreakPoint;
+
+      var oPyroServerDeviceReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Device, oFhirConfig.PyroServerDeviceResourceId), undefined, undefined, undefined);
+      var oReceiverReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Organization, oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId), undefined, undefined, oModels.FacilityConfig.Fhir.ReceivingOrganizationName);
+      oMsgHeader.SetDestination(oModels.FacilityConfig.Fhir.ReceivingOrganizationName, oPyroServerDeviceReference, oModels.FacilityConfig.Fhir.FhirEndpoint, oReceiverReference);
+
+      var oSenderReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Organization, oModels.FacilityConfig.Fhir.SendingOrganizationResourceId), undefined, undefined, oModels.FacilityConfig.Fhir.SendingOrganizationName);
       oMsgHeader.SetSender(oSenderReference);
       oMsgHeader.SetSource(oModels.MessageHeader.SendingApplication);
       var messageheaderResponseRequestExtension = oFhirDataType.GetExtension("http://hl7.org/fhir/StructureDefinition/messageheader-response-request", "valueCode", "on-error");
       oMsgHeader.SetExtension(messageheaderResponseRequestExtension);
       var PatientId = oFhirTool.GetGuid();
-      var oFocusReference = oFhirDataType.GetReference(oFhirConfig.ResourceName.Patient, PatientId, oFhirConfig.ResourceName.Patient);
+      var oFocusReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Patient, PatientId), undefined, undefined, oFhirConfig.ResourceName.Patient);
       oMsgHeader.SetFocus(oFocusReference);
       oBundle.AddEntry(oFhirTool.PreFixUuid(MessageHeaderId), oMsgHeader);
 
@@ -143,7 +145,7 @@
       oBundle.AddEntry(oFhirTool.PreFixUuid(oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId), oReceiverOrg);
 
       //--------------------------------------------------------------------------
-      //Provenance SAH
+      //Provenance
       //--------------------------------------------------------------------------
       var provenanceId = oFhirTool.GetGuid();
       var oProvenance = new ProvenanceFhirResource();
@@ -154,30 +156,30 @@
       var TargetReferenceArray = [];
       for (var i = 0; i < oBundle.entry.length; i++) {
         var oResource = oBundle.entry[i].resource;
-        TargetReferenceArray.push(oFhirDataType.GetReference(oResource.resourceType, oResource.id, oResource.resourceType));
+        TargetReferenceArray.push(oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oResource.resourceType, oResource.id), undefined, undefined, oResource.resourceType));
       }
-      // TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConfig.ResourceName.MessageHeader, MessageHeaderId, oFhirConfig.ResourceName.MessageHeader));
-      // TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConfig.ResourceName.Patient, PatientId, oFhirConfig.ResourceName.Patient));
-      // TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConfig.ResourceName.Organization, oModels.FacilityConfig.Fhir.SendingOrganizationResourceId, oModels.FacilityConfig.Fhir.SendingOrganizationName));
-      // TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConfig.ResourceName.Organization, oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId, oModels.FacilityConfig.Fhir.ReceivingOrganizationName));
       oProvenance.SetTarget(TargetReferenceArray);
-
-      var Today = oFhirTool.GetNow();
-
-      //var xDate = Date().toLocaleString();
-      oProvenance.SetRecorded(Today);
+      oProvenance.SetOccurredDateTime(oFhirTool.SetTimeZone(oModels.MessageHeader.MessageDateTime.AsXML));
+      oProvenance.SetRecorded(oFhirTool.GetNow());
 
       var activityCoding = oFhirDataType.GetCoding("CREATE", "http://hl7.org/fhir/v3/DataOperation", "create");
-      oProvenance.SetActivity(activityCoding);
+      var activityCodeableConcept = oFhirDataType.GetCodeableConcept(activityCoding, undefined);
+      oProvenance.SetActivity(activityCodeableConcept);
 
       BreakPoint;
-      var whoReference = oFhirDataType.GetReference(undefined, undefined, "HL7 Connect Integration Engine");
-      var onBehalfOfReference = oFhirDataType.GetReference(oFhirConfig.ResourceName.Organization, oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId, oModels.FacilityConfig.Fhir.ReceivingOrganizationName);
-      oProvenance.SetAgent(undefined, whoReference, onBehalfOfReference);
 
-      var messageControlIdIdentifier = oFhirDataType.GetIdentifier("official", undefined,
+      var agentTypeCoding = oFhirDataType.GetCoding("custodian", "http://terminology.hl7.org/CodeSystem/provenance-participant-type", "custodian");
+      var agentTypeCodeableConcept = oFhirDataType.GetCodeableConcept(agentTypeCoding, undefined);
+
+      var whoReference = oFhirDataType.GetReference(undefined, undefined, undefined, "HL7 Connect Integration Engine");
+
+      var onBehalfOfReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Organization, oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId), undefined, undefined, oModels.FacilityConfig.Fhir.ReceivingOrganizationName);
+      oProvenance.SetAgent(agentTypeCodeableConcept, undefined, whoReference, onBehalfOfReference);
+
+      var oMessageControlIdIdentifier = oFhirDataType.GetIdentifier("official", undefined,
         oModels.FacilityConfig.Fhir.HL7V2MessageControlIdSystemUri, oModels.MessageHeader.MessageControlID);
-      oProvenance.SetEntity("source", messageControlIdIdentifier);
+      var oWhatReference = oFhirDataType.GetReference(undefined, undefined, oMessageControlIdIdentifier, "HL7 V2 Message Control Id");
+      oProvenance.SetEntity("source", oWhatReference);
 
       //Add Provenanceto Bundle
       oBundle.AddEntry(oFhirTool.PreFixUuid(provenanceId), oProvenance);
