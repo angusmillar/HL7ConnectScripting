@@ -3,8 +3,8 @@
 <% include $repo$\PASFhir\FacilityConfig.js %>
 <% include $repo$\Logging\Logger.js %>
 <% include $repo$\PASFhir\BusinessModel.js %>
-<% include $repo$\FhirLibrary\FhirJson.js %>
-<% include $repo$\FhirLibrary\FhirClient.js %>
+<% include $repo$\FhirLibrary\Json\FhirJson.js %>
+<% include $repo$\FhirLibrary\Client\FhirClient.js %>
 <% include $repo$\PASFhir\FhirResourceFactory.js %>
 <% include $repo$\PASFhir\FacilityFhirConfig.js %>
 

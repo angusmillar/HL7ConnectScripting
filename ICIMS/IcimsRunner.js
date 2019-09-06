@@ -3,7 +3,7 @@
 <%include $repo$\ICIMS\BusinessModels.js%>
 <%include $repo$\ICIMS\IcimsInterfaceModels.js%>
 <%include $repo$\ICIMS\RestClient.js%>
-<%include $repo$\FhirLibrary\FhirJson.js%>
+<%include $repo$\FhirLibrary\Json\FhirJson.js%>
 
 /**
  * @module
