@@ -38,12 +38,14 @@
         oFacilityConfig.Fhir.OperationName = "Bundle"
         oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
 
+        oFacilityConfig.Fhir.EncounterNumberSystemUri = "https://www.OzHealth.org.au/systems/fhir/encounter-number";
+        oFacilityConfig.Fhir.HL7V2MessageControlIdSystemUri = "https://www.OzHealth.org.au/systems/fhir/hl7-v2/message-control-id";
+
         oFacilityConfig.Fhir.ReceivingOrganizationName = "AcmeHealth";
         oFacilityConfig.Fhir.ReceivingOrganizationResourceId = "8388a9b2-9acc-4a04-afc7-ceaac91f611a";
 
         oFacilityConfig.Fhir.SendingOrganizationName = "OzHealth";
         oFacilityConfig.Fhir.SendingOrganizationResourceId = "52ce2a70-aa42-4732-b4f1-22dbd53fbffc";
-        oFacilityConfig.Fhir.HL7V2MessageControlIdSystemUri = "https://www.OzHealth.org.au/systems/fhir/hl7-v2/message-control-id";
 
         break;
       default:

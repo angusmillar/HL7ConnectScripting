@@ -14,7 +14,8 @@ function FhirConfig() {
     MessageHeader: "MessageHeader",
     Organization: "Organization",
     DiagnosticReport: "DiagnosticReport",
-    Device: "Device"
+    Device: "Device",
+    Encounter: "Encounter"
   };
 
 }

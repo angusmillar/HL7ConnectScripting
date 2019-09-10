@@ -23,4 +23,16 @@ function HL7Table() {
     Teletype: "TTY"
   };
 
+  // v2.4 Table 0004: Patient class  
+  this.PatientClass = {
+    Obstetrics: "B",
+    CommercialAccount: "C",
+    Emergency: "E",
+    Inpatient: "I",
+    NotApplicable: "N",
+    Outpatient: "O",
+    Preadmit: "P",
+    RecurringPatient: "R",
+    Unknown: "U"
+  };
 }

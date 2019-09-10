@@ -9,6 +9,7 @@
 <% include $repo$\FhirLibrary\R4\MessageHeaderFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\OrganizationFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\PatientFhirResource.js %>
+<% include $repo$\FhirLibrary\R4\EncounterFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\ProvenanceFhirResource.js %>
 
 
@@ -61,8 +62,6 @@
       //--------------------------------------------------------------------------
       //Patient Resource
       //--------------------------------------------------------------------------
-
-
       var oPatient = new PatientFhirResource();
       oPatient.SetId(PatientId);
 
@@ -119,6 +118,72 @@
 
       //Add Patient to Bundle
       oBundle.AddEntry(oFhirTool.PreFixUuid(PatientId), oPatient);
+
+      //--------------------------------------------------------------------------
+      //Encounter 
+      //--------------------------------------------------------------------------
+      var oEncounter = new EncounterFhirResource();
+      var EncounterId = oFhirTool.GetGuid();
+      oEncounter.SetId(EncounterId);
+
+      if (oModels.Encounter.EcounterNumber != null) {
+        var oEncounterNumIdentifier = oFhirDataType.GetIdentifier("official",
+          undefined,
+          oModels.FacilityConfig.Fhir.EncounterNumberSystemUri,
+          oModels.Encounter.EcounterNumber);
+        oEncounter.SetIdentifier([oEncounterNumIdentifier]);
+      }
+      BreakPoint;
+      var currentdatetime = new Date();
+      //Admission and Discharge dates convert to status.
+      if (oModels.Encounter.AdmissionDateTime != null) {
+        if (oModels.Encounter.AdmissionDateTime <= currentdatetime) {
+          if (oModels.Encounter.DischargeDateTime != null) {
+            if (oModels.Encounter.DischargeDateTime >= currentdatetime) {
+              oEncounter.SetStatus("in-progress");
+            } else {
+              oEncounter.SetStatus("finished");
+            }
+          } else {
+            oEncounter.SetStatus("in-progress");
+          }
+        } else {
+          //The Admin date must be earlier than now but is present, so planned.
+          oEncounter.SetStatus("planned");
+        }
+      } else {
+        //no Admin date but do we have a discharge date only, should not relay happen 
+        //but this logic would be true if it did happen
+        if (oModels.Encounter.DischargeDateTime != null) {
+          if (oModels.Encounter.DischargeDateTime >= currentdatetime) {
+            oEncounter.SetStatus("in-progress");
+          } else {
+            oEncounter.SetStatus("finished");
+          }
+        } else {
+          oEncounter.SetStatus("in-progress");
+        }
+      }
+
+      var oEcounterClassCoding = oFhirDataType.GetCoding(oModels.Encounter.Class.Code, oModels.Encounter.Class.System, oModels.Encounter.Class.Display);
+      oEncounter.SetClass(oEcounterClassCoding);
+      var oPatientReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Patient, PatientId), undefined, undefined, oModels.Patient.FormattedName);
+      oEncounter.SetSubject(oPatientReference);
+
+      //Admission & Discharge dateTimes
+      oEncounterPeriod = null;
+      if (oModels.Encounter.AdmissionDateTime != null && oModels.Encounter.DischargeDateTime == null) {
+        oEncounterPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(oModels.Encounter.AdmissionDateTime.AsXML), undefined)
+        oEncounter.SetPeriod(oEncounterPeriod)
+      } else if (oModels.Encounter.AdmissionDateTime == null && oModels.Encounter.DischargeDateTime != null) {
+        oEncounterPeriod = oFhirDataType.GetPeriod(undefined, oFhirTool.SetTimeZone(oModels.Encounter.DischargeDateTime.AsXML))
+        oEncounter.SetPeriod(oEncounterPeriod)
+      } else if (oModels.Encounter.AdmissionDateTime != null && oModels.Encounter.DischargeDateTime != null) {
+        oEncounterPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(oModels.Encounter.AdmissionDateTime.AsXML), oFhirTool.SetTimeZone(oModels.Encounter.DischargeDateTime.AsXML))
+        oEncounter.SetPeriod(oEncounterPeriod)
+      }
+
+      oBundle.AddEntry(oFhirTool.PreFixUuid(EncounterId), oEncounter);
 
       //--------------------------------------------------------------------------
       //Organization ICIMS

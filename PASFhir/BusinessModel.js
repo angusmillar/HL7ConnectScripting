@@ -3,6 +3,7 @@
 <% include $repo$\PASFhir\HL7Table.js %>
 <% include $repo$\PASFhir\HL7MessageHeader.js %>
 <% include $repo$\PASFhir\Patient.js %>
+<% include $repo$\PASFhir\Encounter.js %>
 <% include $repo$\PASFhir\Address.js %>
 <% include $repo$\PASFhir\Contact.js %>
 
@@ -12,6 +13,7 @@
     this.Logger = null;
     this.MessageHeader = null;
     this.Patient = null;
+    this.Encounter = null;
     this.Doctor = null;
     this.Merge = null;
     this.MergeIdentifers = null;
@@ -34,12 +36,10 @@
     this.ProcessADTMessage = function (oHL7) {
       this.MessageHeader = new HL7MessageHeader(oHL7.Segment("MSH", 0));
       this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
-
-
+      this.Encounter = new Encounter(oHL7.Segment("PV1", 0));
     };
 
     this.MergeMessage = function (oHL7) {
-      this.Action = IcimsPostAction.Merge;
       this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
       this.Meta = new Meta(this.Action, oHL7.Segment("MSH", 0));
       this.MergeIdentifers = new MergeIdentifers(oHL7.Segment("MRG", 0), this.FacilityConfig);
