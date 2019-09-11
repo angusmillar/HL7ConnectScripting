@@ -11,6 +11,8 @@
 <% include $repo$\FhirLibrary\R4\PatientFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\EncounterFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\ProvenanceFhirResource.js %>
+<% include $repo$\FhirLibrary\R4\ConditionFhirResource.js %>
+
 
 
   function FhirResourceFactory() {
@@ -43,7 +45,6 @@
       //oMsgHeader.SetMetaProfile([msgHeadProfileUrl]);
       var HeaderEventCoding = oFhirDataType.GetCoding(oModels.MessageHeader.MessageType + oModels.MessageHeader.MessageEvent, oFhirConfig.HL7V2MessageTypeEventCodeSystemUri, "HL7 V2 Message Type Event");
       oMsgHeader.SetEventCoding(HeaderEventCoding);
-      BreakPoint;
 
       var oPyroServerDeviceReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Device, oFhirConfig.PyroServerDeviceResourceId), undefined, undefined, undefined);
       var oReceiverReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Organization, oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId), undefined, undefined, oModels.FacilityConfig.Fhir.ReceivingOrganizationName);
@@ -126,6 +127,41 @@
       var EncounterId = oFhirTool.GetGuid();
       oEncounter.SetId(EncounterId);
 
+
+      var EncounterDiagnosisArray = [];
+      var oConditionResourceArray = [];
+
+      for (var i = 0; (i < oModels.Encounter.DiagnosisList.length); i++) {
+        var oCondition = new ConditionFhirResource();
+        oCondition.SetId("Condition" + (i + 1));
+        var oCodeCoding = undefined;
+        if (oModels.Encounter.DiagnosisList[i].Code.Identifier != "") {
+          oCodeCoding = oFhirDataType.GetCoding(oModels.Encounter.DiagnosisList[i].Code.Identifier, oModels.FacilityConfig.Fhir.ConditionCodeSystemUri, oModels.Encounter.DiagnosisList[i].Code.Text);
+        }
+        var CodeText = oModels.Encounter.DiagnosisList[i].Description;
+        var oCodeCodeableConcept = oFhirDataType.GetCodeableConcept(oCodeCoding, CodeText);
+        oCondition.SetCode(oCodeCodeableConcept);
+        var oCategoryCoding = oFhirDataType.GetCoding("encounter-diagnosis", "http://terminology.hl7.org/CodeSystem/condition-category", "Encounter Diagnosis");
+        var oCategoryCodeableConcept = oFhirDataType.GetCodeableConcept(oCategoryCoding, "Admitting");
+        oCondition.SetCategory(oCategoryCodeableConcept);
+
+        BreakPoint;
+        var DateTime = oFhirTool.SetTimeZone(oModels.Encounter.DiagnosisList[i].DateTime.AsXML)
+        oCondition.SetRecordedDate(DateTime);
+        oConditionResourceArray.push(oCondition);
+
+
+        //The below array EncounterDiagnosisArray is bulit here and then added to the Encounter resource Diagnosis property later 
+        var oConditionReference = oFhirDataType.GetReference(oFhirTool.GetContainedReference(oCondition.id), undefined, undefined, oFhirConfig.ResourceName.Condition);
+        var oDiagnosisUseCoding = oFhirDataType.GetCoding("AD", "http://terminology.hl7.org/CodeSystem/diagnosis-role", "Admission diagnosis");
+        var oDiagnosisUseCodeableConcept = oFhirDataType.GetCodeableConcept(oDiagnosisUseCoding, undefined);
+        EncounterDiagnosisArray.push({ Reference: oConditionReference, Use: oDiagnosisUseCodeableConcept, Rank: undefined })
+      }
+
+      if (oConditionResourceArray.length > 0) {
+        oEncounter.SetContained(oConditionResourceArray);
+      }
+
       if (oModels.Encounter.EcounterNumber != null) {
         var oEncounterNumIdentifier = oFhirDataType.GetIdentifier("official",
           undefined,
@@ -133,7 +169,7 @@
           oModels.Encounter.EcounterNumber);
         oEncounter.SetIdentifier([oEncounterNumIdentifier]);
       }
-      BreakPoint;
+
       var currentdatetime = new Date();
       //Admission and Discharge dates convert to status.
       if (oModels.Encounter.AdmissionDateTime != null) {
@@ -183,6 +219,12 @@
         oEncounter.SetPeriod(oEncounterPeriod)
       }
 
+      BreakPoint;
+      for (var i = 0; (i < EncounterDiagnosisArray.length); i++) {
+        oEncounter.AddDiagnosis(EncounterDiagnosisArray[i].Reference, EncounterDiagnosisArray[i].Use, EncounterDiagnosisArray[i].Rank);
+      }
+
+
       oBundle.AddEntry(oFhirTool.PreFixUuid(EncounterId), oEncounter);
 
       //--------------------------------------------------------------------------
@@ -229,8 +271,6 @@
       var activityCoding = oFhirDataType.GetCoding("CREATE", "http://hl7.org/fhir/v3/DataOperation", "create");
       var activityCodeableConcept = oFhirDataType.GetCodeableConcept(activityCoding, undefined);
       oProvenance.SetActivity(activityCodeableConcept);
-
-      BreakPoint;
 
       var agentTypeCoding = oFhirDataType.GetCoding("custodian", "http://terminology.hl7.org/CodeSystem/provenance-participant-type", "custodian");
       var agentTypeCodeableConcept = oFhirDataType.GetCodeableConcept(agentTypeCoding, undefined);

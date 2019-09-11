@@ -40,6 +40,8 @@
 
         oFacilityConfig.Fhir.EncounterNumberSystemUri = "https://www.OzHealth.org.au/systems/fhir/encounter-number";
         oFacilityConfig.Fhir.HL7V2MessageControlIdSystemUri = "https://www.OzHealth.org.au/systems/fhir/hl7-v2/message-control-id";
+        //Codes from DG1.3
+        oFacilityConfig.Fhir.ConditionCodeSystemUri = "https://www.OzHealth.org.au/systems/fhir/Condition";
 
         oFacilityConfig.Fhir.ReceivingOrganizationName = "AcmeHealth";
         oFacilityConfig.Fhir.ReceivingOrganizationResourceId = "8388a9b2-9acc-4a04-afc7-ceaac91f611a";

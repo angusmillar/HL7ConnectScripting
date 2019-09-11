@@ -6,6 +6,8 @@
 <% include $repo$\PASFhir\Encounter.js %>
 <% include $repo$\PASFhir\Address.js %>
 <% include $repo$\PASFhir\Contact.js %>
+<% include $repo$\PASFhir\Diagnosis.js %>
+
 
   function BusinessModel() {
 
@@ -37,6 +39,12 @@
       this.MessageHeader = new HL7MessageHeader(oHL7.Segment("MSH", 0));
       this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
       this.Encounter = new Encounter(oHL7.Segment("PV1", 0));
+      var DG1SegmentList = oHL7.SegmentQuery("DG1");
+      for (var i = 0; (i < DG1SegmentList.Count); i++) {
+        var oDiagnosis = new Diagnosis(DG1SegmentList.Item(i));
+        this.Encounter.DiagnosisList.push(oDiagnosis);
+      }
+
     };
 
     this.MergeMessage = function (oHL7) {

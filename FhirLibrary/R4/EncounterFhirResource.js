@@ -27,6 +27,21 @@ function EncounterFhirResource() {
     Resource.period = FhirTool.SetFhir(oPeriod);
   };
 
+  Resource.AddDiagnosis = function (oConditionReference, useCodeableConcept, rankPositiveInt) {
+    if (Resource.diagnosis == undefined) {
+      Resource.diagnosis = [];
+    }
+    Resource.diagnosis.push(GetDiagnosis(oConditionReference, useCodeableConcept, rankPositiveInt));
+  };
+
+  function GetDiagnosis(oConditionReference, useCodeableConcept, rankPositiveInt) {
+    var Diagnosis = new function () { };
+    Diagnosis.condition = FhirTool.SetFhir(oConditionReference);
+    Diagnosis.use = FhirTool.SetFhir(useCodeableConcept);
+    Diagnosis.rank = FhirTool.SetFhir(rankPositiveInt);
+    return Diagnosis;
+  }
+
   return Resource;
 
 }

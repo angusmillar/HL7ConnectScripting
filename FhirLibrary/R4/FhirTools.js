@@ -41,6 +41,9 @@ function FhirTools() {
   this.GetRelativeReference = function (ResourceName, ResourceId) {
     return ResourceName + "/" + ResourceId;
   }
+  this.GetContainedReference = function (ResourceId) {
+    return "#" + ResourceId;
+  }
 
   this.SetTimeZone = function (dateString) {
     var now = new Date;

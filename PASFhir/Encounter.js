@@ -11,6 +11,7 @@ function Encounter(oPV1) {
   this.AdmissionDateTime = null;
   this.DischargeDateTime = null;
   this.FinancialClass = null;
+  this.DiagnosisList = [];
 
   if (oPV1.Code == "PV1") {
     var oHl7Support = new HL7V2Support();
@@ -64,5 +65,7 @@ function Encounter(oPV1) {
         throw "Discharge Date & Time in PV1-45 can not be parsed as a Date time, vaule was: " + oPV1.Field(45).AsString;
       }
     }
+
+
   }
 }

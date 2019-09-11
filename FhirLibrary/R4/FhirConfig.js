@@ -15,7 +15,8 @@ function FhirConfig() {
     Organization: "Organization",
     DiagnosticReport: "DiagnosticReport",
     Device: "Device",
-    Encounter: "Encounter"
+    Encounter: "Encounter",
+    Condition: "Condition"
   };
 
 }
