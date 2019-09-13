@@ -219,10 +219,41 @@
         oEncounter.SetPeriod(oEncounterPeriod)
       }
 
-      BreakPoint;
       for (var i = 0; (i < EncounterDiagnosisArray.length); i++) {
         oEncounter.AddDiagnosis(EncounterDiagnosisArray[i].Reference, EncounterDiagnosisArray[i].Use, EncounterDiagnosisArray[i].Rank);
       }
+
+      BreakPoint;
+      //Locations (PointOfCare, Room, Bed, Facility, LocationDescription)
+      if (oModels.Encounter.PointOfCare != null) {
+        var oLocationReference = oFhirDataType.GetReference(undefined, undefined, undefined, oModels.Encounter.PointOfCare);
+        var oPhysicalTypeCodeableConcept = oFhirDataType.GetCodeableConcept(undefined, "PointOfCare");
+        oEncounter.AddLocation(oLocationReference, undefined, oPhysicalTypeCodeableConcept, undefined);
+      }
+      if (oModels.Encounter.Room != null) {
+        var oLocationReference = oFhirDataType.GetReference(undefined, undefined, undefined, oModels.Encounter.Room);
+        var oPhysicalTypeCoding = oFhirDataType.GetCoding("ro", "http://terminology.hl7.org/CodeSystem/location-physical-type", "Room");
+        var oPhysicalTypeCodeableConcept = oFhirDataType.GetCodeableConcept(oPhysicalTypeCoding, "Room");
+        oEncounter.AddLocation(oLocationReference, undefined, oPhysicalTypeCodeableConcept, undefined);
+      }
+      if (oModels.Encounter.Bed != null) {
+        var oLocationReference = oFhirDataType.GetReference(undefined, undefined, undefined, oModels.Encounter.Bed);
+        var oPhysicalTypeCoding = oFhirDataType.GetCoding("db", "http://terminology.hl7.org/CodeSystem/location-physical-type", "Bed");
+        var oPhysicalTypeCodeableConcept = oFhirDataType.GetCodeableConcept(oPhysicalTypeCoding, "Bed");
+        oEncounter.AddLocation(oLocationReference, undefined, oPhysicalTypeCodeableConcept, undefined);
+      }
+      if (oModels.Encounter.Facility != null) {
+        var oLocationReference = oFhirDataType.GetReference(undefined, undefined, undefined, oModels.Encounter.Facility);
+        var oPhysicalTypeCoding = oFhirDataType.GetCoding("si", "http://terminology.hl7.org/CodeSystem/location-physical-type", "site");
+        var oPhysicalTypeCodeableConcept = oFhirDataType.GetCodeableConcept(oPhysicalTypeCoding, "Facility");
+        oEncounter.AddLocation(oLocationReference, undefined, oPhysicalTypeCodeableConcept, undefined);
+      }
+      if (oModels.Encounter.LocationDescription != null) {
+        var oLocationReference = oFhirDataType.GetReference(undefined, undefined, undefined, oModels.Encounter.LocationDescription);
+        var oPhysicalTypeCodeableConcept = oFhirDataType.GetCodeableConcept(undefined, "LocationDescription");
+        oEncounter.AddLocation(oLocationReference, undefined, oPhysicalTypeCodeableConcept, undefined);
+      }
+
 
 
       oBundle.AddEntry(oFhirTool.PreFixUuid(EncounterId), oEncounter);

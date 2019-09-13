@@ -40,11 +40,14 @@ function Encounter(oPV1) {
       throw "Patient Class in PV1-2 can not be empty."
     }
 
-    this.PointOfCare = oHl7Support.Set(oPV1.Field(3).Component(1));
-    this.Room = oHl7Support.Set(oPV1.Field(3).Component(2));
-    this.Bed = oHl7Support.Set(oPV1.Field(3).Component(3));
-    this.Facility = oHl7Support.Set(oPV1.Field(3).Component(4));
-    this.LocationDescription = oHl7Support.Set(oPV1.Field(3).Component(9));
+    if (oPV1.Field(3).defined) {
+      this.PointOfCare = oHl7Support.Set(oPV1.Field(3).Component(1));
+      this.Room = oHl7Support.Set(oPV1.Field(3).Component(2));
+      this.Bed = oHl7Support.Set(oPV1.Field(3).Component(3));
+      this.Facility = oHl7Support.Set(oPV1.Field(3).Component(4));
+      this.LocationDescription = oHl7Support.Set(oPV1.Field(3).Component(9));
+    }
+
     this.PreadmitNumber = oHl7Support.Set(oPV1.Field(5));
     this.FinancialClass = oHl7Support.Set(oPV1.Field(20).Component(1));
 

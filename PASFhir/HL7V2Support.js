@@ -63,12 +63,17 @@ function HL7V2Support() {
   }
 
   function Set(Content) {
-    if (Content.IsNull)
-      return "\"\"";
-    else if (Content.AsString != "")
-      return Content.AsString;
-    else
+    if (Content.defined) {
+      if (Content.IsNull) {
+        return "\"\"";
+      } else if (Content.AsString != "") {
+        return Content.AsString;
+      } else {
+        return null;
+      }
+    } else {
       return null;
+    }
   }
 
   this.AddressTypeTable0190Enum = {

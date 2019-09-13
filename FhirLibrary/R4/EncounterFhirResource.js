@@ -34,6 +34,13 @@ function EncounterFhirResource() {
     Resource.diagnosis.push(GetDiagnosis(oConditionReference, useCodeableConcept, rankPositiveInt));
   };
 
+  Resource.AddLocation = function (oLocationReference, oStatusCode, oPhysicalTypeCodeableConcept, oPeriod) {
+    if (Resource.location == undefined) {
+      Resource.location = [];
+    }
+    Resource.location.push(GetLocation(oLocationReference, oStatusCode, oPhysicalTypeCodeableConcept, oPeriod));
+  }
+
   function GetDiagnosis(oConditionReference, useCodeableConcept, rankPositiveInt) {
     var Diagnosis = new function () { };
     Diagnosis.condition = FhirTool.SetFhir(oConditionReference);
@@ -41,6 +48,16 @@ function EncounterFhirResource() {
     Diagnosis.rank = FhirTool.SetFhir(rankPositiveInt);
     return Diagnosis;
   }
+
+  function GetLocation(oLocationReference, oStatusCode, oPhysicalTypeCodeableConcept, oPeriod) {
+    var Location = new function () { };
+    Location.location = FhirTool.SetFhir(oLocationReference);
+    Location.status = FhirTool.SetFhir(oStatusCode);
+    Location.physicalType = FhirTool.SetFhir(oPhysicalTypeCodeableConcept);
+    Location.period = FhirTool.SetFhir(oPeriod);
+    return Location;
+  }
+
 
   return Resource;
 
