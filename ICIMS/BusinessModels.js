@@ -109,7 +109,7 @@ function BusinessModels(SiteContext) {
 
     var OBXList = oHL7.SegmentQuery("OBX");
     //if (OBXList.Count > 0){
-    this.ObservationList = GetObservationList(OBXList);
+    this.ObservationList = GetObservationList(OBXList, FacilityConfig);
     //} else {
     //throw "There were zero OBX segments found in the ORU message.";
     //}
@@ -375,16 +375,43 @@ function BusinessModels(SiteContext) {
   }
 
   //Loops through each OBX segment and creates an array of Observation object instances
-  function GetObservationList(OBXList) {
+  function GetObservationList(OBXList, oFacilityConfig) {
     var ObservationList = [];
     for (var i = 0; (i < OBXList.Count); i++) {
-      var obs = new Observation(OBXList.Item(i));
-      //BreakPoint;
-      if (obs.Code != null)
-        ObservationList.push(obs);
+
+
+      BreakPoint;
+      if (oFacilityConfig.SiteContext == SiteContextEnum.SAH && OBXList.Item(i).Field(2).AsString == "XCN" && OBXList.Item(i).Field(3).Component(1).AsString == "LS") {
+        //Custom logic for SAH
+        SahOBXLeadSurgeonProcessing(ObservationList, OBXList.Item(i));
+      } else {
+        var obs = new Observation(OBXList.Item(i));
+        if (obs.Code != null)
+          ObservationList.push(obs);
+      }
     }
     return ObservationList;
   }
+
+  function SahOBXLeadSurgeonProcessing(ObservationList, oOBX) {
+    BreakPoint;
+    //SAH send the Lead Surgeon's Provider number and Name elements as a HL7 V2 XCN
+    //DataType. As FHIR as no akin datatype for Observations we here split 
+    //the one OBX into two, one for the Provider number and one for the Name.
+    oOBX.Field(2).AsString = "ST";
+    oOBX.Field(3).Component(1).AsString = "LSP";
+    oOBX.Field(3).Component(2).AsString = "Lead Surgeon Provider Number";
+    var FamilyName = oOBX.Field(5).Component(2).AsString;
+    var GivenName = oOBX.Field(5).Component(3).AsString;
+    var obsProv = new Observation(oOBX);
+    ObservationList.push(obsProv);
+    oOBX.Field(3).Component(1).AsString = "LSN";
+    oOBX.Field(3).Component(2).AsString = "Lead Surgeon Name";
+    oOBX.Field(5).Component(1).AsString = FamilyName + ", " + GivenName;
+    var obsName = new Observation(oOBX);
+    ObservationList.push(obsName);
+  }
+
 
   //Parse an OBX segment to an Observation instance
   function Observation(oOBX) {
