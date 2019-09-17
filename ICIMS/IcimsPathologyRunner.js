@@ -58,7 +58,7 @@
         //Test Token
         FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
         //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
-        FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsReportsScriptOutbound";
+        FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
         FacilityConfiguration.MaxRejectBeforeInterfaceStop = 20;
         break;
