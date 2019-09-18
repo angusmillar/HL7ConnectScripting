@@ -1,4 +1,4 @@
-function Encounter(oPV1) {
+function Encounter(oHL7) {
 
   this.EcounterNumber = null;
   this.ClassCode = null;
@@ -12,7 +12,10 @@ function Encounter(oPV1) {
   this.DischargeDateTime = null;
   this.FinancialClass = null;
   this.DiagnosisList = [];
+  this.NextOfKinList = [];
 
+
+  var oPV1 = oHL7.Segment("PV1", 0)
   if (oPV1.Code == "PV1") {
     var oHl7Support = new HL7V2Support();
     var oHL7Table = new HL7Table();
@@ -69,6 +72,15 @@ function Encounter(oPV1) {
       }
     }
 
+    var Nk1List = oHL7.SegmentQuery("NK1");
+    for (var i = 0; (i < Nk1List.Count); i++) {
+      this.NextOfKinList.push(new NextOfKin(Nk1List.Item(i)))
+    }
 
+    var DG1List = oHL7.SegmentQuery("DG1");
+    for (var i = 0; (i < DG1List.Count); i++) {
+      var oDiagnosis = new Diagnosis(DG1List.Item(i));
+      this.DiagnosisList.push(oDiagnosis);
+    }
   }
 }

@@ -117,6 +117,62 @@
 
       oPatient.SetAddress(FHIRAddressList);
 
+      BreakPoint;
+      //Next Of Kin as Contacts
+      for (var i = 0; i < oModels.Encounter.NextOfKinList.length; i++) {
+        var oV2NextOfKin = oModels.Encounter.NextOfKinList[i];
+        var oRelationshipCodeableConcept = undefined;
+        if (oV2NextOfKin.Relationship != null) {
+          var oRelationshipCoding = oFhirDataType.GetCoding(oV2NextOfKin.Relationship.Identifier, "http://hl7.org/fhir/v2/0203", oV2NextOfKin.Relationship.Text);
+          oRelationshipCodeableConcept = oFhirDataType.GetCodeableConcept(oRelationshipCoding, undefined);
+        }
+        var oHumanName = undefined;
+        if (oV2NextOfKin.Family != null) {
+          oHumanName = oFhirDataType.GetHumanName("official", oV2NextOfKin.FormattedName,
+            oV2NextOfKin.Family,
+            oV2NextOfKin.Given,
+            oV2NextOfKin.Title);
+        }
+
+        var oTelecomContactPointList = [];
+        if (oV2NextOfKin.HomePhoneNumber != null) {
+          oTelecomContactPointList.push(oFhirDataType.GetContactPoint("phone", oV2NextOfKin.HomePhoneNumber, "home", undefined, undefined));
+        }
+        if (oV2NextOfKin.WorkPhoneNumber != null) {
+          oTelecomContactPointList.push(oFhirDataType.GetContactPoint("phone", oV2NextOfKin.WorkPhoneNumber, "work", undefined, undefined));
+        }
+        if (oTelecomContactPointList.length == 0) {
+          oTelecomContactPointList = undefined;
+        }
+
+        var oAddress = undefined;
+        if (oV2NextOfKin.Address != null) {
+          var lineArray = [];
+          if (oV2NextOfKin.Address.AddressLine1 != null) {
+            lineArray.push(oV2NextOfKin.Address.AddressLine1);
+          }
+          if (oV2NextOfKin.Address.AddressLine2 != null) {
+            lineArray.push(oV2NextOfKin.Address.AddressLine2);
+          }
+
+          var oAddress = oFhirDataType.GetAddressAustrlian(undefined, oV2NextOfKin.Address.FormattedAddress,
+            lineArray, oV2NextOfKin.Address.Suburb, oV2NextOfKin.Address.State, oV2NextOfKin.Address.Postcode);
+
+          BreakPoint;
+          NextOfKinStartDate = null;
+          NextOfKinEndDate = null;
+          if (oV2NextOfKin.StartDate != null) {
+            NextOfKinStartDate = oV2NextOfKin.StartDate.AsXML;
+          }
+          if (oV2NextOfKin.EndDate != null) {
+            NextOfKinEndDate = oV2NextOfKin.EndDate.AsXML;
+          }
+          oNOKPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(NextOfKinStartDate), oFhirTool.SetTimeZone(NextOfKinEndDate))
+        }
+        oPatient.AddContact(oRelationshipCodeableConcept, oHumanName, oTelecomContactPointList, oAddress, oV2NextOfKin.Sex, undefined, oNOKPeriod)
+      }
+
+
       //Add Patient to Bundle
       oBundle.AddEntry(oFhirTool.PreFixUuid(PatientId), oPatient);
 

@@ -55,6 +55,20 @@ function FhirDataTypeTool() {
     return new Quantity(value, comparator, unit, system, code);
   };
 
+  this.GetContactPoint = function (systemCode, valueString, useCode, rankPositiveInt, oPeriod) {
+    return new ContactPoint(systemCode, valueString, useCode, rankPositiveInt, oPeriod);
+  };
+
+  function ContactPoint(systemCode, valueString, useCode, rankPositiveInt, oPeriod) {
+    var ContactPoint = new function () { };
+    ContactPoint.system = FhirTool.SetFhir(systemCode);
+    ContactPoint.value = FhirTool.SetFhir(valueString);
+    ContactPoint.use = FhirTool.SetFhir(useCode);
+    ContactPoint.rank = FhirTool.SetFhir(rankPositiveInt);
+    ContactPoint.period = FhirTool.SetFhir(oPeriod);
+    return ContactPoint;
+  }
+
   function Quantity(value, comparator, unit, system, code) {
     var Quantity = new function () { };
     Quantity.value = QuantityValue(value);
