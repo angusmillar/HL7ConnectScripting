@@ -221,13 +221,16 @@ function BusinessModels(SiteContext) {
             break;
           case "A":
             this.Gender = "other";
+            break;
           case "N":
             this.Gender = "unknown";
             break;
           case "O":
             this.Gender = "other";
+            break;
           case "U":
             this.Gender = "unknown";
+            break;
           default:
             throw "The Patient sex found in PID-8 was not expected, value is : " + oOBR.Field(25).AsString + ", allowed values are (F,M,A,N,O,U).";
         }
