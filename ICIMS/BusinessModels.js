@@ -381,9 +381,6 @@ function BusinessModels(SiteContext) {
   function GetObservationList(OBXList, oFacilityConfig) {
     var ObservationList = [];
     for (var i = 0; (i < OBXList.Count); i++) {
-
-
-      BreakPoint;
       if (oFacilityConfig.SiteContext == SiteContextEnum.SAH && OBXList.Item(i).Field(2).AsString == "XCN" && OBXList.Item(i).Field(3).Component(1).AsString == "LS") {
         //Custom logic for SAH
         SahOBXLeadSurgeonProcessing(ObservationList, OBXList.Item(i));
@@ -449,6 +446,7 @@ function BusinessModels(SiteContext) {
       this.CodeSystem = Set(oOBX.Field(3).Component(3));
 
       //OBX-2 DataType
+      BreakPoint;
       if (this.DataType.toUpperCase() == "ED" && this.Code.toUpperCase() == "PDF") {
         this.Value = Set(oOBX.Field(5).Component(5));
       } else if (this.DataType.toUpperCase() == "ST" && this.Code == "LS" && this.CodeDescription == "Lead Surgeon") {
