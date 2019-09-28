@@ -1,6 +1,6 @@
 
 //Set Annotation
-function Main(aEvent) {
+function SetReportAnnotation(aEvent) {
   BreakPoint;
   var oHL7 = aEvent.Message.HL7;
 
