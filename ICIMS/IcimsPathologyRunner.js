@@ -1,33 +1,18 @@
 
-//Debugging
+<% include $repo$\Logging\Logger.js %>
 <% include $repo$\ICIMS\BusinessModels.js %>
 <% include $repo$\FhirLibrary\Json\FhirJson.js %>
 <% include $repo$\FhirLibrary\Client\FhirClient.js %>
 <% include $repo$\ICIMS\FhirResourceFactory.js %>
 
-
-  /**
-   * @module
-   * @description The IcimsPathologyRunner script is the entry point for HL7 Connect.
-   * This script is to be referanced on a HL7 Connect outgoing scripted interface with the procedure name
-   * '<code>Main</code>' and a single parameter equal to one of the 'SiteContextEnum' values <code>'SAH'</code> for example.
-  */
-
-  /**
-   * @class
-   * @classdesc The main entry point for HL7 Connect on fireing the OnScriptSend event.
-   * @requires module:BusinessModels.js
-   * @requires module:IcimsInterfaceModels.js
-   * @requires module:RestClient.js
-   * @requires module:Json2.js
-   * @constructor
-   * @param {event} OnScriptSend The event passed in by HL7 Connect
-   */
   function Main(aEvent) {
     //Validate and set the site context for the script
     //This is so the script can be adjusted for new sites as required.
     //For instance the string "SAH" must be passed in as a script parameter from HL7 Connect.
     BreakPoint;
+    var oLogger = new Logger();
+    oLogger.SetCustomLogName(_CustomLogNameType.IcimsPathology);
+
     var SiteContext = ValidateSiteContext(aEvent.Parameter);
 
     var oModels = new BusinessModels(SiteContext);
@@ -111,76 +96,77 @@
         }
         else {
           var ErrorMsg = "ICIMS Unknown Message Event of: " + MessageEvent;
-          IcimsLog("ICIMS unknown Message Event, expect the events 'R01', found event: " + MessageEvent);
+
+          oLogger.Log("ICIMS unknown Message Event, expect the events 'R01', found event: " + MessageEvent);
           RejectMessage(ErrorMsg);
-          StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
+          StopInterface(ErrorMsg, oLogger, oModels.FacilityConfig, IsTestCase);
         }
         //Data Processed now attempt to call ICIMS REST Service
         if (CallRESTService) {
           BreakPoint;
-          IcimsLog("Logging request body data about to be sent to ICIMS:");
-          IcimsLog("-------------------------------------------------------------");
-          IcimsLog(BodyData);
+          oLogger.Log("Logging request body data about to be sent to ICIMS:");
+          oLogger.Log("-------------------------------------------------------------");
+          oLogger.Log(BodyData);
 
           var Client = new FhirClient();
           var POSTOutcome = new Client.POST(FacilityConfiguration.EndPoint, FacilityConfiguration.OperationName, FacilityConfiguration.AuthorizationToken, BodyData);
           if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 200) {
-            IcimsLog("Data received: " + POSTOutcome.DataReceived);
+            oLogger.Log("Data received: " + POSTOutcome.DataReceived);
             //Message has been sent successfully to ICIMS, event complete!
           }
           else if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 401) {
             //We have a HTTP Status code 401 error, Authorization failed.
-            var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived);
+            var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived, oLogger);
             var ErrorMsg = "ICIMS Error Message: State: " + ICIMSError.state + ", Msg: " + ICIMSError.error;
-            IcimsLog("ICIMS HTTP Status Code " + POSTOutcome.HttpStatus + ": Authorization failed, check Authorization token is correct in script.");
-            IcimsLog("ICIMS HTTP Authorization token used: " + FacilityConfiguration.AuthorizationToken);
-            IcimsLog(ErrorMsg);
+            oLogger.Log("ICIMS HTTP Status Code " + POSTOutcome.HttpStatus + ": Authorization failed, check Authorization token is correct in script.");
+            oLogger.Log("ICIMS HTTP Authorization token used: " + FacilityConfiguration.AuthorizationToken);
+            oLogger.Log(ErrorMsg);
             RejectMessage(ErrorMsg);
-            StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
+            StopInterface(ErrorMsg, oLogger, oModels.FacilityConfig, IsTestCase);
           }
           else if (!POSTOutcome.Error) {
             //We have some other HTTP error code
-            var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived);
+            var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived, oLogger);
             var ErrorMsg = "ICIMS HTTP failed HTTP Status: " + POSTOutcome.HttpStatus + ", State: " + ICIMSError.state + ", Msg: " + ICIMSError.error;
-            IcimsLog(ErrorMsg);
-            IcimsLog("ICIMS HTTP Error Message: " + POSTOutcome.DataReceived);
-            IcimsLog(ErrorMsg);
+            oLogger.Log(ErrorMsg);
+            oLogger.Log("ICIMS HTTP Error Message: " + POSTOutcome.DataReceived);
+            oLogger.Log(ErrorMsg);
             RejectMessage(ErrorMsg);
-            StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
+            StopInterface(ErrorMsg, oLogger, oModels.FacilityConfig, IsTestCase);
           }
           else {
             if (POSTOutcome.Error) {
               //We were unable to reach the REST endpoint, maybe network connection is down?
               var ErrorMsg = "ICIMS HTTP Request failed, network connectivity issue";
-              IcimsLog(ErrorMsg);
-              IcimsLog("ICIMS Error Message: " + POSTOutcome.ErrorMessage);
+              oLogger.Log(ErrorMsg);
+              oLogger.Log("ICIMS Error Message: " + POSTOutcome.ErrorMessage);
               RejectMessage(ErrorMsg);
-              StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
+              StopInterface(ErrorMsg, oLogger, oModels.FacilityConfig, IsTestCase);
             } else {
               //Some unexplained script error, should not happen!
               var ErrorMsg = "ICIMS Unknown Scripting error";
-              IcimsLog(ErrorMsg);
-              IcimsLog("ICIMS Possible RestClient error.");
+              oLogger.Log(ErrorMsg);
+              oLogger.Log("ICIMS Possible RestClient error.");
               RejectMessage(ErrorMsg);
-              StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
+              StopInterface(ErrorMsg, oLogger, oModels.FacilityConfig, IsTestCase);
             }
           }
         }
       } else {
         //A HL7 V2 message type that is not suported by this script was passed in.
         var ErrorMsg = "ICIMS expected Message type: " + MessageType;
-        IcimsLog("ICIMS Unknown Message type, only expect ORU messages");
+        oLogger.Log("ICIMS Unknown Message type, only expect ORU messages");
         RejectMessage(ErrorMsg);
-        StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
+        StopInterface(ErrorMsg, oLogger, oModels.FacilityConfig, IsTestCase);
       }
     }
     catch (Exec) {
       //The script has throwen and exception, should not happen!
       var ErrorMsg = "ICIMS Unknown Scripting exception of :" + Exec;
-      IcimsLog(ErrorMsg);
-      IcimsLog("ICIMS Error Message: " + Exec);
+      oLogger.Log(ErrorMsg);
+      oLogger.Log("ICIMS Error Message: " + Exec);
       RejectMessage(ErrorMsg);
-      StopInterface(ErrorMsg, FacilityConfiguration.NameOfInterfaceRunnningScript, IsTestCase);
+      StopInterface(ErrorMsg, oLogger, oModels.FacilityConfig, IsTestCase);
     }
 
     /** @function
@@ -188,35 +174,28 @@
      * @param {string} ErrorMsg The Error message to show on the HL7 Connect status page interface
      * @returns {void}
     */
-    function StopInterface(ErrorMsg) {
+    function StopInterface(ErrorMsg, oLogger, oFacilityConfig, IsTestCase) {
       if (IsTestCase == false) {
-
-        var oInterfaceOut = Kernel.Getinterface(FacilityConfiguration.NameOfInterfaceRunnningScript);
+        var oInterfaceOut = Kernel.Getinterface(oFacilityConfig.NameOfInterfaceRunnningScript);
         var RejectCount = oInterfaceOut.RejCount
-        if (RejectCount > FacilityConfiguration.MaxRejectBeforeInterfaceStop - 2) {
-          IcimsLog("ICIMS Script is stopping the interface due to Reject count max reached.")
-          //SendEmail("smtp.iinet.net.au", "HL7 Connect Error", "angusmillar@iinet.net.au", "hl7connect@error.com.au", "There was an error");
+        if (RejectCount > oFacilityConfig.MaxRejectBeforeInterfaceStop - 2) {
+          oLogger.Log("ICIMS Script is stopping the interface due to Reject count max reached.")
           oInterfaceOut.Stop(false, "Script-Error", ErrorMsg);
         }
       }
     }
 
-
-    /** @function
-     * @description Function to set the HL7 V2 acknowledgement message reject error message
-     * @param {string} ErrorMsg The Error message to place in the HL7 V2 acknowledgement message
-     * @returns {void}
-    */
+    // Function to set the HL7 V2 acknowledgement message reject error message
+    // ErrorMsg The Error message to place in the HL7 V2 acknowledgement message     
     function RejectMessage(ErrorMsg) {
       oHL7Reply.Element("MSA-1").AsString = "AR";
       oHL7Reply.Element("MSA-3").AsString = ErrorMsg;
     }
 
-    /** @function
-     * @description Validate the Site context string, passed in to the script event, is a valid SiteContectEnum value.
-     * @param {string} SiteContext The site context the script is runnig under
-     * @returns {enum} SiteContextEnum
-    */
+
+    // Validate the Site context string, passed in to the script event, is a valid SiteContectEnum value.
+    // SiteContext The site context the script is runnig under
+    // SiteContextEnum
     function ValidateSiteContext(SiteContext) {
       if (SiteContext.toUpperCase() == SiteContextEnum.RMH) {
         return SiteContextEnum.RMH;
@@ -239,11 +218,8 @@
       }
     }
 
-    /** @function
-     * @param {string} JsonString A string in JSON format
-     * @returns {object}
-    */
-    function ParseICIMSJson(JsonString) {
+    // JsonString A string in JSON format    
+    function ParseICIMSJson(JsonString, oLogger) {
       //If ICIMCS returns a json object which throws an exception on parsing, then this object is parsed and used.
       var UnableToParseJsonError = '{"state": "Script", "error": "Unable to paser ICIMS JSON error."}';
       var ICIMSData = null;
@@ -252,29 +228,15 @@
           return JSON.parse(JsonString);
         }
         catch (Exec) {
-          IcimsLog("Unable to paser ICIMS JSON error, raw data was:");
-          IcimsLog("-------------------------------------------------------------");
-          IcimsLog(JsonString);
+          oLogger.Log("Unable to paser ICIMS JSON error, raw data was:");
+          oLogger.Log("-------------------------------------------------------------");
+          oLogger.Log(JsonString);
           return JSON.parse(UnableToParseJsonError);
         }
       }
-      IcimsLog("Unable to paser ICIMS JSON Object as returned object was an empty string.");
+      oLogger.Log("Unable to paser ICIMS JSON Object as returned object was an empty string.");
       return JSON.parse(UnableToParseJsonError);
     }
-
-
-    /** @function
-     * @description Write a message to the custom ICIMS log file.
-     * @param {string} Message to log
-     * @returns {object}
-    */
-    function IcimsLog(message) {
-      var currentdate = new Date();
-      var datetime = currentdate.toDateString() + " : "
-        + currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
-      Kernel.WriteToCustomLog("IcimsPathologyLog", datetime + ": " + message + "\r" + "\n")
-    }
-
   }
 
 
