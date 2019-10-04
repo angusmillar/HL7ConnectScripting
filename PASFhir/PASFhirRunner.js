@@ -29,9 +29,9 @@
     var FacilityConfiguration = null;
     switch (oFacilityConfig.SiteContext) {
       case oFacilityConfig.SiteContextEnum.TST:
-        //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
+
         oFacilityConfig.PrimaryMRNAssigningAuthority = "TST";
-        //EndPoint - The REST endpoint url for ICIMS
+
         oFacilityConfig.PrimaryMRNSystemUri = "https://www.test.org.au/systems/fhir/pas/medical-record-number";
         //Send the Pathology Pdf report if provided in V2 message
         oFacilityConfig.SendPathologyPdfReport = false;
@@ -78,19 +78,11 @@
     }
     //===========================================================================
 
-
     //The inbound HL7 V2 message object
     var oHL7 = aEvent.OutMessage;
-    // //The programaticaly build HL7 V2 acknowledgment message, effectivly an acknowledgment to our selves
-    // //to indicate this message successfully was sent to ICIMS or not.
-    // var oHL7Reply = aEvent.ReplyMessage;
     //Boolean that indicates the the data was collected from the V2 Message with out error and that
     //The script can now proced to attempting to call the ICIMS Rest service
     var CallRESTService = false;
-    //Variable to hold the ICIMS payload, sent in a Form data type format
-    var FormData = "";
-    //Is later set to the method name at the endpoint (Add, Update, Merge)
-    var EndPointMethod = "";
 
     var oModel = new BusinessModel();
     oModel.Logger = oLogger;
@@ -124,10 +116,10 @@
       }
 
 
-      //Data Processed now attempt to call ICIMS REST Service
+      //Data Processed now attempt to call  REST Service
       if (CallRESTService) {
         BreakPoint;
-        oLogger.Log("Logging request body data about to be sent to ICIMS:");
+        oLogger.Log("Logging request body data about to be sent:");
         oLogger.Log("-------------------------------------------------------------");
         oLogger.Log(BodyData);
 
@@ -135,7 +127,7 @@
         var POSTOutcome = new Client.POST(oModel.FacilityConfig.Fhir.FhirEndpoint, oModel.FacilityConfig.Fhir.OperationName, oModel.FacilityConfig.Fhir.AuthorizationToken, BodyData);
         if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 200) {
           oLogger.Log("Data received: " + POSTOutcome.DataReceived);
-          //Message has been sent successfully to ICIMS, event complete!
+          //Message has been sent successfully, event complete!
         } else if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 401) {
           //We have a HTTP Status code 401 error, Authorization failed.
           var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived);
@@ -157,16 +149,16 @@
         } else {
           if (POSTOutcome.Error) {
             //We were unable to reach the REST endpoint, maybe network connection is down?
-            var ErrorMsg = "ICIMS HTTP Request failed, network connectivity issue";
+            var ErrorMsg = "HTTP Request failed, network connectivity issue";
             oLogger.Log(ErrorMsg);
-            oLogger.Log("ICIMS Error Message: " + POSTOutcome.ErrorMessage);
+            oLogger.Log("Error Message: " + POSTOutcome.ErrorMessage);
             RejectMessage(ErrorMsg);
             StopInterface(ErrorMsg, IsTestCase);
           } else {
             //Some unexplained script error, should not happen!
-            var ErrorMsg = "ICIMS Unknown Scripting error";
+            var ErrorMsg = "Unknown Scripting error";
             oLogger.Log(ErrorMsg);
-            oLogger.Log("ICIMS Possible RestClient error.");
+            oLogger.Log("Possible RestClient error.");
             RejectMessage(ErrorMsg);
             StopInterface(ErrorMsg, IsTestCase);
           }
@@ -175,9 +167,9 @@
     }
     catch (Exec) {
       //The script has throwen and exception, should not happen!
-      var ErrorMsg = "ICIMS Unknown Scripting exception of :" + Exec;
+      var ErrorMsg = "Unknown Scripting exception of :" + Exec;
       oLogger.Log(ErrorMsg);
-      oLogger.Log("ICIMS Error Message: " + Exec);
+      oLogger.Log("Error Message: " + Exec);
       RejectMessage(ErrorMsg);
       StopInterface(ErrorMsg, IsTestCase);
     }
@@ -188,7 +180,7 @@
         var oInterfaceOut = Kernel.Getinterface(oModel.FacilityConfig.NameOfInterfaceRunnningScript);
         var RejectCount = oInterfaceOut.RejCount
         if (RejectCount > oModel.FacilityConfig.MaxRejectBeforeInterfaceStop - 2) {
-          oLogger.Log("ICIMS Script is stopping the interface due to Reject count max reached.")
+          oLogger.Log("Script is stopping the interface due to Reject count max reached.")
           //SendEmail("smtp.iinet.net.au", "HL7 Connect Error", "angusmillar@iinet.net.au", "hl7connect@error.com.au", "There was an error");
           oInterfaceOut.Stop(false, "Script-Error", ErrorMsg);
         }
