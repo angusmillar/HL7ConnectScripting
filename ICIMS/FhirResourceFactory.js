@@ -8,6 +8,7 @@
 <% include $repo$\FhirLibrary\STU3\PatientFhirResource.js %>
 <% include $repo$\FhirLibrary\STU3\ObservationFhirResource.js %>
 <% include $repo$\FhirLibrary\STU3\ProvenanceFhirResource.js %>
+<% include $repo$\FhirLibrary\STU3\PractitionerFhirResource.js %>
 <% include $repo$\FhirLibrary\STU3\FhirDataTypeTool.js %>
 <% include $repo$\FhirLibrary\STU3\FhirTools.js %>
 
@@ -189,6 +190,29 @@
       }
 
       //--------------------------------------------------------------------------
+      //PractitionerFhir Resource
+      //--------------------------------------------------------------------------
+      var oPractitioner = new PractitionerFhirResource();
+      oPractitioner.SetId(FhirTool.GetGuid());
+      //MedicareProviderNumber      
+      var oPractitionerIdentifierArray = [];
+      if (oModels.Pathology.OrderingPractitioner.MedicareProviderNumber != null) {
+        var oPractMedicareProviderNumberTypeCoding = FhirDataType.GetCoding("UPIN", "http://terminology.hl7.org.au/CodeSystem/v2-0203", "Medicare Provider Number");
+        var oPractMedicareProviderNumberType = FhirDataType.GetCodeableConcept(oPractMedicareProviderNumberTypeCoding, undefined);
+        var oPractMedicareProviderNumberIdentifier = FhirDataType.GetIdentifier("official", oPractMedicareProviderNumberType,
+          "http://ns.electronichealth.net.au/id/medicare-provider-number",
+          oModels.Pathology.OrderingPractitioner.MedicareProviderNumber);
+        oPractitionerIdentifierArray.push(oPractMedicareProviderNumberIdentifier);
+        oPractitioner.SetIdentifierArray(oPractitionerIdentifierArray);
+      }
+
+      var oPractHumanName = FhirDataType.GetHumanName("official", oModels.Pathology.OrderingPractitioner.FormattedName,
+        oModels.Pathology.OrderingPractitioner.Family,
+        oModels.Pathology.OrderingPractitioner.Given,
+        oModels.Pathology.OrderingPractitioner.Title);
+      oPractitioner.SetName([oPractHumanName]);
+
+      //--------------------------------------------------------------------------
       //DiagnosticReport Resource
       //--------------------------------------------------------------------------
       var oDiagReport = new DiagnosticReportFhirResource();
@@ -230,6 +254,16 @@
       oDiagReport.SetEffectiveDateTime(FhirTool.SetTimeZone(oModels.Pathology.Report.CollectionDateTime.AsXML));
       oDiagReport.SetIssued(FhirTool.SetTimeZone(oModels.Pathology.Report.ReportIssuedDateTime.AsXML));
 
+      //Add Performer Practitioner
+      BreakPoint;
+      var oPerformerRoleCodeableConcept = undefined;
+      if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == CareZoneSendingApplicationCode.toUpperCase()) {
+        var oPerformerRoleCoding = FhirDataType.GetCoding("310512001", "http://snomed.info/sct", "Medical oncologist");
+        oPerformerRoleCodeableConcept = FhirDataType.GetCodeableConcept(oPerformerRoleCoding, undefined);
+      }
+      var oPerformerActorPractitionerReference = FhirDataType.GetReference("Practitioner", oPractitioner.id, oModels.Pathology.OrderingPractitioner.FormattedName);
+      oDiagReport.AddPerformer(oPerformerRoleCodeableConcept, oPerformerActorPractitionerReference);
+
       //Add All the Observation References to the DiagnosticReport Resource
       var ResultReferenceArray = [];
       for (var i = 0; (i < ObservationResourceList.length); i++) {
@@ -254,6 +288,9 @@
 
       //Add DiagnosticReport to Bundle
       oBundle.AddEntry(FhirTool.PreFixUuid(DiagnosticReportId), oDiagReport);
+
+      //Add Practitioner to Bundle
+      oBundle.AddEntry(FhirTool.PreFixUuid(oPractitioner.id), oPractitioner);
 
       //Add Patient to Bundle
       oBundle.AddEntry(FhirTool.PreFixUuid(PatientId), oPatient);
@@ -299,6 +336,7 @@
       TargetReferenceArray.push(FhirDataType.GetReference("MessageHeader", MessageHeaderId, "MessageHeader"));
       TargetReferenceArray.push(FhirDataType.GetReference("Patient", PatientId, "Patient"));
       TargetReferenceArray.push(FhirDataType.GetReference("DiagnosticReport", DiagnosticReportId, "DiagnosticReport"));
+      TargetReferenceArray.push(FhirDataType.GetReference("Practitioner", oPractitioner.id, "Practitioner"));
       for (var i = 0; (i < ObservationResourceList.length); i++) {
         TargetReferenceArray.push(FhirDataType.GetReference("Observation", ObservationResourceList[i].id, "Observation"));
       }

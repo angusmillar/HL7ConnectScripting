@@ -5,6 +5,10 @@ function HL7V2Support() {
     return Set(Content);
   }
 
+  this.GetCEByField = function (CEField) {
+    return GetCEByField(CEField);
+  }
+
   // Looks for the MRN with the given AssigningAuthorityCode and no end date
   // if none is found yet a 'MR' is found with no AssigningAuthority with no end date
   // then this MRN is assumed to be for the AssigningAuthority we are looking for.
@@ -19,7 +23,7 @@ function HL7V2Support() {
     for (var i = 0; i <= ((oElement.RepeatCount) - 1); i++) {
       var oCX = oElement.Repeats(i);
       //SAH messages have no AssigningAuthority only a number
-      if (oFacilityConfig.SiteContext == oFacilityConfig.SiteContextEnum.SAH) {
+      if (oFacilityConfig.SiteContext == oFacilityConfig.SiteContextEnum.TST) {
         this.Value = Set(oCX.Component(1));
         this.AssigningAuthority = oFacilityConfig.PrimaryMRNAssigningAuthority;
       }
@@ -74,6 +78,29 @@ function HL7V2Support() {
     } else {
       return null;
     }
+  }
+
+  function GetCEByField(Field) {
+    var oCE = { Identifier: "", Text: "", NameOfCodingSystem: "" };
+    if (Field.defined) {
+      oCE.Identifier = Set(Field.Component(1));
+    }
+    if (Field.Component(2).defined) {
+      oCE.Text = Set(Field.Component(2));
+    }
+    if (Field.Component(3).defined) {
+      oCE.NameOfCodingSystem = Set(Field.Component(3));
+    }
+    if (Field.Component(4).defined) {
+      oCE.AltIdentifier = Set(Field.Component(4));
+    }
+    if (Field.Component(5).defined) {
+      oCE.AltText = Set(Field.Component(5));
+    }
+    if (Field.Component(6).defined) {
+      oCE.AltNameOfCodingSystem = Set(Field.Component(6));
+    }
+    return oCE;
   }
 
   this.AddressTypeTable0190Enum = {
