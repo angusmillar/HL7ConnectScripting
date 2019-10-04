@@ -58,7 +58,7 @@ function Patient(oSeg, oFacilityConfig) {
         this.Given = oHl7Support.Set(oXPN.Component(2));
         this.Family = oHl7Support.Set(oXPN.Component(1));
       }
-      else if (oFacilityConfig.SiteContext == oFacilityConfig.SiteContextEnum.SAH) {
+      else if (oFacilityConfig.SiteContext == oFacilityConfig.SiteContextEnum.TST) {
         //SAH does not use NameType codes
         this.Title = oHl7Support.Set(oXPN.Component(5));
         this.Given = oHl7Support.Set(oXPN.Component(2));

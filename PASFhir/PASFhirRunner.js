@@ -1,5 +1,5 @@
 
-//Debugging
+<% include $repo$\Support\HL7CParameterSupport.js %>
 <% include $repo$\PASFhir\FacilityConfig.js %>
 <% include $repo$\Logging\Logger.js %>
 <% include $repo$\PASFhir\BusinessModel.js %>
@@ -8,25 +8,31 @@
 <% include $repo$\PASFhir\FhirResourceFactory.js %>
 <% include $repo$\PASFhir\FacilityFhirConfig.js %>
 
-
-
   function Main(aEvent) {
     //Validate and set the site context for the script
     //This is so the script can be adjusted for new sites as required.
     //For instance the string "SAH" must be passed in as a script parameter from HL7 Connect.
     BreakPoint;
+    var IsTestCase = aEvent.IsTestCase;
+    var oLogger = new Logger();
+    oLogger.SetCustomLogName(_CustomLogNameType.PASFhir);
+    var oHL7CParameterSupport = new HL7CParameterSupport(oLogger, aEvent.Parameter);
     var oFacilityConfig = new FacilityConfig();
     oFacilityConfig.Fhir = new FacilityFhirConfig();
+    try {
+      oFacilityConfig.SetSiteContext(oHL7CParameterSupport.SiteCode);
+    } catch (Exec) {
+      oLogger.Log("Unable to set Site Context :" + Exec);
+    }
 
-    oFacilityConfig.SetSiteContext(aEvent.Parameter);
     //=========== Per site Configuration ========================================
     var FacilityConfiguration = null;
     switch (oFacilityConfig.SiteContext) {
-      case oFacilityConfig.SiteContextEnum.SAH:
+      case oFacilityConfig.SiteContextEnum.TST:
         //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
-        oFacilityConfig.PrimaryMRNAssigningAuthority = "SAH";
+        oFacilityConfig.PrimaryMRNAssigningAuthority = "TST";
         //EndPoint - The REST endpoint url for ICIMS
-        oFacilityConfig.PrimaryMRNSystemUri = "https://www.sah.org.au/systems/fhir/pas/medical-record-number";
+        oFacilityConfig.PrimaryMRNSystemUri = "https://www.test.org.au/systems/fhir/pas/medical-record-number";
         //Send the Pathology Pdf report if provided in V2 message
         oFacilityConfig.SendPathologyPdfReport = false;
         //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
@@ -34,19 +40,36 @@
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
         oFacilityConfig.MaxRejectBeforeInterfaceStop = 20;
 
-        oFacilityConfig.Fhir.FhirEndpoint = "https://stu3.test.pyrohealth.net/fhir";
-        oFacilityConfig.Fhir.OperationName = "Bundle"
-        oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+        //Enviroment Switch
+        switch (oHL7CParameterSupport.Enviroment) {
+          case oHL7CParameterSupport.EnviromentCodes.DEV:
+            oFacilityConfig.Fhir.FhirEndpoint = "https://stu3.test.pyrohealth.net/fhir";
+            oFacilityConfig.Fhir.OperationName = "Bundle"
+            oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+            break;
 
-        oFacilityConfig.Fhir.EncounterNumberSystemUri = "https://www.OzHealth.org.au/systems/fhir/encounter-number";
-        oFacilityConfig.Fhir.HL7V2MessageControlIdSystemUri = "https://www.OzHealth.org.au/systems/fhir/hl7-v2/message-control-id";
+          case oHL7CParameterSupport.EnviromentCodes.TEST:
+            oFacilityConfig.Fhir.FhirEndpoint = "https://stu3.test.pyrohealth.net/fhir";
+            oFacilityConfig.Fhir.OperationName = "Bundle"
+            oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+            break;
+
+          case oHL7CParameterSupport.EnviromentCodes.PROD:
+            oFacilityConfig.Fhir.FhirEndpoint = "https://stu3.test.pyrohealth.net/fhir";
+            oFacilityConfig.Fhir.OperationName = "Bundle"
+            oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+            break;
+        }
+
+        oFacilityConfig.Fhir.EncounterNumberSystemUri = "https://www.testing.org.au/systems/fhir/encounter-number";
+        oFacilityConfig.Fhir.HL7V2MessageControlIdSystemUri = "https://www.testing.org.au/systems/fhir/hl7-v2/message-control-id";
         //Codes from DG1.3
-        oFacilityConfig.Fhir.ConditionCodeSystemUri = "https://www.OzHealth.org.au/systems/fhir/Condition";
+        oFacilityConfig.Fhir.ConditionCodeSystemUri = "https://www.testing.org.au/systems/fhir/Condition";
 
         oFacilityConfig.Fhir.ReceivingOrganizationName = "AcmeHealth";
         oFacilityConfig.Fhir.ReceivingOrganizationResourceId = "8388a9b2-9acc-4a04-afc7-ceaac91f611a";
 
-        oFacilityConfig.Fhir.SendingOrganizationName = "OzHealth";
+        oFacilityConfig.Fhir.SendingOrganizationName = "TestingHealth";
         oFacilityConfig.Fhir.SendingOrganizationResourceId = "52ce2a70-aa42-4732-b4f1-22dbd53fbffc";
 
         break;
@@ -55,13 +78,12 @@
     }
     //===========================================================================
 
-    //Boolean to detect if script is run in test development enviroment, set by the OnScriptSend event
-    var IsTestCase = aEvent.IsTestCase;
+
     //The inbound HL7 V2 message object
     var oHL7 = aEvent.OutMessage;
-    //The programaticaly build HL7 V2 acknowledgment message, effectivly an acknowledgment to our selves
-    //to indicate this message successfully was sent to ICIMS or not.
-    var oHL7Reply = aEvent.ReplyMessage;
+    // //The programaticaly build HL7 V2 acknowledgment message, effectivly an acknowledgment to our selves
+    // //to indicate this message successfully was sent to ICIMS or not.
+    // var oHL7Reply = aEvent.ReplyMessage;
     //Boolean that indicates the the data was collected from the V2 Message with out error and that
     //The script can now proced to attempting to call the ICIMS Rest service
     var CallRESTService = false;
@@ -69,9 +91,6 @@
     var FormData = "";
     //Is later set to the method name at the endpoint (Add, Update, Merge)
     var EndPointMethod = "";
-
-    var oLogger = new Logger();
-    oLogger.SetCustomLogName(_CustomLogNameType.PASFhir);
 
     var oModel = new BusinessModel();
     oModel.Logger = oLogger;
@@ -179,6 +198,7 @@
 
     ///Function to set the HL7 V2 acknowledgement message reject error message     
     function RejectMessage(ErrorMsg) {
+      var oHL7Reply = aEvent.ReplyMessage;
       oHL7Reply.Element("MSA-1").AsString = "AR";
       oHL7Reply.Element("MSA-3").AsString = ErrorMsg;
     }

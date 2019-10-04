@@ -12,6 +12,9 @@
 <% include $repo$\FhirLibrary\R4\EncounterFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\ProvenanceFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\ConditionFhirResource.js %>
+<% include $repo$\FhirLibrary\R4\AllergyIntoleranceFhirResource.js %>
+
+<% include $repo$\PASFhir\HL7V2ToFhirMapping.js %>
 
 
 
@@ -26,7 +29,7 @@
       var oFhirConfig = new FhirConfig();
       var oFhirTool = new FhirTools();
       var oFhirDataType = new FhirDataTypeTool();
-
+      var oHL7V2ToFhirMapping = new HL7V2ToFhirMapping(oModels.FacilityConfig);
       //When sending to a [base]/fhir/Bundle endpoint for testing as a POST
       //you can not have an id, however, when sending to $process-message you must
       var oBundle = new BundleFhirResource();
@@ -310,9 +313,24 @@
         oEncounter.AddLocation(oLocationReference, undefined, oPhysicalTypeCodeableConcept, undefined);
       }
 
-
-
       oBundle.AddEntry(oFhirTool.PreFixUuid(EncounterId), oEncounter);
+
+      //--------------------------------------------------------------------------
+      //AllergyIntolerance
+      //--------------------------------------------------------------------------
+
+      BreakPoint;
+      for (var i = 0; (i < oModels.Encounter.AllergyList.length); i++) {
+        oHL7V2Allergy = oModels.Encounter.AllergyList[i];
+        var oAllergyIntolerance = new AllergyIntoleranceFhirResource();
+        oAllergyIntolerance.SetId(oFhirTool.GetGuid());
+        if (oHL7V2Allergy.TypeCode != null) {
+          var CategoryCoding = oHL7V2ToFhirMapping.AllergyIntoleranceCategoryCodeMap(oHL7V2Allergy.TypeCode.Identifier);
+          oAllergyIntolerance.SetCategory(CategoryCoding.Code)
+        }
+        oBundle.AddEntry(oFhirTool.PreFixUuid(oAllergyIntolerance.id), oAllergyIntolerance);
+      }
+      BreakPoint;
 
       //--------------------------------------------------------------------------
       //Organization ICIMS

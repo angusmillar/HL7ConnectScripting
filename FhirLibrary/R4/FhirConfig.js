@@ -7,6 +7,8 @@ function FhirConfig() {
 
   this.MedicareNumberSystemUri = "http://ns.electronichealth.net.au/id/medicare-number";
 
+  this.AllergyIntoleranceCategoryCodeSystem = "http://hl7.org/fhir/allergy-intolerance-category";
+
   this.PyroServerDeviceResourceId = "Pyro-Fhir-Server";
 
   this.ResourceName = {
@@ -16,7 +18,8 @@ function FhirConfig() {
     DiagnosticReport: "DiagnosticReport",
     Device: "Device",
     Encounter: "Encounter",
-    Condition: "Condition"
+    Condition: "Condition",
+    AllergyIntolerance: "AllergyIntolerance"
   };
 
 }

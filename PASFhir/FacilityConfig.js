@@ -4,7 +4,8 @@ function FacilityConfig() {
   //Add to this list as new sites are brought on board.
   this.SiteContextEnum = {
     /** RMH */
-    SAH: "SAH"
+    //SAH: "SAH",
+    TST: "TST" //Testign Only
   };
 
   //Config for fhir
@@ -37,13 +38,8 @@ function FacilityConfig() {
   // The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
   this.MaxRejectBeforeInterfaceStop = 20;
 
-
-
   this.SetSiteContext = function (SiteContext) {
-    if (SiteContext.toUpperCase() == this.SiteContextEnum.RMH) {
-      this.SiteContext = SiteContext;
-    }
-    else if (SiteContext.toUpperCase() == this.SiteContextEnum.SAH) {
+    if (SiteContext.toUpperCase() in this.SiteContextEnum == true) {
       this.SiteContext = SiteContext;
     }
     else {
@@ -52,11 +48,11 @@ function FacilityConfig() {
         SiteList.push(Site);
       }
       var Sites = SiteList.join(" or ");
-      if (aEvent.Parameter == "") {
+      if (SiteContext == "") {
         throw "No SiteContext script parameter passed to the running script. Allowed (" + Sites + ")";
       }
       else {
-        throw "Unknowen SiteContext parameter of '" + aEvent.Parameter + "' passed to the running script. Allowed (" + Sites + ")";
+        throw "Unknowen SiteContext parameter of '" + SiteContext + "' passed to the running script. Allowed (" + Sites + ")";
       }
     }
   }
