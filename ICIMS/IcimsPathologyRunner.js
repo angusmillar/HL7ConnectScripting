@@ -1,5 +1,6 @@
 
 <% include $repo$\Logging\Logger.js %>
+<% include $repo$\Support\HL7CParameterSupport.js %>
 <% include $repo$\ICIMS\BusinessModels.js %>
 <% include $repo$\FhirLibrary\Json\FhirJson.js %>
 <% include $repo$\FhirLibrary\Client\FhirClient.js %>
@@ -12,8 +13,8 @@
     BreakPoint;
     var oLogger = new Logger();
     oLogger.SetCustomLogName(_CustomLogNameType.IcimsPathology);
-
-    var SiteContext = ValidateSiteContext(aEvent.Parameter);
+    var oHL7CParameterSupport = new HL7CParameterSupport(oLogger, aEvent.Parameter);
+    var SiteContext = ValidateSiteContext(oHL7CParameterSupport.SiteCode);
 
     var oModels = new BusinessModels(SiteContext);
     //=========== Per site Configuration ========================================
@@ -22,26 +23,34 @@
       case SiteContextEnum.SAH:
         //The Site Context enum we are running the script under
         FacilityConfiguration = oModels.FacilityConfiguration(SiteContext);
+
+        //Enviroment Switch
+        switch (oHL7CParameterSupport.Enviroment) {
+          case oHL7CParameterSupport.EnviromentCodes.DEV:
+            FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+            FacilityConfiguration.OperationName = "Bundle";
+            FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+            break;
+
+          case oHL7CParameterSupport.EnviromentCodes.TEST:
+            FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+            FacilityConfiguration.OperationName = "$process-message";
+            FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+            break;
+
+          case oHL7CParameterSupport.EnviromentCodes.PROD:
+            FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+            FacilityConfiguration.OperationName = "$process-message";
+            FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+            break;
+        }
+
         //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
         FacilityConfiguration.PrimaryMRNAssigningAuthority = "SAH";
         //EndPoint - The REST endpoint url for ICIMS
         FacilityConfiguration.PrimaryMRNSystemUri = "https://www.sah.org.au/systems/fhir/pas/medical-record-number";
-        //Development
-        //FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
-        //Production
-        FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
-        //Operation name
-        //Development
-        //FacilityConfiguration.OperationName = "Bundle";
-        //Production
-        FacilityConfiguration.OperationName = "$process-message";
         //Send the Pathology Pdf report if provided in V2 message
         FacilityConfiguration.SendPathologyPdfReport = false;
-        //AuthorizationToken - The static Authorization Token to make the REST call against ICIMS service.
-        //Production Token
-        //FacilityConfiguration.AuthorizationToken = = "Basic aGw3OmlDSU1TMjBsNw==";
-        //Test Token
-        FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
         //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
         FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
