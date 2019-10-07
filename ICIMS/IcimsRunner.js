@@ -34,7 +34,7 @@
           case oHL7CParameterSupport.EnviromentCodes.DEV:
             FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
             FacilityConfiguration.AuthorizationToken = "Basic NotRequired";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutboundProd";
+            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.TEST:
