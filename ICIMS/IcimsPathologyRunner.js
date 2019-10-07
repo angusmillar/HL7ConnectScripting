@@ -30,18 +30,21 @@
             FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
             FacilityConfiguration.OperationName = "Bundle";
             FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+            FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.TEST:
             FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
             FacilityConfiguration.OperationName = "$process-message";
             FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsReportsScriptOutbound";
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.PROD:
             FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
             FacilityConfiguration.OperationName = "$process-message";
             FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+            FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
             break;
         }
 

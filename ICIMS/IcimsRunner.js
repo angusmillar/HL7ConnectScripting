@@ -40,13 +40,13 @@
           case oHL7CParameterSupport.EnviromentCodes.TEST:
             FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py"
             FacilityConfiguration.AuthorizationToken = "Basic aGw3dGVzdDppY2ltczIwMTc=";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutboundProd";
+            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.PROD:
-            FacilityConfiguration.EndPoint = "http://mhicimsprod.ssg.org.au/staging/api/pas.py";
+            FacilityConfiguration.EndPoint = "http://icimsprod01.sah.com/staging/api/pas_sah.py"
             FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutboundProd";
+            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
             break;
         }
         //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
