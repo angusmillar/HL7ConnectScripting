@@ -14,15 +14,17 @@ function Practitioner(oXAD) {
       this.MedicareProviderNumber = oStringSupport.RemoveWhiteSpace(V2Support.Set(oXCN.Component(1)));
       this.Family = V2Support.Set(oXCN.Component(2));
       this.Given = V2Support.Set(oXCN.Component(3));
-      this.Title = V2Support.Set(oXCN.Component(4));
+      this.Title = V2Support.Set(oXCN.Component(6));
     }
 
     if (this.Title != null && this.Given != null) {
       this.FormattedName = this.Family.toUpperCase() + ", " + this.Title + " " + this.Given;
     } else if (this.Title == null && this.Given != null) {
       this.FormattedName = this.Family.toUpperCase() + ", " + this.Given;
-    } else {
+    } else if (this.Family != null) {
       this.FormattedName = this.Family.toUpperCase();
+    } else {
+      this.FormattedName = null;
     }
   }
 }
