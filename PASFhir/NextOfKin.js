@@ -14,7 +14,6 @@ function NextOfKin(oNK1) {
 
   var oHl7Support = new HL7V2Support();
 
-  BreakPoint;
   if (oNK1 !== null) {
     if (oNK1.Field(2).defined) {
       this.Family = oHl7Support.Set(oNK1.Field(2).Component(1));

@@ -9,7 +9,7 @@ function Practitioner(oXAD) {
   this.InflateXCN = function (oXCN) {
     var V2Support = new HL7V2Support();
     var oStringSupport = new StringSupport();
-    BreakPoint;
+
     if (oXCN != null) {
       this.MedicareProviderNumber = oStringSupport.RemoveWhiteSpace(V2Support.Set(oXCN.Component(1)));
       this.Family = V2Support.Set(oXCN.Component(2));

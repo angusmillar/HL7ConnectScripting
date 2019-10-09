@@ -69,7 +69,6 @@
       //This was resolved and the PMI is to now only send a single address that being the correct address.
       //For this reason I have changes the code below to just take the first address regardless of there being many, which there should not be.
 
-      //BreakPoint;
 
       //If we did not get the target adddress then just take the first address.
       if (oROL.Field(11).RepeatCount > 0) {

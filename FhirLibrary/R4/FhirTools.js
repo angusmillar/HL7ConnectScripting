@@ -46,18 +46,17 @@ function FhirTools() {
   }
 
   this.SetTimeZone = function (dateString) {
-    if (dateString !== null){
+    if (dateString !== null) {
       var now = new Date;
       var zone = -(now.getTimezoneOffset() / 60);
       //Asumes posative zone as all australian are, now great.
-      return dateString + "+" + zone + ":" + "00";  
+      return dateString + "+" + zone + ":" + "00";
     } else {
       return null;
-    }    
+    }
   }
 
   this.RemoveTimeFromDataTimeString = function (dateTimeString) {
-    BreakPoint;
     if (dateTimeString == null || dateTimeString == undefined) {
       return dateTimeString;
     }
