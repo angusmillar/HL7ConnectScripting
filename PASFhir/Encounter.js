@@ -57,7 +57,9 @@
       }
 
       this.PreadmitNumber = oHl7Support.Set(oPV1.Field(5));
-      this.FinancialClass = oHl7Support.Set(oPV1.Field(20).Component(1));
+      if (oPV1.Field(20).defined) {
+        this.FinancialClass = oHl7Support.Set(oPV1.Field(20).Component(1));
+      }
 
       if (oPV1.Field(44).AsString != "") {
         try {
