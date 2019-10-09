@@ -16,7 +16,11 @@ function EncounterFhirResource() {
   };
 
   Resource.SetClass = function (oCoding) {
-    Resource.status = oCoding;
+    //This is a hack to ensure we can have a property named 'class'.
+    //Class is a reserved word in Javascript and can not be used as a property name.
+    //To get around this we can prefix the property name with '_xxx_', for example '_xxx_class'
+    //This prefix is then removed from the property name in the FhirJson parser.                 
+    Resource._xxx_class = oCoding;
   };
 
   Resource.SetSubject = function (reference) {
