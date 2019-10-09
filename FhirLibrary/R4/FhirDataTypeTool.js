@@ -1,7 +1,7 @@
 
 function FhirDataTypeTool() {
 
-  var FhirTool = new FhirTools();
+  var oFhirTool = new FhirTools();
 
   this.GetMeta = function (versionId, lastUpdatedInstant, profileUriArray, oSecurityCodingArray, oTagCodingArray) {
     return new Meta(versionId, lastUpdatedInstant, profileUriArray, oSecurityCodingArray, oTagCodingArray);
@@ -61,21 +61,21 @@ function FhirDataTypeTool() {
 
   function ContactPoint(systemCode, valueString, useCode, rankPositiveInt, oPeriod) {
     var ContactPoint = new function () { };
-    ContactPoint.system = FhirTool.SetFhir(systemCode);
-    ContactPoint.value = FhirTool.SetFhir(valueString);
-    ContactPoint.use = FhirTool.SetFhir(useCode);
-    ContactPoint.rank = FhirTool.SetFhir(rankPositiveInt);
-    ContactPoint.period = FhirTool.SetFhir(oPeriod);
+    ContactPoint.system = oFhirTool.SetFhir(systemCode);
+    ContactPoint.value = oFhirTool.SetFhir(valueString);
+    ContactPoint.use = oFhirTool.SetFhir(useCode);
+    ContactPoint.rank = oFhirTool.SetFhir(rankPositiveInt);
+    ContactPoint.period = oFhirTool.SetFhir(oPeriod);
     return ContactPoint;
   }
 
   function Quantity(value, comparator, unit, system, code) {
     var Quantity = new function () { };
     Quantity.value = QuantityValue(value);
-    Quantity.comparator = FhirTool.SetFhir(comparator);
-    Quantity.unit = FhirTool.SetFhir(unit);
-    Quantity.system = FhirTool.SetFhir(system);
-    Quantity.code = FhirTool.SetFhir(code);
+    Quantity.comparator = oFhirTool.SetFhir(comparator);
+    Quantity.unit = oFhirTool.SetFhir(unit);
+    Quantity.system = oFhirTool.SetFhir(system);
+    Quantity.code = oFhirTool.SetFhir(code);
     return Quantity;
   }
 
@@ -91,43 +91,43 @@ function FhirDataTypeTool() {
 
   function Extension(url, valueXname, valueXvalue) {
     var Extension = new function () { };
-    Extension.url = FhirTool.SetFhir(url);
-    Extension[valueXname] = FhirTool.SetFhir(valueXvalue);
+    Extension.url = oFhirTool.SetFhir(url);
+    Extension[valueXname] = oFhirTool.SetFhir(valueXvalue);
     return Extension;
   }
 
   function Narrative(status, div) {
     var Narrative = new function () { };
-    Narrative.status = FhirTool.SetFhir(status);
-    Narrative.div = FhirTool.SetFhir(div);
+    Narrative.status = oFhirTool.SetFhir(status);
+    Narrative.div = oFhirTool.SetFhir(div);
     return Narrative;
   }
 
   function Coding(code, codeSystem, display, version) {
     var coding = new function () { };
-    coding.code = FhirTool.SetFhir(code);
-    coding.system = FhirTool.SetFhir(codeSystem);
-    coding.display = FhirTool.SetFhir(display);
-    coding.version = FhirTool.SetFhir(version);
+    coding.code = oFhirTool.SetFhir(code);
+    coding.system = oFhirTool.SetFhir(codeSystem);
+    coding.display = oFhirTool.SetFhir(display);
+    coding.version = oFhirTool.SetFhir(version);
     return coding;
   }
 
   function Reference(reference, typeUri, oIdentifer, display) {
     var ref = new function () { };
-    ref.reference = FhirTool.SetFhir(reference);
-    ref.type = FhirTool.SetFhir(typeUri);
-    ref.identifier = FhirTool.SetFhir(oIdentifer);
-    ref.display = FhirTool.SetFhir(display);
+    ref.reference = oFhirTool.SetFhir(reference);
+    ref.type = oFhirTool.SetFhir(typeUri);
+    ref.identifier = oFhirTool.SetFhir(oIdentifer);
+    ref.display = oFhirTool.SetFhir(display);
     return ref;
   }
 
 
   function Identifier(use, oType, system, value, oPeriod, oAssigner) {
     var id = new function () { };
-    id.use = FhirTool.SetFhir(use);
+    id.use = oFhirTool.SetFhir(use);
     id.type = oType;
-    id.system = FhirTool.SetFhir(system)
-    id.value = FhirTool.SetFhir(value)
+    id.system = oFhirTool.SetFhir(system)
+    id.value = oFhirTool.SetFhir(value)
     id.period = oPeriod
     id.assigner = oAssigner
     return id;
@@ -136,57 +136,66 @@ function FhirDataTypeTool() {
   function CodeableConcept(oCoding, text) {
     var CodeableConcept = new function () { };
     CodeableConcept.coding = oCoding;
-    CodeableConcept.text = FhirTool.SetFhir(text);
+    CodeableConcept.text = oFhirTool.SetFhir(text);
     return CodeableConcept;
   }
 
   function Period(start, end) {
     var Period = new function () { };
-    Period.start = FhirTool.SetFhir(start);
-    Period.end = FhirTool.SetFhir(end);
+    Period.start = oFhirTool.SetFhir(start);
+    Period.end = oFhirTool.SetFhir(end);
     return Period;
   }
 
   function Attachment(contentType, language, data) {
     var Attachment = new function () { };
-    Attachment.contentType = FhirTool.SetFhir(contentType);
-    Attachment.language = FhirTool.SetFhir(language);
-    Attachment.data = FhirTool.SetFhir(data);
+    Attachment.contentType = oFhirTool.SetFhir(contentType);
+    Attachment.language = oFhirTool.SetFhir(language);
+    Attachment.data = oFhirTool.SetFhir(data);
     return Attachment;
   }
 
   function HumanName(use, text, family, given, prefix, suffix, oPeriod) {
     var HumanName = new function () { };
-    HumanName.use = FhirTool.SetFhir(use);
-    HumanName.text = FhirTool.SetFhir(text);
-    HumanName.family = FhirTool.SetFhir(family);
-    HumanName.given = FhirTool.SetFhir(given);
-    HumanName.prefix = FhirTool.SetFhir(prefix);
-    HumanName.suffix = FhirTool.SetFhir(suffix);
+    HumanName.use = oFhirTool.SetFhir(use);
+    HumanName.text = oFhirTool.SetFhir(text);
+    HumanName.family = oFhirTool.SetFhir(family);
+    HumanName.given = oFhirTool.SetFhir(given);
+    HumanName.prefix = oFhirTool.SetFhir(prefix);
+    HumanName.suffix = oFhirTool.SetFhir(suffix);
     HumanName.period = oPeriod;
     return HumanName;
   }
 
   function Address(use, type, text, line, city, district, state, postalCode, country, oPeriod) {
     var Address = new function () { };
-    Address.use = FhirTool.SetFhir(use);
-    Address.type = FhirTool.SetFhir(type);
-    Address.text = FhirTool.SetFhir(text);
-    Address.line = FhirTool.SetFhir(line);
-    Address.city = FhirTool.SetFhir(city);
-    Address.district = FhirTool.SetFhir(district);
-    Address.state = FhirTool.SetFhir(state);
-    Address.postalCode = FhirTool.SetFhir(postalCode);
-    Address.country = FhirTool.SetFhir(country);
+    Address.use = oFhirTool.SetFhir(use);
+    Address.type = oFhirTool.SetFhir(type);
+    //Resolve a formatted Address is one is not supplied in the text property
+    if (text != undefined || text != null) {
+      Address.text = oFhirTool.SetFhir(text);
+    } else {
+      if ((line != undefined || line != null) && (line.length == 1)) {
+        Address.text = oFhirTool.FormattedAddress(line[0], null, city, postalCode, state);
+      } else if ((line != undefined || line != null) && (line.length >= 2)) {
+        Address.text = oFhirTool.FormattedAddress(line[0], line[1], city, postalCode, state);
+      }
+    }
+    Address.line = oFhirTool.SetFhir(line);
+    Address.city = oFhirTool.SetFhir(city);
+    Address.district = oFhirTool.SetFhir(district);
+    Address.state = oFhirTool.SetFhir(state);
+    Address.postalCode = oFhirTool.SetFhir(postalCode);
+    Address.country = oFhirTool.SetFhir(country);
     Address.period = oPeriod;
     return Address;
   }
 
   function Meta(versionId, lastUpdatedInstant, profileUriArray, oSecurityCodingArray, oTagCodingArray) {
     var Meta = new function () { };
-    Meta.versionId = FhirTool.SetFhir(versionId);
-    Meta.lastUpdated = FhirTool.SetFhir(lastUpdatedInstant);
-    Meta.profile = FhirTool.SetFhir(profileUriArray);
+    Meta.versionId = oFhirTool.SetFhir(versionId);
+    Meta.lastUpdated = oFhirTool.SetFhir(lastUpdatedInstant);
+    Meta.profile = oFhirTool.SetFhir(profileUriArray);
     Meta.security = oSecurityCodingArray;
     Meta.tag = oTagCodingArray;
     return Meta;

@@ -14,7 +14,7 @@
 <% include $repo$\FhirLibrary\R4\ConditionFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\AllergyIntoleranceFhirResource.js %>
 
-<% include $repo$\PASFhir\HL7V2ToFhirMapping.js %>
+
 
 
 
@@ -93,16 +93,19 @@
       }
 
       oPatient.SetIdentifier(PatientIdentifierArray);
-
-      var HumanName = oFhirDataType.GetHumanName("official", oModels.Patient.FormattedName,
+      BreakPoint;
+      var PatientFormattedName = oFhirTool.FormattedHumanName(oModels.Patient.Family, oModels.Patient.Given, oModels.Patient.Title);
+      var HumanName = oFhirDataType.GetHumanName("official",
+        PatientFormattedName,
         oModels.Patient.Family,
         oModels.Patient.Given,
         oModels.Patient.Title);
       oPatient.SetName([HumanName]);
-      oPatient.SetGender(oModels.Patient.Gender);
+      oPatient.SetGender(oHL7V2ToFhirMapping.SexCodeToGenderCodeMap(oModels.Patient.Sex));
       oPatient.SetBirthDate(oFhirTool.RemoveTimeFromDataTimeString(oModels.Patient.Dob.AsXML));
 
       var FHIRAddressList = [];
+
       for (var i = 0; i < oModels.Patient.PatientAddressList.length; i++) {
         var PatientAddress = oModels.Patient.PatientAddressList[i];
         var lineArray = [];
@@ -112,8 +115,7 @@
         if (PatientAddress.AddressLine2 != null) {
           lineArray.push(PatientAddress.AddressLine2);
         }
-
-        var oAddress = oFhirDataType.GetAddressAustrlian(undefined, PatientAddress.FormattedAddress,
+        var oAddress = oFhirDataType.GetAddressAustrlian(undefined, undefined,
           lineArray, PatientAddress.Suburb, undefined, PatientAddress.Postcode);
         FHIRAddressList.push(oAddress);
       }
@@ -130,7 +132,9 @@
         }
         var oHumanName = undefined;
         if (oV2NextOfKin.Family != null) {
-          oHumanName = oFhirDataType.GetHumanName("official", oV2NextOfKin.FormattedName,
+          var NOKFormattedName = oFhirTool.FormattedHumanName(oV2NextOfKin.Family, oV2NextOfKin.Given, oV2NextOfKin.Title);
+          oHumanName = oFhirDataType.GetHumanName("official",
+            NOKFormattedName,
             oV2NextOfKin.Family,
             oV2NextOfKin.Given,
             oV2NextOfKin.Title);
@@ -157,7 +161,7 @@
             lineArray.push(oV2NextOfKin.Address.AddressLine2);
           }
 
-          var oAddress = oFhirDataType.GetAddressAustrlian(undefined, oV2NextOfKin.Address.FormattedAddress,
+          var oAddress = oFhirDataType.GetAddressAustrlian(undefined, undefined,
             lineArray, oV2NextOfKin.Address.Suburb, oV2NextOfKin.Address.State, oV2NextOfKin.Address.Postcode);
 
 

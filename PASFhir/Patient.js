@@ -11,8 +11,6 @@ function Patient(oSeg, oFacilityConfig) {
   this.Given = null;
   // The Patient's family name 
   this.Family = null;
-  // The Patient's name formated e.g MILLAR, Mr Angus 
-  this.FormattedName = null;
   // The Patient's date or birth
   this.Dob = null;
   // The Patient's sex 
@@ -66,15 +64,6 @@ function Patient(oSeg, oFacilityConfig) {
       }
     }
 
-    if (this.Title != null && this.Given != null) {
-      this.FormattedName = this.Family.toUpperCase() + ", " + this.Title + " " + this.Given;
-    } else if (this.Title == null && this.Given != null) {
-      this.FormattedName = this.Family.toUpperCase() + ", " + this.Given;
-    } else {
-      this.FormattedName = this.Family.toUpperCase();
-    }
-
-
     //Patient Date of Birth
     //require: dd/mm/yyyy
     if (oSeg.Field(7).defined && oSeg.Field(7).AsString != "" && oSeg.Field(7).AsString.length >= 8) {
@@ -90,31 +79,6 @@ function Patient(oSeg, oFacilityConfig) {
     }
     //Patient Sex
     this.Sex = oHl7Support.Set(oSeg.Field(8));
-
-    if (this.Sex != null) {
-      switch (this.Sex) {
-        case "F":
-          this.Gender = "female";
-          break;
-        case "M":
-          this.Gender = "male";
-          break;
-        case "A":
-          this.Gender = "other";
-          break;
-        case "N":
-          this.Gender = "unknown";
-          break;
-        case "O":
-          this.Gender = "other";
-          break;
-        case "U":
-          this.Gender = "unknown";
-          break;
-        default:
-          throw "The Patient sex found in PID-8 was not expected, value is : " + oOBR.Field(25).AsString + ", allowed values are (F,M,A,N,O,U).";
-      }
-    }
 
     //Patient Marital Status
     this.MaritalStatus = oHl7Support.Set(oSeg.Field(16));

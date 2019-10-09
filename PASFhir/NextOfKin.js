@@ -3,7 +3,6 @@ function NextOfKin(oNK1) {
   this.Family = null;
   this.Given = null;
   this.Title = null;
-  this.FormattedName = null;
   this.Sex = null;
   this.Relationship = null;
   this.Address = null;
@@ -19,14 +18,6 @@ function NextOfKin(oNK1) {
       this.Family = oHl7Support.Set(oNK1.Field(2).Component(1));
       this.Given = oHl7Support.Set(oNK1.Field(2).Component(2));
       this.Title = oHl7Support.Set(oNK1.Field(2).Component(5));
-      if (this.Title != null && this.Given != null) {
-        this.FormattedName = this.Family.toUpperCase() + ", " + this.Title + " " + this.Given;
-      } else if (this.Title == null && this.Given != null) {
-        this.FormattedName = this.Family.toUpperCase() + ", " + this.Given;
-      } else {
-        this.FormattedName = this.Family.toUpperCase();
-      }
-
     }
     if (oNK1.Field(3).defined) {
       this.Relationship = { Identifier: oHl7Support.Set(oNK1.Field(3).Component(1)), Text: oHl7Support.Set(oNK1.Field(3).Component(2)), NameOfCodingSystem: oHl7Support.Set(oNK1.Field(3).Component(3)) };

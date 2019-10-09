@@ -68,6 +68,45 @@ function FhirTools() {
     }
   }
 
+  this.FormattedHumanName = function (Family, Given, Title) {
+    if (IsSet(Title) && IsSet(Given) && IsSet(Family)) {
+      return Family.toUpperCase() + ", " + Title + " " + Given;
+    } else if (!IsSet(Title) && IsSet(Given) && IsSet(Family)) {
+      return Family.toUpperCase() + ", " + Given;
+    } else if (!IsSet(Title) && !IsSet(Given) && IsSet(Family)) {
+      return Family.toUpperCase();
+    } else {
+      return undefined;
+    }
+  }
+
+  this.FormattedAddress = function (LineOne, LineTwo, Suburb, PostCode, State) {
+    var FormattedAddress = undefined;
+    if (IsSet(LineOne)) {
+      FormattedAddress = LineOne;
+    }
+    if (IsSet(LineTwo)) {
+      FormattedAddress = FormattedAddress + ", " + LineTwo;
+    }
+    if (IsSet(Suburb)) {
+      FormattedAddress = FormattedAddress + ", " + Suburb;
+    }
+    if (IsSet(PostCode)) {
+      FormattedAddress = FormattedAddress + " " + PostCode;
+    }
+    if (IsSet(State)) {
+      FormattedAddress = FormattedAddress + " " + State;
+    }
+    return FormattedAddress;
+  }
+
+  function IsSet(value) {
+    if (value == undefined || value == null) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 
   this.GetNow = function () {
     function pad(number) {

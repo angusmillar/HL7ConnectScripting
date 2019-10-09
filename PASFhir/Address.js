@@ -6,7 +6,6 @@ function Address(oXAD) {
   this.State = null;
   this.Postcode = null;
   this.AddressType = null;
-  this.FormattedAddress = null;
 
   var oHl7Support = new HL7V2Support();
   if (oXAD !== null) {
@@ -17,21 +16,4 @@ function Address(oXAD) {
     this.Postcode = oHl7Support.Set(oXAD.Component(5));
     this.AddressType = oHl7Support.Set(oXAD.Component(7))
   }
-
-  if (this.AddressLine1 != null) {
-    this.FormattedAddress = this.AddressLine1;
-  }
-  if (this.AddressLine2 != null) {
-    this.FormattedAddress = this.FormattedAddress + ", " + this.AddressLine2;
-  }
-  if (this.Suburb != null) {
-    this.FormattedAddress = this.FormattedAddress + ", " + this.Suburb;
-  }
-  if (this.Postcode != null) {
-    this.FormattedAddress = this.FormattedAddress + " " + this.Postcode;
-  }
-  if (this.State != null) {
-    this.FormattedAddress = this.FormattedAddress + " " + this.State;
-  }
-
 }
