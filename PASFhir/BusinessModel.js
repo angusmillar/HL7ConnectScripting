@@ -1,5 +1,6 @@
 <% include $repo$\V2Libaray\HL7V2Support.js %>
 <% include $repo$\PASFhir\HL7Table.js %>
+<% include $repo$\PASFhir\HL7V2ToFhirMapping.js %>
 <% include $repo$\PASFhir\HL7MessageHeader.js %>
 <% include $repo$\PASFhir\Patient.js %>
 <% include $repo$\PASFhir\Encounter.js %>
@@ -24,7 +25,7 @@
       //The current inbound HL7 V2 message event
       var MessageEvent = oHL7.Segment("MSH", 0).Field(9).Component(2).AsString.toUpperCase();
       if (MessageType == "ADT") {
-        if (MessageEvent == "A01") {
+        if (MessageEvent == "A01" || MessageEvent == "A08") {
           return true;
         }
       }
