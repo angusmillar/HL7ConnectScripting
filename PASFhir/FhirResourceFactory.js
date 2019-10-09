@@ -120,7 +120,6 @@
 
       oPatient.SetAddress(FHIRAddressList);
 
-      BreakPoint;
       //Next Of Kin as Contacts
       for (var i = 0; i < oModels.Encounter.NextOfKinList.length; i++) {
         var oV2NextOfKin = oModels.Encounter.NextOfKinList[i];
@@ -161,18 +160,23 @@
           var oAddress = oFhirDataType.GetAddressAustrlian(undefined, oV2NextOfKin.Address.FormattedAddress,
             lineArray, oV2NextOfKin.Address.Suburb, oV2NextOfKin.Address.State, oV2NextOfKin.Address.Postcode);
 
-          BreakPoint;
+
           NextOfKinStartDate = null;
           NextOfKinEndDate = null;
           if (oV2NextOfKin.StartDate != null) {
             NextOfKinStartDate = oV2NextOfKin.StartDate.AsXML;
           }
+
           if (oV2NextOfKin.EndDate != null) {
             NextOfKinEndDate = oV2NextOfKin.EndDate.AsXML;
           }
-          oNOKPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(NextOfKinStartDate), oFhirTool.SetTimeZone(NextOfKinEndDate))
+          var oNOKPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(NextOfKinStartDate), oFhirTool.SetTimeZone(NextOfKinEndDate))
         }
-        oPatient.AddContact(oRelationshipCodeableConcept, oHumanName, oTelecomContactPointList, oAddress, oV2NextOfKin.Sex, undefined, oNOKPeriod)
+        var NextOfKinGender = undefined;
+        if (oV2NextOfKin.Sex != null) {
+          NextOfKinGender = oHL7V2ToFhirMapping.SexCodeToGenderCodeMap(oV2NextOfKin.Sex);
+        }
+        oPatient.AddContact(oRelationshipCodeableConcept, oHumanName, oTelecomContactPointList, oAddress, NextOfKinGender, undefined, oNOKPeriod)
       }
 
 
@@ -190,6 +194,7 @@
       var EncounterDiagnosisArray = [];
       var oConditionResourceArray = [];
 
+      //The Encounter's contained Condition resources
       for (var i = 0; (i < oModels.Encounter.DiagnosisList.length); i++) {
         var oCondition = new ConditionFhirResource();
         oCondition.SetId("Condition" + (i + 1));
@@ -204,7 +209,6 @@
         var oCategoryCodeableConcept = oFhirDataType.GetCodeableConcept(oCategoryCoding, "Admitting");
         oCondition.SetCategory(oCategoryCodeableConcept);
 
-        BreakPoint;
         var DateTime = oFhirTool.SetTimeZone(oModels.Encounter.DiagnosisList[i].DateTime.AsXML)
         oCondition.SetRecordedDate(DateTime);
         oConditionResourceArray.push(oCondition);
@@ -282,7 +286,6 @@
         oEncounter.AddDiagnosis(EncounterDiagnosisArray[i].Reference, EncounterDiagnosisArray[i].Use, EncounterDiagnosisArray[i].Rank);
       }
 
-      BreakPoint;
       //Locations (PointOfCare, Room, Bed, Facility, LocationDescription)
       if (oModels.Encounter.PointOfCare != null) {
         var oLocationReference = oFhirDataType.GetReference(undefined, undefined, undefined, oModels.Encounter.PointOfCare);
@@ -318,8 +321,8 @@
       //--------------------------------------------------------------------------
       //AllergyIntolerance
       //--------------------------------------------------------------------------
-
-      BreakPoint;
+      //We have to add AllergyIntolerance as seperate resource rather than contined resources of the Encounter resource
+      //because AllergyIntolerance resources reference Encounter and not the other way around.
       for (var i = 0; (i < oModels.Encounter.AllergyList.length); i++) {
         oHL7V2Allergy = oModels.Encounter.AllergyList[i];
         var oAllergyIntolerance = new AllergyIntoleranceFhirResource();
@@ -328,9 +331,20 @@
           var CategoryCoding = oHL7V2ToFhirMapping.AllergyIntoleranceCategoryCodeMap(oHL7V2Allergy.TypeCode.Identifier);
           oAllergyIntolerance.SetCategory(CategoryCoding.Code)
         }
+        if (oHL7V2Allergy.Code != null) {
+          var oAllergyCoding = oFhirDataType.GetCoding(oHL7V2Allergy.Code.Identifier, oModels.FacilityConfig.Fhir.AllergyIntoleranceCodeSystemUri, oHL7V2Allergy.Code.Text);
+          var oAllergyCodeableConcept = oFhirDataType.GetCodeableConcept(oAllergyCoding, oHL7V2Allergy.Code.Text);
+          oAllergyIntolerance.SetCode(oAllergyCodeableConcept);
+        }
+
+        if (oHL7V2Allergy.IdentificationDate != null) {
+          oAllergyIntolerance.SetOnSetDateTime(oHL7V2Allergy.IdentificationDate.AsXML)
+        }
+        var oEncounterReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Encounter, oEncounter.id), undefined, undefined, oFhirConfig.ResourceName.Encounter + ": " + oModels.Encounter.EcounterNumber);
+        oAllergyIntolerance.SetEncounter(oEncounterReference);
+        oAllergyIntolerance.SetPatient(oPatientReference);
         oBundle.AddEntry(oFhirTool.PreFixUuid(oAllergyIntolerance.id), oAllergyIntolerance);
       }
-      BreakPoint;
 
       //--------------------------------------------------------------------------
       //Organization ICIMS
@@ -339,7 +353,7 @@
       oSenderOrg.SetId(oModels.FacilityConfig.Fhir.SendingOrganizationResourceId);
       //var oOrgProfileUrl = oFhirTool.PathCombine([IcimsProfileBase, IcimsOrganizationProfileName]);
       //oOrgIcims.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", oOrgProfileUrl]);
-      oSenderOrg.SetName(oModels.FacilityConfig.Fhir.ReceivingOrganizationName);
+      oSenderOrg.SetName(oModels.FacilityConfig.Fhir.SendingOrganizationName);
       //oOrgIcims.SetAlias(IcimsOrganizationAliasArray);
       //Add Organization ICIMS to Bundle
       oBundle.AddEntry(oFhirTool.PreFixUuid(oModels.FacilityConfig.Fhir.SendingOrganizationResourceId), oSenderOrg);

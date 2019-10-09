@@ -15,4 +15,5 @@ function FacilityFhirConfig() {
   this.HL7V2MessageControlIdSystemUri = null;
   this.EncounterNumberSystemUri = null;
   this.ConditionCodeSystemUri = null;
+  this.AllergyIntoleranceCodeSystemUri = null;
 }

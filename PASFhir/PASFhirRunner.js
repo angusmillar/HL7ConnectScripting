@@ -43,19 +43,19 @@
         //Enviroment Switch
         switch (oHL7CParameterSupport.Enviroment) {
           case oHL7CParameterSupport.EnviromentCodes.DEV:
-            oFacilityConfig.Fhir.FhirEndpoint = "https://stu3.test.pyrohealth.net/fhir";
+            oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
             oFacilityConfig.Fhir.OperationName = "Bundle"
             oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.TEST:
-            oFacilityConfig.Fhir.FhirEndpoint = "https://stu3.test.pyrohealth.net/fhir";
+            oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
             oFacilityConfig.Fhir.OperationName = "Bundle"
             oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.PROD:
-            oFacilityConfig.Fhir.FhirEndpoint = "https://stu3.test.pyrohealth.net/fhir";
+            oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
             oFacilityConfig.Fhir.OperationName = "Bundle"
             oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
             break;
@@ -63,8 +63,11 @@
 
         oFacilityConfig.Fhir.EncounterNumberSystemUri = "https://www.testing.org.au/systems/fhir/encounter-number";
         oFacilityConfig.Fhir.HL7V2MessageControlIdSystemUri = "https://www.testing.org.au/systems/fhir/hl7-v2/message-control-id";
-        //Codes from DG1.3
+        //Codes from DG1-3
         oFacilityConfig.Fhir.ConditionCodeSystemUri = "https://www.testing.org.au/systems/fhir/Condition";
+
+        //Codes from AL1-3
+        oFacilityConfig.Fhir.AllergyIntoleranceCodeSystemUri = "https://www.testing.org.au/systems/fhir/AllergyIntolerance";
 
         oFacilityConfig.Fhir.ReceivingOrganizationName = "AcmeHealth";
         oFacilityConfig.Fhir.ReceivingOrganizationResourceId = "8388a9b2-9acc-4a04-afc7-ceaac91f611a";
