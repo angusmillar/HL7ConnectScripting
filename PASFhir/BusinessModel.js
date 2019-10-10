@@ -25,7 +25,7 @@
       //The current inbound HL7 V2 message event
       var MessageEvent = oHL7.Segment("MSH", 0).Field(9).Component(2).AsString.toUpperCase();
       if (MessageType == "ADT") {
-        if (MessageEvent == "A01" || MessageEvent == "A08") {
+        if (MessageEvent == "A01" || MessageEvent == "A08" || MessageEvent == "A03") {
           return true;
         }
       }
