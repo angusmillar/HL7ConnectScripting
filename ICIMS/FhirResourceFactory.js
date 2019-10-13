@@ -141,13 +141,9 @@
       var oPatientReference = FhirDataType.GetReference("Patient", PatientId, oModels.Pathology.Patient.FormattedName);
       var ObsCategoryCoding = FhirDataType.GetCoding("procedure", "http://hl7.org/fhir/observation-category", "Procedure");
       var ObsCategoryCodeableConcept = FhirDataType.GetCodeableConcept(ObsCategoryCoding);
-
       var BundleObservationResourceList = [];
       var DiagnosticReportObservationResourceList = [];
-
-      //var AllowedObservationDataTypes = ["ST", "NM"];
       var obsProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsObservationProfileName]);
-
       var SubIdProcessedArray = [];
       var oArraySupport = new ArraySupport();
       BreakPoint;
@@ -166,8 +162,7 @@
                 "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oV2Obs.SetId);
               var ObsCodeCodeableConcept = FhirDataType.GetCodeableConcept(ObsCodeCoding);
               oParentObservation.SetCode(ObsCodeCodeableConcept);
-
-
+              oParentObservation.SetSubject(oPatientReference);
               var oSubIdObsGroup = oArraySupport.Filter(oModels.Pathology.ObservationList, "SetId", oV2Obs.SetId);
               BundleObservationResourceList.push(oParentObservation);
               DiagnosticReportObservationResourceList.push(oParentObservation);
