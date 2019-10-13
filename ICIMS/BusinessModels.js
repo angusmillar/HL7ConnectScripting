@@ -1,6 +1,7 @@
 <% include $repo$\V2Libaray\HL7V2Support.js %>
 <% include $repo$\ICIMS\Practitioner.js %>
 <% include $repo$\Support\StringSupport.js %>
+<% include $repo$\Support\ArraySupport.js %>
 
   function BusinessModels(SiteContext) {
     this.FacilityConfig = null;
@@ -428,6 +429,7 @@
       this.Code = null;
       this.CodeDescription = null;
       this.CodeSystem = null;
+      this.SubId = null;
       this.Value = null;
       this.Units = null;
       this.ReferenceRangeText = null;
@@ -438,25 +440,28 @@
 
       var V2Support = new HL7V2Support();
 
-      if (!oOBX.Field(3).Component(1).Defined) {
-        if (oOBX.Field(5).Defined) {
+      if (!oOBX.Field(3).Component(1).defined) {
+        if (oOBX.Field(5).defined) {
           throw "There is an OBX Segment that has an empty OBX-3.1 yet OBX-5 is populated. If we have a result value in OBX-5 then we must have a code in OBX-3.1 to tell us what the result value is.";
         }
       } else {
 
-        if (!oOBX.Field(2).Defined && oOBX.Field(5).Defined) {
+        if (!oOBX.Field(2).defined && oOBX.Field(5).defined) {
           throw "There is an OBX Segment that has an empty OBX-2 (DataType) and yet a populated OBX-5 result value. We must know the datatype to process the result value.";
         }
 
         this.Index = V2Support.Set(oOBX.Field(1));
         this.DataType = V2Support.Set(oOBX.Field(2));
-        this.Code = V2Support.Set(oOBX.Field(3).Component(1));
-        this.CodeDescription = V2Support.Set(oOBX.Field(3).Component(2));
 
-        this.CodeSystem = V2Support.Set(oOBX.Field(3).Component(3));
+        if (oOBX.Field(3).defined) {
+          this.Code = V2Support.Set(oOBX.Field(3).Component(1));
+          this.CodeDescription = V2Support.Set(oOBX.Field(3).Component(2));
+          this.CodeSystem = V2Support.Set(oOBX.Field(3).Component(3));
+        }
+
+        this.SetId = V2Support.Set(oOBX.Field(4));
 
         //OBX-2 DataType
-
         if (this.DataType.toUpperCase() == "ED" && this.Code.toUpperCase() == "PDF") {
           this.Value = V2Support.Set(oOBX.Field(5).Component(5));
         } else if (this.DataType.toUpperCase() == "ST" && this.Code == "LS" && this.CodeDescription == "Lead Surgeon") {

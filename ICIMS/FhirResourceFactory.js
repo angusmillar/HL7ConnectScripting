@@ -142,49 +142,44 @@
       var ObsCategoryCoding = FhirDataType.GetCoding("procedure", "http://hl7.org/fhir/observation-category", "Procedure");
       var ObsCategoryCodeableConcept = FhirDataType.GetCodeableConcept(ObsCategoryCoding);
 
-      var ObservationResourceList = [];
-      var AllowedObservationDataTypes = ["ST", "NM"];
+      var BundleObservationResourceList = [];
+      var DiagnosticReportObservationResourceList = [];
+
+      //var AllowedObservationDataTypes = ["ST", "NM"];
       var obsProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsObservationProfileName]);
+
+      var SubIdProcessedArray = [];
+      var oArraySupport = new ArraySupport();
+      BreakPoint;
       for (var i = 0; (i < oModels.Pathology.ObservationList.length); i++) {
-        if (oModels.Pathology.ObservationList[i].Code != "PDF" && oModels.Pathology.ObservationList[i].CodeSystem != "AUSPDI") {
-          if (oModels.Pathology.ObservationList[i].DataType == "ST" || oModels.Pathology.ObservationList[i].DataType == "NM") {
-            var ObservationId = FhirTool.GetGuid();
-            var oObservation = new ObservationFhirResource();
-            oObservation.SetId(ObservationId);
+        var oV2Obs = oModels.Pathology.ObservationList[i];
+        if (oV2Obs.Code != "PDF" && oV2Obs.CodeSystem != "AUSPDI") {
+          if (oV2Obs.SetId == null) {
+            var oObservation = FhirObsFactory(oV2Obs, oModels.Pathology.Report.ReportIssuedDateTime.AsXML, oPatientReference, ObsCategoryCodeableConcept, obsProfileUrl);
+            BundleObservationResourceList.push(oObservation);
+            DiagnosticReportObservationResourceList.push(oObservation);
+          } else {
+            if (!oArraySupport.Contains(SubIdProcessedArray, oV2Obs.SetId)) {
+              var oParentObservation = new ObservationFhirResource();
+              oParentObservation.SetId(FhirTool.GetGuid());
+              var ObsCodeCoding = FhirDataType.GetCoding(oV2Obs.SetId,
+                "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oV2Obs.SetId);
+              var ObsCodeCodeableConcept = FhirDataType.GetCodeableConcept(ObsCodeCoding);
+              oParentObservation.SetCode(ObsCodeCodeableConcept);
 
-            oObservation.SetMetaProfile([obsProfileUrl]);
-            oObservation.SetStatus(oModels.Pathology.ObservationList[i].Status);
-            oObservation.SetCategory([ObsCategoryCodeableConcept]);
-            var ObsCodeCoding = FhirDataType.GetCoding(oModels.Pathology.ObservationList[i].Code,
-              "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oModels.Pathology.ObservationList[i].CodeDescription);
-            var ObsCodeCodeableConcept = FhirDataType.GetCodeableConcept(ObsCodeCoding);
-            oObservation.SetCode(ObsCodeCodeableConcept);
 
-            oObservation.SetSubject(oPatientReference);
-            //Collection DateTime Clinically relevant date Time
-            oObservation.SetEffectiveDateTime(FhirTool.SetTimeZone(oModels.Pathology.Report.ReportIssuedDateTime.AsXML));
-            //Time off analyser, when the observation was observerd
-            oObservation.SetIssued(FhirTool.SetTimeZone(oModels.Pathology.ObservationList[i].ObsDateTime.AsXML));
-            //Abnormal Flag (Interpretation)
-            if (oModels.Pathology.ObservationList[i].InterpretationCode != null) {
-              var InterpCoding = FhirDataType.GetCoding(oModels.Pathology.ObservationList[i].InterpretationCode,
-                "http://hl7.org/fhir/v2/0078", oModels.Pathology.ObservationList[i].InterpretationDesciption);
-              var InterpCodeableConcept = FhirDataType.GetCodeableConcept(InterpCoding);
-              oObservation.SetInterpretation(InterpCodeableConcept);
-            }
-            //The Result
-            if (oModels.Pathology.ObservationList[i].DataType == "ST") {
-              oObservation.SetValueString(oModels.Pathology.ObservationList[i].Value);
-            } else if (oModels.Pathology.ObservationList[i].DataType == "NM") {
-              oObservation.SetValueQuantity(FhirDataType.GetQuantity(oModels.Pathology.ObservationList[i].Value, undefined, oModels.Pathology.ObservationList[i].Units, undefined, undefined));
-              if (oModels.Pathology.ObservationList[i].ReferenceRangeText != null) {
-                var RangeTypeCodeCoding = FhirDataType.GetCoding("normal",
-                  "http://hl7.org/fhir/referencerange-meaning", "Normal Range");
-                var RangeTypeCodeCodeableConcept = FhirDataType.GetCodeableConcept(RangeTypeCodeCoding);
-                oObservation.SetReferenceRange(undefined, undefined, RangeTypeCodeCodeableConcept, undefined, undefined, oModels.Pathology.ObservationList[i].ReferenceRangeText);
+              var oSubIdObsGroup = oArraySupport.Filter(oModels.Pathology.ObservationList, "SetId", oV2Obs.SetId);
+              BundleObservationResourceList.push(oParentObservation);
+              DiagnosticReportObservationResourceList.push(oParentObservation);
+              for (var x = 0; (x < oSubIdObsGroup.length); x++) {
+                var oSubObs = oSubIdObsGroup[x];
+                var oSubObservation = FhirObsFactory(oSubObs, oModels.Pathology.Report.ReportIssuedDateTime.AsXML, oPatientReference, ObsCategoryCodeableConcept, obsProfileUrl);
+                var oSubObservationReference = FhirDataType.GetReference("Observation", oSubObservation.id, undefined);
+                oParentObservation.AddRelated(oSubObservationReference, "has-member");
+                BundleObservationResourceList.push(oSubObservation);
               }
+              SubIdProcessedArray.push(oV2Obs.SetId);
             }
-            ObservationResourceList.push(oObservation);
           }
         }
       }
@@ -268,10 +263,10 @@
         var oPerformerActorPractitionerReference = FhirDataType.GetReference("Practitioner", oPractitioner.id, oModels.Pathology.OrderingPractitioner.FormattedName);
         oDiagReport.AddPerformer(oPerformerRoleCodeableConcept, oPerformerActorPractitionerReference);
       }
-      //Add All the Observation References to the DiagnosticReport Resource
+      //Add All the DiagnosticReportObservationResourceList References to the DiagnosticReport Resource
       var ResultReferenceArray = [];
-      for (var i = 0; (i < ObservationResourceList.length); i++) {
-        var oObsReference = FhirDataType.GetReference("Observation", ObservationResourceList[i].id, ObservationResourceList[i].code.coding.display);
+      for (var i = 0; (i < DiagnosticReportObservationResourceList.length); i++) {
+        var oObsReference = FhirDataType.GetReference("Observation", DiagnosticReportObservationResourceList[i].id, DiagnosticReportObservationResourceList[i].code.coding.display);
         ResultReferenceArray.push(oObsReference);
       }
       if (ResultReferenceArray.length > 0) {
@@ -282,8 +277,8 @@
       //property named 'presentedForm'
       if (oModels.FacilityConfig.SendPathologyPdfReport) {
         for (var i = 0; (i < oModels.Pathology.ObservationList.length); i++) {
-          if (oModels.Pathology.ObservationList[i].Code == "PDF" && oModels.Pathology.ObservationList[i].CodeSystem == "AUSPDI") {
-            var oPdfAttachment = FhirDataType.GetPdfAttachment(oModels.Pathology.ObservationList[i].Value);
+          if (oV2Obs.Code == "PDF" && oV2Obs.CodeSystem == "AUSPDI") {
+            var oPdfAttachment = FhirDataType.GetPdfAttachment(oV2Obs.Value);
             oDiagReport.SetPresentedForm([oPdfAttachment]);
             break;
           }
@@ -301,8 +296,8 @@
       oBundle.AddEntry(FhirTool.PreFixUuid(PatientId), oPatient);
 
       //Add Observations to Bundle
-      for (var i = 0; (i < ObservationResourceList.length); i++) {
-        oBundle.AddEntry(FhirTool.PreFixUuid(ObservationResourceList[i].id), ObservationResourceList[i]);
+      for (var i = 0; (i < BundleObservationResourceList.length); i++) {
+        oBundle.AddEntry(FhirTool.PreFixUuid(BundleObservationResourceList[i].id), BundleObservationResourceList[i]);
       }
 
       //--------------------------------------------------------------------------
@@ -344,8 +339,8 @@
       if (oPractitioner != null) {
         TargetReferenceArray.push(FhirDataType.GetReference("Practitioner", oPractitioner.id, "Practitioner"));
       }
-      for (var i = 0; (i < ObservationResourceList.length); i++) {
-        TargetReferenceArray.push(FhirDataType.GetReference("Observation", ObservationResourceList[i].id, "Observation"));
+      for (var i = 0; (i < BundleObservationResourceList.length); i++) {
+        TargetReferenceArray.push(FhirDataType.GetReference("Observation", BundleObservationResourceList[i].id, "Observation"));
       }
       TargetReferenceArray.push(FhirDataType.GetReference("Organization", IcimsOrganizationId, "Organization ICIMS"));
       TargetReferenceArray.push(FhirDataType.GetReference("Organization", SAHOrganizationId, "Organization SAH"));
@@ -374,6 +369,52 @@
       oBundle.AddEntry(FhirTool.PreFixUuid(provenanceId), oProvenance);
 
       return oBundle;
+    }
+
+    function FhirObsFactory(oV2Obs, ReportIssuedDateTime, oPatientReference, ObsCategoryCodeableConcept, obsProfileUrl) {
+      if (oV2Obs.DataType == "ST" || oV2Obs.DataType == "NM") {
+        var oFhirTool = new FhirTools();
+        var oFhirDataType = new FhirDataTypeTool();
+        var oObservation = new ObservationFhirResource();
+
+        var ObservationId = oFhirTool.GetGuid();
+        oObservation.SetId(ObservationId);
+        oObservation.SetMetaProfile([obsProfileUrl]);
+        oObservation.SetStatus(oV2Obs.Status);
+        oObservation.SetCategory([ObsCategoryCodeableConcept]);
+        var ObsCodeCoding = oFhirDataType.GetCoding(oV2Obs.Code,
+          "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oV2Obs.CodeDescription);
+        var ObsCodeCodeableConcept = oFhirDataType.GetCodeableConcept(ObsCodeCoding);
+        oObservation.SetCode(ObsCodeCodeableConcept);
+
+        oObservation.SetSubject(oPatientReference);
+        //Collection DateTime Clinically relevant date Time
+        oObservation.SetEffectiveDateTime(oFhirTool.SetTimeZone(ReportIssuedDateTime));
+        //Time off analyser, when the observation was observerd
+        oObservation.SetIssued(oFhirTool.SetTimeZone(oV2Obs.ObsDateTime.AsXML));
+        //Abnormal Flag (Interpretation)
+        if (oV2Obs.InterpretationCode != null) {
+          var InterpCoding = oFhirDataType.GetCoding(oV2Obs.InterpretationCode,
+            "http://hl7.org/fhir/v2/0078", oV2Obs.InterpretationDesciption);
+          var InterpCodeableConcept = oFhirDataType.GetCodeableConcept(InterpCoding);
+          oObservation.SetInterpretation(InterpCodeableConcept);
+        }
+        //The Result
+        if (oV2Obs.DataType == "ST") {
+          oObservation.SetValueString(oV2Obs.Value);
+        } else if (oV2Obs.DataType == "NM") {
+          oObservation.SetValueQuantity(oFhirDataType.GetQuantity(oV2Obs.Value, undefined, oV2Obs.Units, undefined, undefined));
+          if (oV2Obs.ReferenceRangeText != null) {
+            var RangeTypeCodeCoding = oFhirDataType.GetCoding("normal",
+              "http://hl7.org/fhir/referencerange-meaning", "Normal Range");
+            var RangeTypeCodeCodeableConcept = oFhirDataType.GetCodeableConcept(RangeTypeCodeCoding);
+            oObservation.SetReferenceRange(undefined, undefined, RangeTypeCodeCodeableConcept, undefined, undefined, oV2Obs.ReferenceRangeText);
+          }
+        }
+        return oObservation;
+      } else {
+        throw "OBX DataType in OBX-2 of " + oV2Obs.DataType + " is not supported in the FHIR output.";
+      }
     }
 
 
