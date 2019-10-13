@@ -93,7 +93,6 @@
       }
 
       oPatient.SetIdentifier(PatientIdentifierArray);
-      BreakPoint;
       var PatientFormattedName = oFhirTool.FormattedHumanName(oModels.Patient.Family, oModels.Patient.Given, oModels.Patient.Title);
       var HumanName = oFhirDataType.GetHumanName("official",
         PatientFormattedName,

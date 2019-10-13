@@ -81,9 +81,7 @@ function FhirDataTypeTool() {
 
   function QuantityValue(value) {
     var QuantityValue = new function () { };
-    //QuantityValue.StringQuantityValue = value
     QuantityValue.toJSON = function (key) {
-      //  BreakPoint;
       return "##*##" + value;
     };
     return QuantityValue;

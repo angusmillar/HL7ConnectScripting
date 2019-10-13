@@ -11,8 +11,7 @@
   function Main(aEvent) {
     //Validate and set the site context for the script
     //This is so the script can be adjusted for new sites as required.
-    //For instance the string "SAH" must be passed in as a script parameter from HL7 Connect.
-    BreakPoint;
+    //For instance the string "SAH" must be passed in as a script parameter from HL7 Connect.    
     var IsTestCase = aEvent.IsTestCase;
     var oLogger = new Logger();
     oLogger.SetCustomLogName(_CustomLogNameType.PASFhir);
