@@ -15,11 +15,15 @@ function FhirConfig() {
     Patient: "Patient",
     MessageHeader: "MessageHeader",
     Organization: "Organization",
+    Observation: "Observation",
     DiagnosticReport: "DiagnosticReport",
     Device: "Device",
     Encounter: "Encounter",
     Condition: "Condition",
-    AllergyIntolerance: "AllergyIntolerance"
+    AllergyIntolerance: "AllergyIntolerance",
+    Provenance: "Provenance",
+    Bundle: "Bundle",
+    Parameters: "Parameters"
   };
 
 }

@@ -10,7 +10,7 @@ function HL7CParameterSupport(oLogger, Parameter) {
   };
 
   if (Parameter == undefined || Parameter == null) {
-    throw "The interface's script parameter is null or empty. It must conform to the following mask: " + ParameterMask;
+    throw new Error("The interface's script parameter is null or empty. It must conform to the following mask: " + ParameterMask);
   } else {
 
     var SplitParam = Parameter.split("|");
@@ -24,7 +24,7 @@ function HL7CParameterSupport(oLogger, Parameter) {
     if (this.SiteCode == null) {
       var ErrorMsg = "The interface's script parameter appears to have no SiteCode in the mask : " + ParameterMask;
       oLogger.Log(ErrorMsg);
-      throw ErrorMsg;
+      throw new Error(ErrorMsg);
     }
 
     if (SplitParam.length >= 2) {
@@ -36,7 +36,7 @@ function HL7CParameterSupport(oLogger, Parameter) {
     if (this.Enviroment == null) {
       var ErrorMsg = "The interface's script parameter appears to have no EnvironmentCode in the mask : " + ParameterMask;
       oLogger.Log(ErrorMsg);
-      throw ErrorMsg;
+      throw new Error(ErrorMsg);
     } else if (this.Enviroment in this.EnviromentCodes === false) {
       var ErrorMsg = "The interface's script parameter appears to have no EnvironmentCode must be one of (Dev, Test, Prod)";
     }

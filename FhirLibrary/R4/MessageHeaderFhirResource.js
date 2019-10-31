@@ -1,9 +1,10 @@
 
 function MessageHeaderFhirResource() {
   var FhirTool = new FhirTools();
-
+  var oFhirConfig = new FhirConfig();
   var Resource = new DomainResource();
-  Resource.resourceType = "MessageHeader";
+
+  Resource.resourceType = oFhirConfig.ResourceName.MessageHeader;
 
   Resource.SetEventCoding = function (oCoding) {
     Resource.eventCoding = FhirTool.SetFhir(oCoding);

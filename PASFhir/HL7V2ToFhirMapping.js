@@ -1,27 +1,35 @@
-function HL7V2ToFhirMapping(oFacilityConfig) {
-
-  this.FhirConfig = new FhirConfig();
+function HL7V2ToFhirMapping(oFacilityConfig, oFhirConfig) {
 
   this.SexCodeToGenderCodeMap = function (oV2Code) {
-    return SexCodeToGenderCodeMap(this.FhirConfig, oFacilityConfig, oV2Code);
+    return SexCodeToGenderCodeMap(oFacilityConfig, oV2Code);
   }
 
   this.AllergyIntoleranceCategoryCodeMap = function (oV2Code) {
-    return AllergyIntoleranceCategoryCodeMap(this.FhirConfig, oFacilityConfig, oV2Code);
+    return AllergyIntoleranceCategoryCodeMap(oFacilityConfig, oFhirConfig, oV2Code);
   }
 
-  function SexCodeToGenderCodeMap(oFhirConfig, oFacilityConfig, oV2Code) {
+  function SexCodeToGenderCodeMap(oFacilityConfig, oV2Code) {
     switch (oFacilityConfig.SiteContext) {
-      //If needing to customise for a different site do below:
-      // case oFacilityConfig.SiteContextEnum.TST: {
-      //   switch (oV2Code.toUpperCase()) {
-      //     case "Code":
-      //       return "Something"
-      //       break;
-      //     default:
-      //       throw "The code found for something  was not an expected, value was : " + oV2Code + ", allowed values are (?,?,?).";
-      //   }
-      // }
+      case oFacilityConfig.SiteContextEnum.TST: {
+        switch (oV2Code.toUpperCase()) {
+          case "F":
+            return "female";
+          case "M":
+            return "male";
+          case "A":
+            return "other";
+          case "N":
+            return "unknown";
+          case "O":
+            return "other";
+          case "U":
+            return "unknown";
+          case "NSP":
+            return "unknown";
+          default:
+            throw new Error("The sex code found not expected, value is : " + oV2Code + ", allowed values are (F,M,A,N,O,U).");
+        }
+      }
       default: {
         //Default HL7 v2.4 Table 0001: Administrative sex
         switch (oV2Code.toUpperCase()) {
@@ -38,15 +46,14 @@ function HL7V2ToFhirMapping(oFacilityConfig) {
           case "U":
             return "unknown";
           default:
-            throw "The sex code found not expected, value is : " + oV2Code + ", allowed values are (F,M,A,N,O,U).";
+            throw new Error("The sex code found not expected, value is : " + oV2Code + ", allowed values are (F,M,A,N,O,U).");
         }
       }
     }
   }
 
-
-
-  function AllergyIntoleranceCategoryCodeMap(oFhirConfig, oFacilityConfig, oV2Code) {
+  function AllergyIntoleranceCategoryCodeMap(oFacilityConfig, oFhirConfig, oV2Code) {
+    BreakPoint;
     var CodeSystem = oFhirConfig.AllergyIntoleranceCategoryCodeSystem;
     switch (oFacilityConfig.SiteContext) {
       //If needing to customise for a different site do below:
@@ -56,7 +63,7 @@ function HL7V2ToFhirMapping(oFacilityConfig) {
       //       return "Something"
       //       break;
       //     default:
-      //       throw "The code found for something  was not an expected, value was : " + oV2Code + ", allowed values are (?,?,?).";
+      //       throw new Error("The code found for something  was not an expected, value was : " + oV2Code + ", allowed values are (?,?,?).");
       //   }
       // }
       default: {
@@ -87,7 +94,7 @@ function HL7V2ToFhirMapping(oFacilityConfig) {
             return { Code: "biologic", Display: "Biologic", System: CodeSystem };
             break;
           default:
-            throw "The Allergy Intolerance Category Code typicaly found in AL1-2 was not an expected, the value was : " + oV2Code.Code;
+            throw new Error("The Allergy Intolerance Category Code typicaly found in AL1-2 was not an expected, the value was : " + oV2Code);
         }
       }
     }

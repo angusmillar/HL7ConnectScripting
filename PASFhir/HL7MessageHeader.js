@@ -10,7 +10,7 @@ function HL7MessageHeader(oMSH) {
   this.ReceivingApplication = null;
 
   if (oMSH.Code !== "MSH") {
-    throw "MessageHeader Hl7 Segment oMSH must have the segment code 'MSH'.";
+    throw new Error("MessageHeader Hl7 Segment oMSH must have the segment code 'MSH'.");
   }
   var oHl7Support = new HL7V2Support();
   this.MessageType = oHl7Support.Set(oMSH.Field(9).Component(1));
@@ -21,7 +21,7 @@ function HL7MessageHeader(oMSH) {
     this.MessageDateTime = DateAndTimeFromHL7(oMSH.Field(7).AsString);
   }
   catch (Exec) {
-    throw "Message Date & Time in MSH-7 can not be parsed as a Date or Date time, vaule was: " + oMSH.Field(7).AsString;
+    throw new Error("Message Date & Time in MSH-7 can not be parsed as a Date or Date time, vaule was: " + oMSH.Field(7).AsString);
   }
 
   this.SendingApplication = oHl7Support.Set(oMSH.Field(3));

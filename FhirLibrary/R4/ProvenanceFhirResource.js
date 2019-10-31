@@ -1,9 +1,10 @@
 
 function ProvenanceFhirResource() {
   var FhirTool = new FhirTools();
-
+  var oFhirConfig = new FhirConfig();
   var Resource = new DomainResource();
-  Resource.resourceType = "Provenance";
+
+  Resource.resourceType = oFhirConfig.ResourceName.Provenance;
 
   Resource.SetOccurredDateTime = function (dateTime) {
     Resource.occurredDateTime = FhirTool.SetFhir(dateTime);

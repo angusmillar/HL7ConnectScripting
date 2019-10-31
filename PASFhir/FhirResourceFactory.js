@@ -13,35 +13,113 @@
 <% include $repo$\FhirLibrary\R4\ProvenanceFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\ConditionFhirResource.js %>
 <% include $repo$\FhirLibrary\R4\AllergyIntoleranceFhirResource.js %>
+<% include $repo$\FhirLibrary\R4\ParametersFhirResource.js %>
 
+  function FhirResourceFactory(oModels) {
 
+    var oFhirDataType = new FhirDataTypeTool();
+    var oFhirConfig = new FhirConfig();
+    var oFhirTool = new FhirTools();
+    BreakPoint;
+    var oHL7V2ToFhirMapping = new HL7V2ToFhirMapping(oModels.FacilityConfig, oFhirConfig);
 
+    this.CreateADTBundle = function () {
 
-
-  function FhirResourceFactory() {
-
-    this.CreateADTBundle = function (oModels) {
       return new CreateADTBundle(oModels);
     };
 
+    this.CreateMergePatientParameters = function () {
+
+      return new CreateMergePatientParameters(oModels);
+    };
+
+    function CreateMergePatientParameters(oModels) {
+
+      var ServivingPatientParameterName = "serviving";
+      var NonServivingPatientParameterName = "non-serviving";
+
+      //Parameters
+      var oParam = new ParametersFhirResource();
+
+      //Serviving Patient Resource
+      var PatientId = oFhirTool.GetGuid();
+      var oPatient = GetPatient(oModels, PatientId);
+      var ServivingPatientParameter = oParam.GetParameter(ServivingPatientParameterName, undefined, undefined, oPatient, undefined);
+
+      //Non Serviving Patient MRN Identifier
+      var oPriorMRNTypeCoding = oFhirDataType.GetCoding("MR", "http://hl7.org/fhir/v2/0203", "Medical record number");
+      var oPriorMRNType = oFhirDataType.GetCodeableConcept(oPriorMRNTypeCoding, "Medical record number");
+      var oPriorMRNIdentifier = oFhirDataType.GetIdentifier("official", oPriorMRNType,
+        oModels.FacilityConfig.PrimaryMRNSystemUri,
+        oModels.Merge.PriorMrn.Value);
+      var NonServivingPatientParameter = oParam.GetParameter(NonServivingPatientParameterName, "Identifier", oPriorMRNIdentifier, undefined, undefined);
+
+      oParam.AddParameter(ServivingPatientParameter);
+      oParam.AddParameter(NonServivingPatientParameter);
+
+      return oParam;
+    }
+
     function CreateADTBundle(oModels) {
 
-      var oFhirConfig = new FhirConfig();
-      var oFhirTool = new FhirTools();
-      var oFhirDataType = new FhirDataTypeTool();
-      var oHL7V2ToFhirMapping = new HL7V2ToFhirMapping(oModels.FacilityConfig);
-      //When sending to a [base]/fhir/Bundle endpoint for testing as a POST
-      //you can not have an id, however, when sending to $process-message you must
+      //Bundle
       var oBundle = new BundleFhirResource();
       oBundle.SetId(oFhirTool.GetGuid());
       oBundle.SetType("message");
       //var bundleProfileUrl = oFhirTool.PathCombine([IcimsProfileBase, IcimsMessageBundleProfileName]);
       //oBundle.SetMetaProfile([bundleProfileUrl]);
 
-      //--------------------------------------------------------------------------
-      //MessageHeader Resource
-      //--------------------------------------------------------------------------
+      var PatientId = oFhirTool.GetGuid();
+      var PatientFormattedName = oFhirTool.FormattedHumanName(oModels.Patient.Family, oModels.Patient.Given, oModels.Patient.Title);
+      var oPatientReference = oFhirDataType.GetReference(oFhirTool.PreFixUuid(PatientId), undefined, undefined, oFhirConfig.ResourceName.Patient + ": " + PatientFormattedName);
+
+      //MessageHeader Resource      
       var MessageHeaderId = oModels.MessageHeader.MessageControlID;
+      var oMsgHeader = GetMessageHeader(oModels, MessageHeaderId, oPatientReference);
+      oBundle.AddEntry(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.MessageHeader, oMsgHeader.id), oMsgHeader);
+
+      //Patient
+      var oPatient = GetPatient(oModels, PatientId);
+      oBundle.AddEntry(oFhirTool.PreFixUuid(PatientId), oPatient);
+
+      //Encounter
+      var EncounterId = oFhirTool.GetGuid();
+      var oEncounter = GetEncounter(oModels, EncounterId, oPatientReference);
+      oBundle.AddEntry(oFhirTool.PreFixUuid(EncounterId), oEncounter);
+
+      //--------------------------------------------------------------------------
+      //AllergyIntolerance
+      //--------------------------------------------------------------------------
+      //We have to add AllergyIntolerance as seperate resource rather than contined resources of the Encounter resource
+      //because AllergyIntolerance resources reference Encounter and not the other way around.
+      var oEncounterReference = oFhirDataType.GetReference(oFhirTool.PreFixUuid(oEncounter.id), undefined, undefined, oFhirConfig.ResourceName.Encounter + ": " + oModels.Encounter.EcounterNumber);
+      for (var i = 0; (i < oModels.Encounter.AllergyList.length); i++) {
+        oAllergy = oModels.Encounter.AllergyList[i];
+        BreakPoint;
+        oAllergyIntolerance = GetAllergyIntolerance(oAllergy, oPatientReference, oEncounterReference);
+        oBundle.AddEntry(oFhirTool.PreFixUuid(oAllergyIntolerance.id), oAllergyIntolerance);
+      }
+
+      //Organizations
+      if (oModels.FacilityConfig.Fhir.SendOrganizationResourceInBundle) {
+        //Organization ICIMS        
+        var oSenderOrg = GetOrganization(oModels.FacilityConfig.Fhir.SendingOrganizationResourceId, oModels.FacilityConfig.Fhir.SendingOrganizationName);
+        oBundle.AddEntry(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Organization, oSenderOrg.id), oSenderOrg);
+
+        //Organization SAH        
+        var oReceiverOrg = GetOrganization(oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId, oModels.FacilityConfig.Fhir.ReceivingOrganizationName);
+        oBundle.AddEntry(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Organization, oReceiverOrg.id), oReceiverOrg);
+      }
+
+      //Provenance
+      var provenanceId = oFhirTool.GetGuid();
+      var oProvenance = GetProvenance(provenanceId, oModels, oBundle);
+      oBundle.AddEntry(oFhirTool.PreFixUuid(provenanceId), oProvenance);
+
+      return oBundle;
+    }
+
+    function GetMessageHeader(oModels, MessageHeaderId, oPatientReference) {
       var oMsgHeader = new MessageHeaderFhirResource();
       oMsgHeader.SetId(MessageHeaderId);
       //var msgHeadProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsMessageHeaderProfileName], "/");
@@ -58,11 +136,13 @@
       oMsgHeader.SetSource(oModels.MessageHeader.SendingApplication);
       var messageheaderResponseRequestExtension = oFhirDataType.GetExtension("http://hl7.org/fhir/StructureDefinition/messageheader-response-request", "valueCode", "on-error");
       oMsgHeader.SetExtension(messageheaderResponseRequestExtension);
-      var PatientId = oFhirTool.GetGuid();
-      var oFocusReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Patient, PatientId), undefined, undefined, oFhirConfig.ResourceName.Patient);
-      oMsgHeader.SetFocus(oFocusReference);
-      oBundle.AddEntry(oFhirTool.PreFixUuid(MessageHeaderId), oMsgHeader);
+      oMsgHeader.SetFocus(oPatientReference);
+      return oMsgHeader;
+    }
 
+
+
+    function GetPatient(oModels, PatientId) {
       //--------------------------------------------------------------------------
       //Patient Resource
       //--------------------------------------------------------------------------
@@ -92,8 +172,8 @@
         PatientIdentifierArray.push(MedicareIdentifier);
       }
 
-      oPatient.SetIdentifier(PatientIdentifierArray);
       var PatientFormattedName = oFhirTool.FormattedHumanName(oModels.Patient.Family, oModels.Patient.Given, oModels.Patient.Title);
+      oPatient.SetIdentifier(PatientIdentifierArray);
       var HumanName = oFhirDataType.GetHumanName("official",
         PatientFormattedName,
         oModels.Patient.Family,
@@ -121,76 +201,77 @@
 
       oPatient.SetAddress(FHIRAddressList);
 
+
       //Next Of Kin as Contacts
-      for (var i = 0; i < oModels.Encounter.NextOfKinList.length; i++) {
-        var oV2NextOfKin = oModels.Encounter.NextOfKinList[i];
-        var oRelationshipCodeableConcept = undefined;
-        if (oV2NextOfKin.Relationship != null) {
-          var oRelationshipCoding = oFhirDataType.GetCoding(oV2NextOfKin.Relationship.Identifier, "http://hl7.org/fhir/v2/0203", oV2NextOfKin.Relationship.Text);
-          oRelationshipCodeableConcept = oFhirDataType.GetCodeableConcept(oRelationshipCoding, undefined);
-        }
-        var oHumanName = undefined;
-        if (oV2NextOfKin.Family != null) {
-          var NOKFormattedName = oFhirTool.FormattedHumanName(oV2NextOfKin.Family, oV2NextOfKin.Given, oV2NextOfKin.Title);
-          oHumanName = oFhirDataType.GetHumanName("official",
-            NOKFormattedName,
-            oV2NextOfKin.Family,
-            oV2NextOfKin.Given,
-            oV2NextOfKin.Title);
-        }
-
-        var oTelecomContactPointList = [];
-        if (oV2NextOfKin.HomePhoneNumber != null) {
-          oTelecomContactPointList.push(oFhirDataType.GetContactPoint("phone", oV2NextOfKin.HomePhoneNumber, "home", undefined, undefined));
-        }
-        if (oV2NextOfKin.WorkPhoneNumber != null) {
-          oTelecomContactPointList.push(oFhirDataType.GetContactPoint("phone", oV2NextOfKin.WorkPhoneNumber, "work", undefined, undefined));
-        }
-        if (oTelecomContactPointList.length == 0) {
-          oTelecomContactPointList = undefined;
-        }
-
-        var oAddress = undefined;
-        if (oV2NextOfKin.Address != null) {
-          var lineArray = [];
-          if (oV2NextOfKin.Address.AddressLine1 != null) {
-            lineArray.push(oV2NextOfKin.Address.AddressLine1);
+      if (!oModels.IsPatientMerge) {
+        for (var i = 0; i < oModels.Encounter.NextOfKinList.length; i++) {
+          var oV2NextOfKin = oModels.Encounter.NextOfKinList[i];
+          var oRelationshipCodeableConcept = undefined;
+          if (oV2NextOfKin.Relationship != null) {
+            var oRelationshipCoding = oFhirDataType.GetCoding(oV2NextOfKin.Relationship.Identifier, "http://hl7.org/fhir/v2/0203", oV2NextOfKin.Relationship.Text);
+            oRelationshipCodeableConcept = oFhirDataType.GetCodeableConcept(oRelationshipCoding, undefined);
           }
-          if (oV2NextOfKin.Address.AddressLine2 != null) {
-            lineArray.push(oV2NextOfKin.Address.AddressLine2);
+          var oHumanName = undefined;
+          if (oV2NextOfKin.Family != null) {
+            var NOKFormattedName = oFhirTool.FormattedHumanName(oV2NextOfKin.Family, oV2NextOfKin.Given, oV2NextOfKin.Title);
+            oHumanName = oFhirDataType.GetHumanName("official",
+              NOKFormattedName,
+              oV2NextOfKin.Family,
+              oV2NextOfKin.Given,
+              oV2NextOfKin.Title);
           }
 
-          var oAddress = oFhirDataType.GetAddressAustrlian(undefined, undefined,
-            lineArray, oV2NextOfKin.Address.Suburb, oV2NextOfKin.Address.State, oV2NextOfKin.Address.Postcode);
-
-
-          NextOfKinStartDate = null;
-          NextOfKinEndDate = null;
-          if (oV2NextOfKin.StartDate != null) {
-            NextOfKinStartDate = oV2NextOfKin.StartDate.AsXML;
+          var oTelecomContactPointList = [];
+          if (oV2NextOfKin.HomePhoneNumber != null) {
+            oTelecomContactPointList.push(oFhirDataType.GetContactPoint("phone", oV2NextOfKin.HomePhoneNumber, "home", undefined, undefined));
+          }
+          if (oV2NextOfKin.WorkPhoneNumber != null) {
+            oTelecomContactPointList.push(oFhirDataType.GetContactPoint("phone", oV2NextOfKin.WorkPhoneNumber, "work", undefined, undefined));
+          }
+          if (oTelecomContactPointList.length == 0) {
+            oTelecomContactPointList = undefined;
           }
 
-          if (oV2NextOfKin.EndDate != null) {
-            NextOfKinEndDate = oV2NextOfKin.EndDate.AsXML;
+          var oAddress = undefined;
+          if (oV2NextOfKin.Address != null) {
+            var lineArray = [];
+            if (oV2NextOfKin.Address.AddressLine1 != null) {
+              lineArray.push(oV2NextOfKin.Address.AddressLine1);
+            }
+            if (oV2NextOfKin.Address.AddressLine2 != null) {
+              lineArray.push(oV2NextOfKin.Address.AddressLine2);
+            }
+
+            var oAddress = oFhirDataType.GetAddressAustrlian(undefined, undefined,
+              lineArray, oV2NextOfKin.Address.Suburb, oV2NextOfKin.Address.State, oV2NextOfKin.Address.Postcode);
+
+            NextOfKinStartDate = null;
+            NextOfKinEndDate = null;
+            if (oV2NextOfKin.StartDate != null) {
+              NextOfKinStartDate = oV2NextOfKin.StartDate.AsXML;
+            }
+
+            if (oV2NextOfKin.EndDate != null) {
+              NextOfKinEndDate = oV2NextOfKin.EndDate.AsXML;
+            }
+            var oNOKPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(NextOfKinStartDate), oFhirTool.SetTimeZone(NextOfKinEndDate))
           }
-          var oNOKPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(NextOfKinStartDate), oFhirTool.SetTimeZone(NextOfKinEndDate))
+          var NextOfKinGender = undefined;
+          if (oV2NextOfKin.Sex != null) {
+            NextOfKinGender = oHL7V2ToFhirMapping.SexCodeToGenderCodeMap(oV2NextOfKin.Sex);
+          }
+          oPatient.AddContact(oRelationshipCodeableConcept, oHumanName, oTelecomContactPointList, oAddress, NextOfKinGender, undefined, oNOKPeriod)
         }
-        var NextOfKinGender = undefined;
-        if (oV2NextOfKin.Sex != null) {
-          NextOfKinGender = oHL7V2ToFhirMapping.SexCodeToGenderCodeMap(oV2NextOfKin.Sex);
-        }
-        oPatient.AddContact(oRelationshipCodeableConcept, oHumanName, oTelecomContactPointList, oAddress, NextOfKinGender, undefined, oNOKPeriod)
       }
+      return oPatient;
+    }
 
-
-      //Add Patient to Bundle
-      oBundle.AddEntry(oFhirTool.PreFixUuid(PatientId), oPatient);
-
+    function GetEncounter(oModels, EncounterId, oPatientReference) {
       //--------------------------------------------------------------------------
       //Encounter 
-      //--------------------------------------------------------------------------
+      //--------------------------------------------------------------------------      
+
       var oEncounter = new EncounterFhirResource();
-      var EncounterId = oFhirTool.GetGuid();
       oEncounter.SetId(EncounterId);
 
 
@@ -269,8 +350,10 @@
 
       var oEcounterClassCoding = oFhirDataType.GetCoding(oModels.Encounter.Class.Code, oModels.Encounter.Class.System, oModels.Encounter.Class.Display);
       oEncounter.SetClass(oEcounterClassCoding);
-      var oPatientReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Patient, PatientId), undefined, undefined, oModels.Patient.FormattedName);
-      oEncounter.SetSubject(oPatientReference);
+
+      if (oPatientReference != undefined) {
+        oEncounter.SetSubject(oPatientReference);
+      }
 
       //Admission & Discharge dateTimes
       oEncounterPeriod = null;
@@ -318,64 +401,41 @@
         var oPhysicalTypeCodeableConcept = oFhirDataType.GetCodeableConcept(undefined, "LocationDescription");
         oEncounter.AddLocation(oLocationReference, undefined, oPhysicalTypeCodeableConcept, undefined);
       }
+      return oEncounter;
+    }
 
-      oBundle.AddEntry(oFhirTool.PreFixUuid(EncounterId), oEncounter);
-
-      //--------------------------------------------------------------------------
-      //AllergyIntolerance
-      //--------------------------------------------------------------------------
-      //We have to add AllergyIntolerance as seperate resource rather than contined resources of the Encounter resource
-      //because AllergyIntolerance resources reference Encounter and not the other way around.
-      for (var i = 0; (i < oModels.Encounter.AllergyList.length); i++) {
-        oHL7V2Allergy = oModels.Encounter.AllergyList[i];
-        var oAllergyIntolerance = new AllergyIntoleranceFhirResource();
-        oAllergyIntolerance.SetId(oFhirTool.GetGuid());
-        if (oHL7V2Allergy.TypeCode != null) {
-          var CategoryCoding = oHL7V2ToFhirMapping.AllergyIntoleranceCategoryCodeMap(oHL7V2Allergy.TypeCode.Identifier);
-          oAllergyIntolerance.SetCategory(CategoryCoding.Code)
-        }
-        if (oHL7V2Allergy.Code != null) {
-          var oAllergyCoding = oFhirDataType.GetCoding(oHL7V2Allergy.Code.Identifier, oModels.FacilityConfig.Fhir.AllergyIntoleranceCodeSystemUri, oHL7V2Allergy.Code.Text);
-          var oAllergyCodeableConcept = oFhirDataType.GetCodeableConcept(oAllergyCoding, oHL7V2Allergy.Code.Text);
-          oAllergyIntolerance.SetCode(oAllergyCodeableConcept);
-        }
-
-        if (oHL7V2Allergy.IdentificationDate != null) {
-          oAllergyIntolerance.SetOnSetDateTime(oHL7V2Allergy.IdentificationDate.AsXML)
-        }
-        var oEncounterReference = oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oFhirConfig.ResourceName.Encounter, oEncounter.id), undefined, undefined, oFhirConfig.ResourceName.Encounter + ": " + oModels.Encounter.EcounterNumber);
-        oAllergyIntolerance.SetEncounter(oEncounterReference);
-        oAllergyIntolerance.SetPatient(oPatientReference);
-        oBundle.AddEntry(oFhirTool.PreFixUuid(oAllergyIntolerance.id), oAllergyIntolerance);
+    function GetAllergyIntolerance(oHL7V2Allergy, oPatientReference, oEncounterReference) {
+      var oAllergyIntolerance = new AllergyIntoleranceFhirResource();
+      oAllergyIntolerance.SetId(oFhirTool.GetGuid());
+      if (oHL7V2Allergy.TypeCode != null) {
+        var CategoryCoding = oHL7V2ToFhirMapping.AllergyIntoleranceCategoryCodeMap(oHL7V2Allergy.TypeCode.Identifier);
+        oAllergyIntolerance.SetCategory(CategoryCoding.Code)
       }
+      if (oHL7V2Allergy.Code != null) {
+        var oAllergyCoding = oFhirDataType.GetCoding(oHL7V2Allergy.Code.Identifier, oModels.FacilityConfig.Fhir.AllergyIntoleranceCodeSystemUri, oHL7V2Allergy.Code.Text);
+        var oAllergyCodeableConcept = oFhirDataType.GetCodeableConcept(oAllergyCoding, oHL7V2Allergy.Code.Text);
+        oAllergyIntolerance.SetCode(oAllergyCodeableConcept);
+      }
+      if (oHL7V2Allergy.IdentificationDate != null) {
+        oAllergyIntolerance.SetOnSetDateTime(oHL7V2Allergy.IdentificationDate.AsXML)
+      }
+      if (oEncounterReference != undefined) {
+        oAllergyIntolerance.SetEncounter(oEncounterReference);
+      }
+      if (oPatientReference != undefined) {
+        oAllergyIntolerance.SetPatient(oPatientReference);
+      }
+      return oAllergyIntolerance;
+    }
 
-      //--------------------------------------------------------------------------
-      //Organization ICIMS
-      //--------------------------------------------------------------------------
-      var oSenderOrg = new OrganizationFhirResource();
-      oSenderOrg.SetId(oModels.FacilityConfig.Fhir.SendingOrganizationResourceId);
-      //var oOrgProfileUrl = oFhirTool.PathCombine([IcimsProfileBase, IcimsOrganizationProfileName]);
-      //oOrgIcims.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", oOrgProfileUrl]);
-      oSenderOrg.SetName(oModels.FacilityConfig.Fhir.SendingOrganizationName);
-      //oOrgIcims.SetAlias(IcimsOrganizationAliasArray);
-      //Add Organization ICIMS to Bundle
-      oBundle.AddEntry(oFhirTool.PreFixUuid(oModels.FacilityConfig.Fhir.SendingOrganizationResourceId), oSenderOrg);
+    function GetOrganization(OrganizationResourceId, OrganizationName) {
+      var oOrg = new OrganizationFhirResource();
+      oOrg.SetId(OrganizationResourceId);
+      oOrg.SetName(OrganizationName);
+      return oOrg;
+    }
 
-      //--------------------------------------------------------------------------
-      //Organization SAH
-      //--------------------------------------------------------------------------
-      var oReceiverOrg = new OrganizationFhirResource();
-      oReceiverOrg.SetId(oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId);
-      //oReceiverOrg.SetMetaProfile([oOrgProfileUrl]);
-      oReceiverOrg.SetName(oModels.FacilityConfig.Fhir.ReceivingOrganizationName);
-      //oReceiverOrg.SetAlias(SAHOrganizationAliasArray);
-      //Add Organization SAH to Bundle
-      oBundle.AddEntry(oFhirTool.PreFixUuid(oModels.FacilityConfig.Fhir.ReceivingOrganizationResourceId), oReceiverOrg);
-
-      //--------------------------------------------------------------------------
-      //Provenance
-      //--------------------------------------------------------------------------
-      var provenanceId = oFhirTool.GetGuid();
+    function GetProvenance(provenanceId, oModels, oBundle) {
       var oProvenance = new ProvenanceFhirResource();
       oProvenance.SetId(provenanceId);
       //var oProvenanceProfileUrl = oFhirTool.PathCombine([IcimsProfileBase, IcimsProvenanceProfileName]);
@@ -383,8 +443,9 @@
 
       var TargetReferenceArray = [];
       for (var i = 0; i < oBundle.entry.length; i++) {
+        var oEntry = oBundle.entry[i];
         var oResource = oBundle.entry[i].resource;
-        TargetReferenceArray.push(oFhirDataType.GetReference(oFhirTool.GetRelativeReference(oResource.resourceType, oResource.id), undefined, undefined, oResource.resourceType));
+        TargetReferenceArray.push(oFhirDataType.GetReference(oEntry.fullUrl, oResource.resourceType, undefined, oResource.resourceType));
       }
       oProvenance.SetTarget(TargetReferenceArray);
       oProvenance.SetOccurredDateTime(oFhirTool.SetTimeZone(oModels.MessageHeader.MessageDateTime.AsXML));
@@ -406,12 +467,6 @@
         oModels.FacilityConfig.Fhir.HL7V2MessageControlIdSystemUri, oModels.MessageHeader.MessageControlID);
       var oWhatReference = oFhirDataType.GetReference(undefined, undefined, oMessageControlIdIdentifier, "HL7 V2 Message Control Id");
       oProvenance.SetEntity("source", oWhatReference);
-
-      //Add Provenanceto Bundle
-      oBundle.AddEntry(oFhirTool.PreFixUuid(provenanceId), oProvenance);
-
-      return oBundle;
+      return oProvenance;
     }
-
-
   }

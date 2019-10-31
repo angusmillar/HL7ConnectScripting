@@ -49,10 +49,10 @@ function FacilityConfig() {
       }
       var Sites = SiteList.join(" or ");
       if (SiteContext == "") {
-        throw "No SiteContext script parameter passed to the running script. Allowed (" + Sites + ")";
+        throw new Error("No SiteContext script parameter passed to the running script. Allowed (" + Sites + ")");
       }
       else {
-        throw "Unknowen SiteContext parameter of '" + SiteContext + "' passed to the running script. Allowed (" + Sites + ")";
+        throw new Error("Unknowen SiteContext parameter of '" + SiteContext + "' passed to the running script. Allowed (" + Sites + ")");
       }
     }
   }

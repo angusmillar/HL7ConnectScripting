@@ -31,7 +31,7 @@ function Logger() {
         LogTypeList.push(Log);
       }
       var Logs = LogTypeList.join(" or ");
-      throw "Unknowen Custom Log Name Type parameter of '" + CustomLogNameType + "' passed to the Logger script. Allowed: (" + Logs + ")";
+      throw new Error("Unknowen Custom Log Name Type parameter of '" + CustomLogNameType + "' passed to the Logger script. Allowed: (" + Logs + ")");
     }
   }
 

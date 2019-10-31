@@ -22,15 +22,13 @@ function IcimsInterfaceModels()
   {
   BreakPoint;
     if (!BusinessModel.Meta)
-      throw "Meta can not be null for MapToIcimsInterface.";
+      throw new Error("Meta can not be null for MapToIcimsInterface.");
       
     if (BusinessModel.Meta.Action == IcimsPostAction.Add)
     {
       if (!BusinessModel.Patient)
-        throw "Patient can not be null for MapToIcimsInterface.";
-      //if (!BusinessModel.Doctor)
-      //  throw "Doctor can not be null for MapToIcimsInterface.";
-
+        throw new Error("Patient can not be null for MapToIcimsInterface.");
+      
       var AddRecord = new IcimsAddInterface();
       var InterfaceModel = MapToModel(AddRecord, BusinessModel);
       return EncodeFormData(InterfaceModel);
@@ -38,9 +36,7 @@ function IcimsInterfaceModels()
     else if (BusinessModel.Meta.Action == IcimsPostAction.Update)
     {
       if (!BusinessModel.Patient)
-        throw "Patient can not be null for MapToIcimsInterface.";
-      //if (!BusinessModel.Doctor)
-      //  throw "Doctor can not be null for MapToIcimsInterface.";
+        throw new Error("Patient can not be null for MapToIcimsInterface.");      
 
       var UpdateRecord = new IcimsUpdateInterface();
       var InterfaceModel = MapToModel(UpdateRecord, BusinessModel);
@@ -49,9 +45,9 @@ function IcimsInterfaceModels()
     else if (BusinessModel.Meta.Action == IcimsPostAction.Merge)
     {
       if (!BusinessModel.Patient)
-        throw "Patient can not be null for MapToIcimsInterface.";
+        throw new Error("Patient can not be null for MapToIcimsInterface.");
       if (!BusinessModel.MergeIdentifers)
-        throw "MergeIdentifers can not be null for MapToIcimsInterface.";
+        throw new Error("MergeIdentifers can not be null for MapToIcimsInterface.");
 
       var MergeRecord = new IcimsMergeInterface();
       var InterfaceModel = MapToModel(MergeRecord, BusinessModel);

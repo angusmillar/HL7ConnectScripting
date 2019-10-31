@@ -210,7 +210,7 @@
             this.Dob = DateAndTimeFromHL7(oSeg.Field(7).AsString);
           }
           catch (Exec) {
-            throw "Date of Birth in PID-7 can not be parsed as a Date or Date time, vaule was: " + oSeg.Field(7).AsString;
+            throw new Error("Date of Birth in PID-7 can not be parsed as a Date or Date time, vaule was: " + oSeg.Field(7).AsString);
           }
         }
         else {
@@ -240,7 +240,7 @@
               this.Gender = "unknown";
               break;
             default:
-              throw "The Patient sex found in PID-8 was not expected, value is : " + oOBR.Field(25).AsString + ", allowed values are (F,M,A,N,O,U).";
+              throw new Error("The Patient sex found in PID-8 was not expected, value is : " + oOBR.Field(25).AsString + ", allowed values are (F,M,A,N,O,U).");
           }
         }
 
@@ -361,7 +361,7 @@
           this.Status = "cancelled";
           break;
         default:
-          throw "The Report status found in OBR-25 was not expected, value is : " + oOBR.Field(25).AsString;
+          throw new Error("The Report status found in OBR-25 was not expected, value is : " + oOBR.Field(25).AsString);
       }
 
       this.DiagServSectId = V2Support.Set(oOBR.Field(24));
@@ -374,14 +374,14 @@
         this.CollectionDateTime = DateAndTimeFromHL7(oOBR.Field(7).AsString);
       }
       catch (Exec) {
-        throw "Collection Date & Time in OBR-7 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(7).AsString;
+        throw new Error("Collection Date & Time in OBR-7 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(7).AsString);
       }
 
       try {
         this.ReportIssuedDateTime = DateAndTimeFromHL7(oOBR.Field(22).AsString);
       }
       catch (Exec) {
-        throw "Results Rpt/Status Change Date & Time in OBR-22 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(22).AsString;
+        throw new Error("Results Rpt/Status Change Date & Time in OBR-22 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(22).AsString);
       }
 
     }
@@ -442,12 +442,12 @@
 
       if (!oOBX.Field(3).Component(1).defined) {
         if (oOBX.Field(5).defined) {
-          throw "There is an OBX Segment that has an empty OBX-3.1 yet OBX-5 is populated. If we have a result value in OBX-5 then we must have a code in OBX-3.1 to tell us what the result value is.";
+          throw new Error("There is an OBX Segment that has an empty OBX-3.1 yet OBX-5 is populated. If we have a result value in OBX-5 then we must have a code in OBX-3.1 to tell us what the result value is.");
         }
       } else {
 
         if (!oOBX.Field(2).defined && oOBX.Field(5).defined) {
-          throw "There is an OBX Segment that has an empty OBX-2 (DataType) and yet a populated OBX-5 result value. We must know the datatype to process the result value.";
+          throw new Error("There is an OBX Segment that has an empty OBX-2 (DataType) and yet a populated OBX-5 result value. We must know the datatype to process the result value.");
         }
 
         this.Index = V2Support.Set(oOBX.Field(1));
@@ -530,7 +530,7 @@
               this.InterpretationCode = "Intermediate";
               break;
             default:
-              throw "The Observation abnormal status found in OBX-8 of the OBX segment index " + this.Index + " was not expected, value is : " + oOBX.Field(8).AsString + ", allowed values are (N,L,LL,H,HH,A,R,S,I).";
+              throw new Error("The Observation abnormal status found in OBX-8 of the OBX segment index " + this.Index + " was not expected, value is : " + oOBX.Field(8).AsString + ", allowed values are (N,L,LL,H,HH,A,R,S,I).");
           }
         }
 
@@ -550,7 +550,7 @@
               this.Status = "entered-in-error";
               break;
             default:
-              throw "The Observation status found in OBX-11 of the OBX segment index " + this.Index + " was not expected, value is : " + oOBX.Field(11).AsString + ", allowed values are (F,C,D,P).";
+              throw new Error("The Observation status found in OBX-11 of the OBX segment index " + this.Index + " was not expected, value is : " + oOBX.Field(11).AsString + ", allowed values are (F,C,D,P).");
           }
         }
 
@@ -560,7 +560,7 @@
             this.ObsDateTime = DateAndTimeFromHL7(oOBX.Field(14).AsString);
           }
           catch (Exec) {
-            throw "Observation Date & Time in OBX-14 for OBX index " + this.Index + " can not be parsed as a Date or Date time, vaule was: " + oOBX.Field(14).AsString;
+            throw new Error("Observation Date & Time in OBX-14 for OBX index " + this.Index + " can not be parsed as a Date or Date time, vaule was: " + oOBX.Field(14).AsString);
           }
         }
       }
@@ -614,7 +614,7 @@
       var V2Support = new HL7V2Support();
 
       if (oMSH.Code !== "MSH") {
-        throw "Meta Hl7 Segment oMSH must have the segment code 'MSH'.";
+        throw new Error("Meta Hl7 Segment oMSH must have the segment code 'MSH'.");
       }
       this.MessageControlID = V2Support.Set(oMSH.Field(10));
 
@@ -622,7 +622,7 @@
         this.MessageDateTime = DateAndTimeFromHL7(oMSH.Field(7).AsString);
       }
       catch (Exec) {
-        throw "Message Date & Time in MSH-7 can not be parsed as a Date or Date time, vaule was: " + oMSH.Field(7).AsString;
+        throw new Error("Message Date & Time in MSH-7 can not be parsed as a Date or Date time, vaule was: " + oMSH.Field(7).AsString);
       }
 
       this.SendingApplication = V2Support.Set(oMSH.Field(3));

@@ -408,7 +408,7 @@
         }
         return oObservation;
       } else {
-        throw "OBX DataType in OBX-2 of " + oV2Obs.DataType + " is not supported in the FHIR output.";
+        throw  new Error("OBX DataType in OBX-2 of " + oV2Obs.DataType + " is not supported in the FHIR output.");
       }
     }
 

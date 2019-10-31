@@ -3,9 +3,10 @@ function PatientFhirResource() {
 
   var FhirTool = new FhirTools();
 
+  var oFhirConfig = new FhirConfig();
   var Resource = new DomainResource();
 
-  Resource.resourceType = "Patient";
+  Resource.resourceType = oFhirConfig.ResourceName.Patient;
 
   Resource.SetActive = function (bool) {
     Resource.active = FhirTool.GetBool(bool);

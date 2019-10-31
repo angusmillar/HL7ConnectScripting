@@ -41,9 +41,13 @@ function Patient(oSeg, oFacilityConfig) {
   if (oSeg.Code == "PID") {
     var oHl7Support = new HL7V2Support();
     // Medical Record number value
-    var MRN = new oHl7Support.ResolveMrn(oSeg.Element(3), oFacilityConfig);
-    this.PrimaryMrnValue = MRN.Value;
-    this.PrimaryMrnAssigningAuthority = MRN.AssigningAuthority;
+    try {
+      var MRN = new oHl7Support.ResolveMrn(oSeg.Element(3), oFacilityConfig);
+      this.PrimaryMrnValue = MRN.Value;
+      this.PrimaryMrnAssigningAuthority = MRN.AssigningAuthority;
+    } catch (Exec) {
+      throw new Error("Unable to locate the primary patient identifier from PID-3. " + Exec.message);
+    }
 
     //Medicare Number value
     this.MedicareNumberValue = oHl7Support.Set(oSeg.Field(19));
@@ -71,7 +75,7 @@ function Patient(oSeg, oFacilityConfig) {
         this.Dob = DateAndTimeFromHL7(oSeg.Field(7).AsString);
       }
       catch (Exec) {
-        throw "Date of Birth in PID-7 can not be parsed as a Date or Date time, vaule was: " + oSeg.Field(7).AsString;
+        throw new Error("Date of Birth in PID-7 can not be parsed as a Date or Date time, vaule was: " + oSeg.Field(7).AsString);
       }
     }
     else {

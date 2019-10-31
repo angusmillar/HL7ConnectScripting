@@ -17,35 +17,26 @@ function HL7V2Support() {
     this.Value = null;
     //The Medical Record Number's Assigning Authority code 
     this.AssigningAuthority = null;
-
-    var FirstMRValue = "";
-    var FirstMRAssigningAuthority = "";
     for (var i = 0; i <= ((oElement.RepeatCount) - 1); i++) {
       var oCX = oElement.Repeats(i);
       //SAH messages have no AssigningAuthority only a number
       if (oFacilityConfig.SiteContext == oFacilityConfig.SiteContextEnum.TST) {
-        this.Value = Set(oCX.Component(1));
-        this.AssigningAuthority = oFacilityConfig.PrimaryMRNAssigningAuthority;
-      }
-      else if (oCX.Component(5).AsString.toUpperCase() == "MR" &&
-        oCX.Component(4).AsString.toUpperCase() == oFacilityConfig.PrimaryMRNAssigningAuthority &&
-        oCX.Component(8).AsString == "") {
-        this.Value = Set(oCX.Component(1));
-        this.AssigningAuthority = Set(oCX.Component(4));
-      }
-      else if (oCX.Component(5).AsString.toUpperCase() == "MR" &&
-        oCX.Component(8).AsString == "" &&
-        FirstMRValue == "") {
-        FirstMRValue = Set(oCX.Component(1));
-        FirstMRAssigningAuthority = Set(oCX.Component(4));
+        if (oCX.Component(5).AsString.toUpperCase() == "MR") {
+          this.Value = Set(oCX.Component(1));
+          this.AssigningAuthority = oFacilityConfig.PrimaryMRNAssigningAuthority;
+          break;
+        }
       }
     }
-    if (FirstMRValue !== "" && FirstMRAssigningAuthority == null) {
-      //We found no MRN Value for the given Assigning Auth of RMH so
-      //take the first Value of MR type as long as it had no Assigning Auth
-      // and asume it ids RMH
-      this.Value = FirstMRValue;
-      this.AssigningAuthority = AssigningAuthorityCode;
+    //Check we found an identifier and report why not
+    if (this.Value == null) {
+      var MessageBegining = "Unable to locate the primary patient identifier. ";;
+      switch (oFacilityConfig.SiteContext) {
+        case oFacilityConfig.SiteContextEnum.TST:
+          throw new Error(MessageBegining + "There must be an identifier of Type 'MR', if many are found the first one will be used.");
+        default:
+          throw new Error(MessageBegining + "No logic to find a primary patient identifier in has implemented for the site code: " + oFacilityConfig.SiteContext);
+      }
     }
   }
 

@@ -6,6 +6,7 @@
 <% include $repo$\PASFhir\Encounter.js %>
 <% include $repo$\PASFhir\Address.js %>
 <% include $repo$\PASFhir\Contact.js %>
+<% include $repo$\PASFhir\Merge.js %>
 
   function BusinessModel() {
 
@@ -16,8 +17,7 @@
     this.Encounter = null;
     this.Doctor = null;
     this.Merge = null;
-    this.MergeIdentifers = null;
-
+    this.IsPatientMerge = false;
 
     this.CanProcessADTMessage = function (oHL7) {
       //The current inbound HL7 V2 message type
@@ -25,26 +25,30 @@
       //The current inbound HL7 V2 message event
       var MessageEvent = oHL7.Segment("MSH", 0).Field(9).Component(2).AsString.toUpperCase();
       if (MessageType == "ADT") {
-        if (MessageEvent == "A01" || MessageEvent == "A08" || MessageEvent == "A03") {
-          return true;
+        if (MessageEvent == "A01" || MessageEvent == "A08" || MessageEvent == "A03" || MessageEvent == "A02") {
+          this.IsPatientMerge = false;
+          return { ok: true, errorMessage: "" };
+        } else if (MessageEvent == "A40") {
+          this.IsPatientMerge = true;
+          return { ok: true, errorMessage: "" };
         }
       }
-      this.Logger.Log("Unknown Message Type or Event, expect (ADT^A01), found event: " + MessageType + "^" + MessageEvent)
-      return false;
+      var Msg = "Unexpected Message Type or Event. Found (" + MessageType + "^" + MessageEvent + ") expect Types (ADT) and Events (A01, A08, A03, A40)";
+      //this.Logger.Log(Msg)
+      return { ok: false, errorMessage: Msg };
     };
 
     this.ProcessADTMessage = function (oHL7) {
-      this.MessageHeader = new HL7MessageHeader(oHL7.Segment("MSH", 0));
-      this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
-      this.Encounter = new Encounter(oHL7, this.FacilityConfig);
-
-
-    };
-
-    this.MergeMessage = function (oHL7) {
-      this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
-      this.Meta = new Meta(this.Action, oHL7.Segment("MSH", 0));
-      this.MergeIdentifers = new MergeIdentifers(oHL7.Segment("MRG", 0), this.FacilityConfig);
+      if (!this.IsPatientMerge) {
+        this.MessageHeader = new HL7MessageHeader(oHL7.Segment("MSH", 0));
+        this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
+        this.Encounter = new Encounter(oHL7, this.FacilityConfig);
+      } else {
+        this.MessageHeader = new HL7MessageHeader(oHL7.Segment("MSH", 0));
+        this.Patient = new Patient(oHL7.Segment("PID", 0), this.FacilityConfig);
+        this.Merge = new Merge(this.FacilityConfig);
+        this.Merge.MRGSegmentInflate(oHL7.Segment("MRG", 0));
+      }
     };
 
     //==============================================================================
@@ -79,20 +83,6 @@
       //Doctor Contacts (We only take the first of each type.
       this.Contact = new Contact();
       this.Contact.Inflate(oROL.Field(12), PhoneUseEnum.Work);
-
-
-    }
-
-
-    function MergeIdentifers(oMRG, FacilityConfig) {
-      /** @property {string} PriorMRNValue - The prior Medical Record Number value for merge events*/
-      this.PriorMRNValue = null;
-      /** @property {string} PriorMRNAssigningAuthority - The prior Medical Record Number's Assigning Authority code*/
-      this.PriorMRNAssigningAuthority = null;
-      var oHl7Support = new HL7V2Support();
-      var MRN = oHl7Support.ResolveMrn(oMRG.Element(1), FacilityConfig);
-      this.PriorMRNValue = MRN.Value;
-      this.PriorMRNAssigningAuthority = MRN.AssigningAuthority;
     }
 
     //------------------------------------------------------------------------------

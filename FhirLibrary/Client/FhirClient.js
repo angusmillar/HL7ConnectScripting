@@ -1,53 +1,25 @@
 /**
- * @module
- * @description The RestClient script handles the RESTFul HTTP communications with ICIMS.
- * All the HTTP Headers and retry timeout variables are contained within this script.
+ The RestClient script handles the RESTFul HTTP communications with ICIMS.
+ All the HTTP Headers and retry timeout variables are contained within this script.
 */
 
-/**
- * @class
- * @constructor
- * @param {string} EndPoint The url that is the endpoint for the REST POST call
- * @param {string} EndPointMethod The Method to be called at the endpoint
- * @param {string} AuthorizationToken The Authorization Token to be set inthe HTTP Header 'Authorization'
- * @param {string} Payload The data to be sent in the Body of the HTTP call
- */
+function FhirClient() {
 
-function FhirClient()
-{
-  /** @function
-   * @description Creates a new REST POST object instance
-   * @param {string} EndPoint The endpoint url for the REST service
-   * @param {string} EndPointMethod The Method at the endpoint to be called
-   * @param {string}  AuthorizationToken - The static Authorization Token to be set in the HTTP Header property 'Authorization'
-   * @param {string} Payload The data to be placed in the body of the HTTP call
-   * @returns {object} POST
-  */
-  this.POST = function(EndPoint, EndPointMethod, AuthorizationToken, Payload)
-  {
+  //Creates a new REST POST object instance  
+  this.POST = function (EndPoint, EndPointMethod, AuthorizationToken, Payload) {
     return new POST(EndPoint, EndPointMethod, AuthorizationToken, Payload);
   };
 
-  /**
-   * @description POST class collects data returned by the POST call
-   * @function
-   * @constructor
-   * @param {string} EndPoint The endpoint url for the REST service
-   * @param {string} EndPointMethod The Method at the endpoint to be called
-   * @param {string}  AuthorizationToken - The static Authorization Token to be set in the HTTP Header property 'Authorization'
-   * @param {string} Payload The data to be placed in the body of the HTTP call
-   * @returns {object} POST
-   * @inner
-  */
-  function POST(EndPoint, EndPointMethod, AuthorizationToken, Payload)
-  {
-    /** @property {string} DataReceived - The data returned in the body of the call */
+
+  //POST class collects data returned by the POST call
+  function POST(EndPoint, EndPointMethod, AuthorizationToken, Payload) {
+    // The data returned in the body of the call */
     this.DataReceived = "";
-    /** @property {string} HttpStatus - The Http Status code returned by the call*/
+    // The Http Status code returned by the call*/
     this.HttpStatus = 0;
-    /** @property {boolean} Error - Returns true if an error was encountered in making the call*/
+    // Returns true if an error was encountered in making the call*/
     this.Error = false;
-    /** @property {string} ErrorMessage - Returns an error message when Error = true*/
+    // Returns an error message when Error = true*/
     this.ErrorMessage = "";
 
     var DBG_Serious = 2;
@@ -57,8 +29,7 @@ function FhirClient()
     var CallMade = new MakePOSTCall(Data, Url, Token, 0);
 
     BreakPoint;
-    if (CallMade.Error)
-    {
+    if (CallMade.Error) {
       //Fatal error after many attempts
       BreakPoint;
       this.Error = true;
@@ -66,8 +37,7 @@ function FhirClient()
       this.DataReceived = "";
       this.HttpStatus = 0;
     }
-    else
-    {
+    else {
       this.DataReceived = CallMade.DataReceived;
       this.HttpStatus = CallMade.HttpStatus;
       this.Error = CallMade.Error;
@@ -75,100 +45,99 @@ function FhirClient()
   }
 
   /**
-   * @description Make POST Call class performs the call to the REST service.
-   * This is called recursively is the network connection is down for a max count of 'Attempts'
-   * @function
-   * @constructor
-   * @param {string} Data The data to be placed in the body of the HTTP call
-   * @param {string} EndPoint The endpoint url for the REST service
-   * @param {string} Token - The static Authorization Token to be set in the HTTP Header property 'Authorization'
-   * @param {string} Attempts The max attempts to be made if the network connection is down
-   * @returns {object} MakePOSTCall
-   * @inner
+   Make POST Call class performs the call to the REST service.
+   This is called recursively is the network connection is down for a max count of 'Attempts'   
   */
-  function MakePOSTCall(Data, Endpoint, Token, Attempts)
-  {
-   /** @property {string} DataReceived - The data returned in the body of the call */
-   this.DataReceived = "";
-   /** @property {string} HttpStatus - The Http Status code returned by the call*/
-   this.HttpStatus = 0;
-   /** @property {boolean} Error - Returns true if an error was encountered in making the call*/
-   this.Error = false;
-   /** @property {string} ErrorMessage - Returns an error message when Error = true*/
-   this.ErrorMessage = "";
+  function MakePOSTCall(Data, Endpoint, Token, Attempts) {
+    //The data returned in the body of the call */
+    this.DataReceived = "";
+    //The Http Status code returned by the call*/
+    this.HttpStatus = 0;
+    //Returns true if an error was encountered in making the call*/
+    this.Error = false;
+    //Returns an error message when Error = true*/
+    this.ErrorMessage = "";
+    //HL7 Connect category of error
+    var DBG_Serious = 2;
+    //RetryTime - The amount of time to wait before trying the connection again
+    //Never set retry below 1000 (1 sec)  
+    this.RetryTime = 1000;
+    //MaxAttempts - The max number of times to try connecting again before giving up     
+    var MaxAttempts = 1;
+    var xmlhttp = new ActiveXObject("MSXML2.ServerXMLHTTP");
+    //Set Request Timeouts: The setTimeouts method should be called before the open method. None of the parameters is optional.
 
-   var DBG_Serious = 2;
-   /**
-     * @property {integer} RetryTime - The amount of time to wait before trying the connection again
-     * Never set retry below 1000 (1 sec)
-     * @default
-    */
-   this.RetryTime = 1000;
     /**
-     * @property {integer} MaxAttempts - The max number of times to try connecting again before giving up
-     * @default
-    */
-   var MaxAttempts = 1;
-   var xmlhttp = new ActiveXObject("MSXML2.ServerXMLHTTP");
+    resolveTimeout:
+    A long integer. The value is applied to mapping host names (such as "www.microsoft.com") to 
+    IP addresses; the default value is infinite, meaning no timeout.
+ 
+    connectTimeout:
+    A long integer. The value is applied to establishing a communication socket with the target 
+    server, with a default timeout value of 60 seconds.
+ 
+    sendTimeout:
+    A long integer. The value applies to sending an individual packet of request data (if any) 
+    on the communication socket to the target server. A large request sent to a server will normally be broken up into multiple packets; 
+    the send timeout applies to sending each packet individually. The default value is 30 seconds.
+ 
+    receiveTimeout:
+    A long integer. The value applies to receiving a packet of response data from the target server. 
+    Large responses will be broken up into multiple packets; the receive timeout applies to fetching each packet of data off the socket. 
+    The default value is 30 seconds.
+ */
+    var resolveTimeout = 5 * 1000;
+    var connectTimeout = 5 * 1000;
+    var sendTimeout = 60 * 1000;
+    var receiveTimeout = 60 * 1000;
+    xmlhttp.setTimeouts(resolveTimeout, connectTimeout, sendTimeout, receiveTimeout);
 
-   xmlhttp.open("POST", Endpoint, false);
+    xmlhttp.open("POST", Endpoint, false);
 
-   //Set Requst HTTP Headers
-   BreakPoint;
-  // xmlhttp.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-   xmlhttp.setRequestHeader("Content-Type", "application/fhir+json");
-   xmlhttp.setRequestHeader("User-Agent", "HL7Connect/" + Kernel.Version());
-   xmlhttp.setRequestHeader("Connection", "keep-alive");
-   xmlhttp.setRequestHeader("Accept", "application/fhir+json");
-   //ToDo: we are just assuming that the V2 message is UTF-8, it may be just ASCII.
-   //At this point we do not control UTF-8 or not that is controled by the PAS system
-   //that generates the messages.
-   //Although ASCII fits into UTF-8 below 128, I think.
-   xmlhttp.setRequestHeader("Content-Length", lengthInUtf8Bytes(Data));
-   if (Token != "")
-   {
-     xmlhttp.setRequestHeader("Authorization", Token);
-   }
-   //Set Request Timeouts
-   xmlhttp.setTimeouts(5000, 60000, 10000, 10000);
+    //Set Requst HTTP Headers       
+    xmlhttp.setRequestHeader("Content-Type", "application/fhir+json");
+    xmlhttp.setRequestHeader("User-Agent", "HL7Connect/" + Kernel.Version());
+    xmlhttp.setRequestHeader("Connection", "keep-alive");
+    xmlhttp.setRequestHeader("Accept", "application/fhir+json");
+    //ToDo: we are just assuming that the V2 message is UTF-8, it may be just ASCII.
+    //At this point we do not control UTF-8 or not that is controled by the PAS system
+    //that generates the messages.
+    //Although ASCII fits into UTF-8 below 128, I think.
+    xmlhttp.setRequestHeader("Content-Length", lengthInUtf8Bytes(Data));
+    if (Token != "") {
+      xmlhttp.setRequestHeader("Authorization", Token);
+    }
 
-   try
-   {
-     //Kernel.WriteToLog(DBG_Serious, "ICIMS Send! Send!");
-     xmlhttp.send(Data);
-     this.HttpStatus = xmlhttp.status;
-     this.DataReceived = xmlhttp.responseText;
-     this.Error = false;
-     this.ErrorMessage = "";
-   }
-   catch (err)
-   {
-     Kernel.WriteToLog(DBG_Serious, "ICIMS Rest client Error!");
-     Kernel.WriteToLog(DBG_Serious, "ICIMS Error: " + err.message.replace("\r", "").replace("\n", ""));
-     if (!Attempts || Attempts < MaxAttempts)
-     {
-       Kernel.WriteToLog(DBG_Serious, "ICIMS Retry: " + ((Attempts || 0) + 1) + " ... In " + (this.RetryTime / 1000) + "secs");
-       //Wait RetryTime amount before trying again!
-       Delay(this.RetryTime);
-       var TryAgainMakePOSTCall = new MakePOSTCall(Data, Endpoint, Token, (Attempts || 0) + 1);
-       this.HttpStatus = TryAgainMakePOSTCall.HttpStatus;
-       this.DataReceived = TryAgainMakePOSTCall.DataReceived;
-       this.Error = TryAgainMakePOSTCall.Error;
-       this.ErrorMessage = TryAgainMakePOSTCall.ErrorMessage;
-     }
-     else
-     {
-       Kernel.WriteToLog(DBG_Serious, "ICIMS Too many attempts.");
-       this.Error = true;
-       this.ErrorMessage = "ICIMS Error:" + err.message;
-     }
-   }
+    try {
+      BreakPoint;
+      xmlhttp.send(Data);
+      this.HttpStatus = xmlhttp.status;
+      this.DataReceived = xmlhttp.responseText;
+      this.Error = false;
+      this.ErrorMessage = "";
+    }
+    catch (err) {
+      Kernel.WriteToLog(DBG_Serious, "FHIR Rest client Error!");
+      Kernel.WriteToLog(DBG_Serious, "FHIR client Error: " + err.message.replace("\r", "").replace("\n", ""));
+      if (!Attempts || Attempts < MaxAttempts) {
+        Kernel.WriteToLog(DBG_Serious, "FHIR client Retry: " + ((Attempts || 0) + 1) + " ... In " + (this.RetryTime / 1000) + "secs");
+        //Wait RetryTime amount before trying again!
+        Delay(this.RetryTime);
+        var TryAgainMakePOSTCall = new MakePOSTCall(Data, Endpoint, Token, (Attempts || 0) + 1);
+        this.HttpStatus = TryAgainMakePOSTCall.HttpStatus;
+        this.DataReceived = TryAgainMakePOSTCall.DataReceived;
+        this.Error = TryAgainMakePOSTCall.Error;
+        this.ErrorMessage = TryAgainMakePOSTCall.ErrorMessage;
+      }
+      else {
+        Kernel.WriteToLog(DBG_Serious, "FHIR client to many attempts.");
+        this.Error = true;
+        this.ErrorMessage = "FHIR client Error:" + err.message;
+      }
+    }
   }
-  
-  /** @function
-   * @param {string} str Calculate the HTTP body size in bytes
-   * @returns {integer}
-  */
+
+  //Calculate the HTTP body size in bytes  
   function lengthInUtf8Bytes(str) {
     // Matches only the 10.. bytes that are non-initial characters in a multi-byte sequence.
     var m = encodeURIComponent(str).match(/%[89ABab]/g);

@@ -43,7 +43,7 @@ function NextOfKin(oNK1) {
         this.StartDate = DateAndTimeFromHL7(oNK1.Field(8).AsString);
       }
       catch (Exec) {
-        throw "Start Date & Time in NK1-8 can not be parsed as a Date time, vaule was: " + oNK1.Field(8).AsString;
+        throw new Error("Start Date & Time in NK1-8 can not be parsed as a Date time, vaule was: " + oNK1.Field(8).AsString);
       }
     }
 
@@ -52,7 +52,7 @@ function NextOfKin(oNK1) {
         this.StartDate = DateAndTimeFromHL7(oNK1.Field(9).AsString);
       }
       catch (Exec) {
-        throw "Start Date & Time in NK1-9 can not be parsed as a Date time, vaule was: " + oNK1.Field(9).AsString;
+        throw new Error("Start Date & Time in NK1-9 can not be parsed as a Date time, vaule was: " + oNK1.Field(9).AsString);
       }
     }
 

@@ -11,7 +11,8 @@
   function Main(aEvent) {
     //Validate and set the site context for the script
     //This is so the script can be adjusted for new sites as required.
-    //For instance the string "SAH" must be passed in as a script parameter from HL7 Connect.    
+    //For instance the string "SAH" must be passed in as a script parameter from HL7 Connect.  
+
     var IsTestCase = aEvent.IsTestCase;
     var oLogger = new Logger();
     oLogger.SetCustomLogName(_CustomLogNameType.PASFhir);
@@ -21,7 +22,7 @@
     try {
       oFacilityConfig.SetSiteContext(oHL7CParameterSupport.SiteCode);
     } catch (Exec) {
-      oLogger.Log("Unable to set Site Context :" + Exec);
+      oLogger.Log("Unable to set Site Context :" + Exec.message);
     }
 
     //=========== Per site Configuration ========================================
@@ -34,28 +35,32 @@
         oFacilityConfig.PrimaryMRNSystemUri = "https://www.test.org.au/systems/fhir/pas/medical-record-number";
         //Send the Pathology Pdf report if provided in V2 message
         oFacilityConfig.SendPathologyPdfReport = false;
-        //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
-        oFacilityConfig.NameOfInterfaceRunnningScript = "IcimsPathologyOutbound";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
-        oFacilityConfig.MaxRejectBeforeInterfaceStop = 20;
+        oFacilityConfig.MaxRejectBeforeInterfaceStop = 2;
 
         //Enviroment Switch
         switch (oHL7CParameterSupport.Enviroment) {
           case oHL7CParameterSupport.EnviromentCodes.DEV:
-            oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
-            oFacilityConfig.Fhir.OperationName = "Bundle"
+            oFacilityConfig.NameOfInterfaceRunnningScript = "PASFhir";
+            oFacilityConfig.Fhir.FhirEndpoint = "http://localhost:8888/fhir";
+            oFacilityConfig.Fhir.OperationNameProcessMessage = "$process-message"
+            oFacilityConfig.Fhir.OperationNameMergePatient = "$merge-patient"
             oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.TEST:
+            oFacilityConfig.NameOfInterfaceRunnningScript = "PASFhir";
             oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
-            oFacilityConfig.Fhir.OperationName = "Bundle"
+            oFacilityConfig.Fhir.OperationNameProcessMessage = "$process-message"
+            oFacilityConfig.Fhir.OperationNameMergePatient = "$merge-patient"
             oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.PROD:
+            oFacilityConfig.NameOfInterfaceRunnningScript = "PASFhir";
             oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
-            oFacilityConfig.Fhir.OperationName = "Bundle"
+            oFacilityConfig.Fhir.OperationNameProcessMessage = "$process-message"
+            oFacilityConfig.Fhir.OperationNameMergePatient = "$merge-patient"
             oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
             break;
         }
@@ -68,15 +73,19 @@
         //Codes from AL1-3
         oFacilityConfig.Fhir.AllergyIntoleranceCodeSystemUri = "https://www.testing.org.au/systems/fhir/AllergyIntolerance";
 
-        oFacilityConfig.Fhir.ReceivingOrganizationName = "AcmeHealth";
-        oFacilityConfig.Fhir.ReceivingOrganizationResourceId = "8388a9b2-9acc-4a04-afc7-ceaac91f611a";
+        //true/false: Send the Organization Resources in the Bundle. 
+        //Set to true once on setup and then turn off otherwise every message will update the Organization resource in the server, not desired!
+        oFacilityConfig.Fhir.SendOrganizationResourceInBundle = true;
 
-        oFacilityConfig.Fhir.SendingOrganizationName = "TestingHealth";
-        oFacilityConfig.Fhir.SendingOrganizationResourceId = "52ce2a70-aa42-4732-b4f1-22dbd53fbffc";
+        oFacilityConfig.Fhir.ReceivingOrganizationName = "Acme Health";
+        oFacilityConfig.Fhir.ReceivingOrganizationResourceId = "AcmeHealth";
+
+        oFacilityConfig.Fhir.SendingOrganizationName = "Testing Health";
+        oFacilityConfig.Fhir.SendingOrganizationResourceId = "TestingHealth";
 
         break;
       default:
-        throw "No SiteContext script parameter passed to the running script";
+        throw new Error("No SiteContext script parameter passed to the running script");
     }
     //===========================================================================
 
@@ -91,63 +100,61 @@
     oModel.FacilityConfig = oFacilityConfig;
 
     try {
-
-      if (oModel.CanProcessADTMessage(oHL7)) {
-
+      BreakPoint;
+      var oIsProcessable = oModel.CanProcessADTMessage(oHL7);
+      if (oIsProcessable.ok) {
         oModel.ProcessADTMessage(oHL7);
-        var FhirResFactory = new FhirResourceFactory();
-        var Bundle = new FhirResFactory.CreateADTBundle(oModel);
+        var FhirResFactory = new FhirResourceFactory(oModel);
+        var BodyData = null;
+        if (oModel.IsPatientMerge) {
+          var Parameters = new FhirResFactory.CreateMergePatientParameters();
+          BodyData = JSON.stringify(Parameters, null, 4);
+        } else {
+          var Bundle = new FhirResFactory.CreateADTBundle();
+          BodyData = JSON.stringify(Bundle, null, 4);
+        }
 
         BreakPoint;
-        var BodyData = JSON.stringify(Bundle, null, 4);
-        BreakPoint;
-
         if (IsTestCase) {
           var fso = new ActiveXObject("Scripting.FileSystemObject");
           var fh = fso.CreateTextFile("C:\\temp\\HL7Connect\\Logging\\Output.json", true);
           fh.Write(BodyData);
           fh.Close();
         }
-
         CallRESTService = true;
-      } else {
-        var ErrorMsg = "Unexpected Message Type or Event of: " + MessageType + "^" + MessageEvent;
-        oLogger.Log(ErrorMsg);
-        RejectMessage(ErrorMsg);
-        StopInterface(ErrorMsg, IsTestCase);
       }
-
 
       //Data Processed now attempt to call  REST Service
       if (CallRESTService) {
         BreakPoint;
-        oLogger.Log("Logging request body data about to be sent:");
-        oLogger.Log("-------------------------------------------------------------");
-        oLogger.Log(BodyData);
-
+        //oLogger.Log("Logging request body data about to be sent:");
+        //oLogger.Log("-------------------------------------------------------------");
+        //oLogger.Log(BodyData);
         var Client = new FhirClient();
-        var POSTOutcome = new Client.POST(oModel.FacilityConfig.Fhir.FhirEndpoint, oModel.FacilityConfig.Fhir.OperationName, oModel.FacilityConfig.Fhir.AuthorizationToken, BodyData);
+        var POSTOutcome = null;
+        if (oModel.IsPatientMerge) {
+          POSTOutcome = new Client.POST(oModel.FacilityConfig.Fhir.FhirEndpoint, oModel.FacilityConfig.Fhir.OperationNameMergePatient, oModel.FacilityConfig.Fhir.AuthorizationToken, BodyData);
+        } else {
+          POSTOutcome = new Client.POST(oModel.FacilityConfig.Fhir.FhirEndpoint, oModel.FacilityConfig.Fhir.OperationNameProcessMessage, oModel.FacilityConfig.Fhir.AuthorizationToken, BodyData);
+        }
         if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 200) {
           oLogger.Log("Data received: " + POSTOutcome.DataReceived);
-          //Message has been sent successfully, event complete!
-        } else if (!POSTOutcome.Error && POSTOutcome.HttpStatus == 401) {
-          //We have a HTTP Status code 401 error, Authorization failed.
-          var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived);
-          var ErrorMsg = "ICIMS Error Message: State: " + ICIMSError.state + ", Msg: " + ICIMSError.error;
-          oLogger.Log("ICIMS HTTP Status Code " + POSTOutcome.HttpStatus + ": Authorization failed, check Authorization token is correct in script.");
-          oLogger.Log("ICIMS HTTP Authorization token used: " + oModel.FacilityConfig.Fhir.AuthorizationToken);
-          oLogger.Log(ErrorMsg);
-          RejectMessage(ErrorMsg);
-          StopInterface(ErrorMsg, IsTestCase);
+          //Message has been sent successfully, event complete!        
+        } else if (POSTOutcome.HttpStatus == 404) {
+          var StopInterfaceErrorMsg = "Confirm the FHIR endpoint is avavable at : " + oModel.FacilityConfig.Fhir.FhirEndpoint;
+          oLogger.Log("HTTP Status Code: " + POSTOutcome.HttpStatus + " Server Not Found");
+          oLogger.Log(StopInterfaceErrorMsg);
+          oModel.FacilityConfig.Fhir.FhirEndpoint
+          RejectMessage(StopInterfaceErrorMsg);
+          StopInterface(StopInterfaceErrorMsg, IsTestCase);
         } else if (!POSTOutcome.Error) {
           //We have some other HTTP error code
-          var ICIMSError = ParseICIMSJson(POSTOutcome.DataReceived);
-          var ErrorMsg = "ICIMS HTTP failed HTTP Status: " + POSTOutcome.HttpStatus + ", State: " + ICIMSError.state + ", Msg: " + ICIMSError.error;
-          oLogger.Log(ErrorMsg);
-          oLogger.Log("ICIMS HTTP Error Message: " + POSTOutcome.DataReceived);
-          oLogger.Log(ErrorMsg);
-          RejectMessage(ErrorMsg);
-          StopInterface(ErrorMsg, IsTestCase);
+          var StopInterfaceErrorMsg = ComposeErrorMessageFromFhirResource(POSTOutcome.DataReceived);
+          oLogger.Log("HTTP Status Code: " + POSTOutcome.HttpStatus);
+          oLogger.Log("Message: " + StopInterfaceErrorMsg);
+          oLogger.Log("HTTP Body: " + POSTOutcome.DataReceived);
+          RejectMessage(StopInterfaceErrorMsg);
+          StopInterface(StopInterfaceErrorMsg, IsTestCase);
         } else {
           if (POSTOutcome.Error) {
             //We were unable to reach the REST endpoint, maybe network connection is down?
@@ -169,9 +176,9 @@
     }
     catch (Exec) {
       //The script has throwen and exception, should not happen!
-      var ErrorMsg = "Unknown Scripting exception of :" + Exec;
+      var ErrorMsg = "Unknown Scripting exception of :" + Exec.message;
       oLogger.Log(ErrorMsg);
-      oLogger.Log("Error Message: " + Exec);
+      oLogger.Log("Error Message: " + Exec.message);
       RejectMessage(ErrorMsg);
       StopInterface(ErrorMsg, IsTestCase);
     }
@@ -189,7 +196,6 @@
       }
     }
 
-
     ///Function to set the HL7 V2 acknowledgement message reject error message     
     function RejectMessage(ErrorMsg) {
       var oHL7Reply = aEvent.ReplyMessage;
@@ -197,24 +203,78 @@
       oHL7Reply.Element("MSA-3").AsString = ErrorMsg;
     }
 
-
-    //Parse the JSON returned by ICIMS.
-    function ParseICIMSJson(JsonString) {
-      //If ICIMCS returns a json object which throws an exception on parsing, then this object is parsed and used.
-      var UnableToParseJsonError = '{"state": "Script", "error": "Unable to paser ICIMS JSON error."}';
-      if (JsonString !== "") {
-        try {
-          return JSON.parse(JsonString);
+    function ComposeProcessMessageErrorMessage(BundleJson) {
+      BreakPoint;
+      var DefaultErrorMessage = "Unable to obtain message from server retuned process ADT message Bundle Resource body content. Please check the logs.";
+      var ErrorMessage = "";
+      try {
+        var Bundle = JSON.parse(BundleJson);
+        if (Bundle.entry.length > 1) {
+          for (var i = 0; (i < Bundle.entry.length); i++) {
+            var Entry = Bundle.entry[i];
+            if (Entry.resource.resourceType === "OperationOutcome") {
+              FoundOperationOutcomeResources = true;
+              ErrorMessage = GetOperationOutcomeMessageString(oOpOutCome);
+              if (ErrorMessage == "") {
+                return DefaultErrorMessage;
+              } else {
+                return ErrorMessage;
+              }
+            }
+          }
         }
-        catch (Exec) {
-          oLogger.Log("Unable to paser ICIMS JSON error, raw data was:");
-          oLogger.Log("-------------------------------------------------------------");
-          oLogger.Log(JsonString);
-          return JSON.parse(UnableToParseJsonError);
-        }
+      } catch (Exec) {
+        return DefaultErrorMessage;
       }
-      oLogger.Log("Unable to paser ICIMS JSON Object as returned object was an empty string.");
-      return JSON.parse(UnableToParseJsonError);
     }
 
+    function ComposeErrorMessageFromFhirResource(ResourceJson) {
+      BreakPoint;
+      var DefaultErrorMessage = "Unable to obtain message from server retuned process ADT message Bundle Resource body content. Please check the logs.";
+      var ErrorMessage = "";
+      try {
+        var Resource = JSON.parse(ResourceJson);
+        if (Resource.resourceType === "OperationOutcome") {
+          ErrorMessage = GetOperationOutcomeMessageString(Resource)
+          return ErrorMessage;
+        } else if (Resource.resourceType === "Bundle") {
+          if (Resource.entry.length > 1) {
+            for (var i = 0; (i < Resource.entry.length); i++) {
+              var Entry = Resource.entry[i];
+              if (Entry.resource.resourceType === "OperationOutcome") {
+                if (ErrorMessage == "") {
+                  ErrorMessage = GetOperationOutcomeMessageString(Entry.resource);
+                } else {
+                  ErrorMessage = ErrorMessage + ", " + GetOperationOutcomeMessageString(Entry.resource);
+                }
+              }
+            }
+            if (ErrorMessage == "") {
+              return DefaultErrorMessage;
+            } else {
+              return ErrorMessage;
+            }
+          }
+        }
+      } catch (Exec) {
+        return DefaultErrorMessage;
+      }
+    }
+
+    function GetOperationOutcomeMessageString(OperationOutcome) {
+      var ErrorMessage = "";
+      if (OperationOutcome.issue != undefined) {
+        for (var i = 0; (i < OperationOutcome.issue.length); i++) {
+          var oIssue = OperationOutcome.issue[i];
+          if (oIssue.details != undefined && oIssue.details.text != undefined) {
+            if (ErrorMessage == "") {
+              ErrorMessage = oIssue.details.text;
+            } else {
+              ErrorMessage = ErrorMessage + ", " + oIssue.details.text;
+            }
+          }
+        }
+      }
+      return ErrorMessage;
+    }
   }

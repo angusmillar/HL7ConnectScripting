@@ -30,7 +30,7 @@ function AllergyIntolerance(oAL1) {
         this.IdentificationDate = DateAndTimeFromHL7(oAL1.Field(6).AsString);
       }
       catch (Exec) {
-        throw "Identification Date & Time in AL1-6 can not be parsed as a Date time, vaule was: " + oAL1.Field(6).AsString;
+        throw new Error("Identification Date & Time in AL1-6 can not be parsed as a Date time, vaule was: " + oAL1.Field(6).AsString);
       }
     }
 

@@ -1,9 +1,11 @@
 function FacilityFhirConfig() {
 
   this.FhirEndpoint = null;
-  this.OperationName = null;
+  this.OperationNameProcessMessage = null;
+  this.OperationNameMergePatient = null;
   this.AuthorizationToken = null;
 
+  this.SendOrganizationResourceInBundle = false;
   this.SendingOrganizationResourceId = null;
   this.SendingOrganizationName = null;
   this.SendingOrganizationAliasArray = [];

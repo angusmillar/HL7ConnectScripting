@@ -60,7 +60,7 @@
         FacilityConfiguration.MaxRejectBeforeInterfaceStop = 20;
         break;
       default:
-        throw "No SiteContext script parameter passed to the running script";
+        throw new Error("No SiteContext script parameter passed to the running script");
     }
     //===========================================================================
 
@@ -174,9 +174,9 @@
     }
     catch (Exec) {
       //The script has throwen and exception, should not happen!
-      var ErrorMsg = "ICIMS Unknown Scripting exception of :" + Exec;
+      var ErrorMsg = "ICIMS Unknown Scripting exception of :" + Exec.message;
       oLogger.Log(ErrorMsg);
-      oLogger.Log("ICIMS Error Message: " + Exec);
+      oLogger.Log("ICIMS Error Message: " + Exec.message);
       RejectMessage(ErrorMsg);
       StopInterface(ErrorMsg, oLogger, oModels.FacilityConfig, IsTestCase);
     }
@@ -222,10 +222,10 @@
         }
         var Sites = SiteList.join(" or ");
         if (aEvent.Parameter == "") {
-          throw "No SiteContext script parameter passed to the running script. Allowed (" + Sites + ")";
+          throw new Error("No SiteContext script parameter passed to the running script. Allowed (" + Sites + ")");
         }
         else {
-          throw "Unknowen SiteContext parameter of '" + aEvent.Parameter + "' passed to the running script. Allowed (" + Sites + ")";
+          throw new Error("Unknowen SiteContext parameter of '" + aEvent.Parameter + "' passed to the running script. Allowed (" + Sites + ")");
         }
       }
     }

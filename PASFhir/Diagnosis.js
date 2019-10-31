@@ -31,7 +31,7 @@ function Diagnosis(oDG1) {
         this.DateTime = DateAndTimeFromHL7(oDG1.Field(5).AsString);
       }
       catch (Exec) {
-        throw "Diagnosis Date & Time in DG1-5 can not be parsed as a Date time, vaule was: " + oDG1.Field(5).AsString;
+        throw new Error("Diagnosis Date & Time in DG1-5 can not be parsed as a Date time, vaule was: " + oDG1.Field(5).AsString);
       }
     }
 

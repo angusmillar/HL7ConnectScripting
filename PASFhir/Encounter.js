@@ -27,9 +27,10 @@
       if (oPV1.Field(19).AsString != "") {
         this.EcounterNumber = oHl7Support.Set(oPV1.Field(19));
       } else {
-        throw "The encounter number / patient visti number in PV1-19 must not be empty.";
+        throw new Error("The encounter number / patient visti number in PV1-19 must not be empty.");
       }
 
+      BreakPoint;
       if (oPV1.Field(2).AsString != "") {
         var ClassCodeSystem = "http://terminology.hl7.org/CodeSystem/v3-ActCode";
         switch (oPV1.Field(2).AsString) {
@@ -41,11 +42,15 @@
             break;
           case oHL7Table.PatientClass.Outpatient:
             this.Class = { Code: "SS", Display: "short stay", System: ClassCodeSystem };
+            break;
+          case oHL7Table.PatientClass.Preadmit:
+            this.Class = { Code: "PRENC", Display: "pre-admission", System: ClassCodeSystem };
+            break;
           default:
-            throw "The Patient Class  found in PV1-2 was not an expected, value is : " + oPV1.Field(2).AsString + ", allowed values are (E,I,O).";
+            throw new Error("The Patient Class found in PV1-2 was not an expected, value is : " + oPV1.Field(2).AsString + ", allowed values are (E,I,O).");
         }
       } else {
-        throw "Patient Class in PV1-2 can not be empty."
+        throw new Error("Patient Class in PV1-2 can not be empty.");
       }
 
       if (oPV1.Field(3).defined) {
@@ -66,7 +71,7 @@
           this.AdmissionDateTime = DateAndTimeFromHL7(oPV1.Field(44).AsString);
         }
         catch (Exec) {
-          throw "Admission Date & Time in PV1-44 can not be parsed as a Date time, vaule was: " + oPV1.Field(44).AsString;
+          throw new Error("Admission Date & Time in PV1-44 can not be parsed as a Date time, vaule was: " + oPV1.Field(44).AsString);
         }
       }
 
@@ -75,7 +80,7 @@
           this.DischargeDateTime = DateAndTimeFromHL7(oPV1.Field(45).AsString);
         }
         catch (Exec) {
-          throw "Discharge Date & Time in PV1-45 can not be parsed as a Date time, vaule was: " + oPV1.Field(45).AsString;
+          throw new Error("Discharge Date & Time in PV1-45 can not be parsed as a Date time, vaule was: " + oPV1.Field(45).AsString);
         }
       }
 
