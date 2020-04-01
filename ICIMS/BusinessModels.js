@@ -166,6 +166,8 @@
         *  <li><b>9</b>: Not stated/ inadequately described</li></code>
       */
       this.Aboriginality = null;
+      this.DeathIndicator = null;
+      this.DeathDateTime = null;
 
       var V2Support = new HL7V2Support();
 
@@ -321,6 +323,31 @@
         else if (FacilityConfig.SiteContext == SiteContextEnum.RMH) {
           this.ContactHome.Inflate(oSeg.Field(13), PhoneUseEnum.Primary);
           this.ContactBusiness.Inflate(oSeg.Field(14), PhoneUseEnum.Work);
+        }
+
+        BreakPoint;
+        if (FacilityConfig.SiteContext == SiteContextEnum.SAH) {
+          if (oSeg.Field(29).defined && oSeg.Field(29).AsString != "" && oSeg.Field(29).AsString.length >= 8) {
+            try {
+              this.DeathDateTime = DateAndTimeFromHL7(oSeg.Field(29).AsString);
+            }
+            catch (Exec) {
+              throw new Error("Date of Death in PID-29 can not be parsed as a Date or Date time, vaule was: " + oSeg.Field(7).AsString);
+            }
+          }
+        }
+
+        if (FacilityConfig.SiteContext == SiteContextEnum.SAH) {
+          if (oSeg.Field(30).defined && oSeg.Field(30).AsString != "") {
+            {
+              if (oSeg.Field(30).AsString.toUpperCase() === "Y") {
+                this.DeathIndicator = true;
+              }
+              else if (oSeg.Field(30).AsString.toUpperCase() === "N") {
+                this.DeathIndicator = false;
+              }
+            }
+          }
         }
 
       }
