@@ -8,4 +8,12 @@ function StringSupport() {
       return value.split(' ').join('');
     }
   }
+
+  this.XMLEscape = function (item) {
+    return item.replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/&/g, "&amp;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+  }
 }

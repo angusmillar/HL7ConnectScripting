@@ -68,8 +68,13 @@
 
 
     function FacilityConfiguration(SiteContext) {
+
       // The static action name required by ICIMS for AddPatient requests.*/
       this.SiteContext = SiteContext;
+
+      //Implementation is a code that represent what the interface is used for, this is to split
+      //between Sonic DHM, Theater and CareZone 
+      this.Implementation = null;
 
       // The Assigning Authority code used by the site for its primary Medical Record Number in HL7 V2 Messages */
       this.PrimaryMRNAssigningAuthority = null;
@@ -118,6 +123,9 @@
 
       var OBXList = oHL7.SegmentQuery("OBX");
       this.ObservationList = GetObservationList(OBXList, FacilityConfig);
+
+      var DSPList = oHL7.SegmentQuery("DSP");
+      this.DisplayDataLineList = GetDisplayDataList(DSPList, FacilityConfig);
 
     }
 
@@ -254,7 +262,6 @@
           this.Language = V2Support.Set(oSeg.Field(15));
         }
 
-        BreakPoint;
         //The Patient ATSI code value
         if (oSeg.Field(10).AsString != "" && oSeg.Field(10).ComponentCount > 1 && Component(1).AsString != "") {
           this.Aboriginality = V2Support.Set(oSeg.Field(10).Component(1));
@@ -275,8 +282,7 @@
               RMHAddressTypeEnum.TemporaryAddress,
               RMHAddressTypeEnum.NotSpecified
             ];
-        }
-        else {
+        } else {
           var AddressTypeArray =
             [
               SAHAddressTypeEnum.Permanent,
@@ -292,27 +298,31 @@
 
 
         var oXADAdressTarget = null;
-        var Dic = ResolveAddressTypeFromXADList(oSeg.Field(11), AddressTypeArray);
-        for (var AddressType in AddressTypeArray) {
-          if (Dic.Exists(AddressTypeArray[AddressType])) {
-            oXADAdressTarget = Dic.Item(AddressTypeArray[AddressType]);
-            break;
+        if (FacilityConfig.Implementation == "SONICDHM") {
+          oXADAdressTarget = oSeg.Field(11);
+        } else {
+          var Dic = ResolveAddressTypeFromXADList(oSeg.Field(11), AddressTypeArray);
+          for (var AddressType in AddressTypeArray) {
+            if (Dic.Exists(AddressTypeArray[AddressType])) {
+              oXADAdressTarget = Dic.Item(AddressTypeArray[AddressType]);
+              break;
+            }
+          }
+
+          //Email Address For SAH
+          if (FacilityConfig.SiteContext == SiteContextEnum.SAH) {
+            if (Dic.Exists(SAHAddressTypeEnum.Email)) {
+              var oXADEmailAdressTarget = Dic.Item(SAHAddressTypeEnum.Email);
+              this.PatientEmail = V2Support.Set(oXADEmailAdressTarget.Component(1));
+            }
+            else {
+              this.PatientEmail = "";
+            }
           }
         }
+
         this.PatientAddress = new Address(oXADAdressTarget);
 
-
-
-        //Email Address For SAH
-        if (FacilityConfig.SiteContext == SiteContextEnum.SAH) {
-          if (Dic.Exists(SAHAddressTypeEnum.Email)) {
-            var oXADEmailAdressTarget = Dic.Item(SAHAddressTypeEnum.Email);
-            this.PatientEmail = V2Support.Set(oXADEmailAdressTarget.Component(1));
-          }
-          else {
-            this.PatientEmail = "";
-          }
-        }
 
         this.ContactHome = new Contact();
         this.ContactBusiness = new Contact();
@@ -325,7 +335,6 @@
           this.ContactBusiness.Inflate(oSeg.Field(14), PhoneUseEnum.Work);
         }
 
-        BreakPoint;
         if (FacilityConfig.SiteContext == SiteContextEnum.SAH) {
           if (oSeg.Field(29).defined && oSeg.Field(29).AsString != "" && oSeg.Field(29).AsString.length >= 8) {
             try {
@@ -413,6 +422,20 @@
 
     }
 
+    //Loops through each DSP segment colating the display lines into an array
+    function GetDisplayDataList(DSPList, oFacilityConfig) {
+      var DisplayDataLineList = [];
+      for (var i = 0; (i < DSPList.Count); i++) {
+        if (DSPList.Item(i).Field(2).AsString == "1") {
+          DisplayDataLineList.push(DSPList.Item(i).Field(3).AsString);
+        } else {
+          throw new Error("Encounterd a Display Level in DSP-2 that is not equal to 1. This interface can only manage a single Display Level of 1.");
+        }
+      }
+      return DisplayDataLineList;
+    }
+
+
     //Loops through each OBX segment and creates an array of Observation object instances
     function GetObservationList(OBXList, oFacilityConfig) {
       var ObservationList = [];
@@ -430,7 +453,6 @@
     }
 
     function SahOBXLeadSurgeonProcessing(ObservationList, oOBX) {
-      BreakPoint;
       //SAH send the Lead Surgeon's Provider number and Name elements as a HL7 V2 XCN
       //DataType. As FHIR as no akin datatype for Observations we here split 
       //the one OBX into two, one for the Provider number and one for the Name.
@@ -635,8 +657,10 @@
       this.MessageControlID = null;
       // The HL7 V2 message creation Date Time
       this.MessageDateTime = null;
-      // The HL7 V2 message SendingApplication
+      // The HL7 V2 message SendingApplication MSH-3
       this.SendingApplication = null;
+      // The HL7 V2 message SendingFacility MSH-4
+      this.SendingFacility = null;
 
       var V2Support = new HL7V2Support();
 
@@ -653,6 +677,7 @@
       }
 
       this.SendingApplication = V2Support.Set(oMSH.Field(3));
+      this.SendingFacility = V2Support.Set(oMSH.Field(4));
     }
 
     function MergeIdentifers(oMRG, FacilityConfig) {

@@ -11,6 +11,8 @@
 <% include $repo$\FhirLibrary\STU3\PractitionerFhirResource.js %>
 <% include $repo$\FhirLibrary\STU3\FhirDataTypeTool.js %>
 <% include $repo$\FhirLibrary\STU3\FhirTools.js %>
+<% include $repo$\ICIMS\Constants.js %>
+
 
   function FhirResourceFactory() {
 
@@ -22,39 +24,16 @@
 
       var FhirTool = new FhirTools();
       var FhirDataType = new FhirDataTypeTool();
+      var Constant = new Constants();
 
-      var IcimsProfileBase = "https://www.icims.com.au/fhir";
-
-      var IcimsMessageBundleProfileName = "StructureDefinition/icims-message-bundle";
-      var IcimsMessageHeaderProfileName = "StructureDefinition/icims-messageHeader";
-      var IcimsDiagnosticReportProfileName = "StructureDefinition/icims-diagnosticReport";
-      var IcimsPatientProfileName = "StructureDefinition/icims-patient";
-      var IcimsObservationProfileName = "StructureDefinition/icims-observation";
-      var IcimsOrganizationProfileName = "StructureDefinition/icims-organization";
-      var IcimsProvenanceProfileName = "StructureDefinition/icims-provenance";
-
-
-      var IcimsOrganizationId = "bab13701-776a-41fd-86a9-7aa19df2825d";
-      var IcimsOrganizationName = "ICIMS";
-      var IcimsOrganizationAliasArray = ["Innovative Clinical Information Management Systems"];
-
-      var SAHOrganizationId = "95f4641f-6de7-470c-a44c-90ef5eb17faf";
-      var SAHOrganizationName = "SAH";
-      var SAHOrganizationAliasArray = ["SAN", "Sydney Adventist Hospital"];
-
-      var EpiSoftTypeCode = "EPISOFT";
-      var EpiSoftSystemGuid = "70a870ef-2a29-4475-bd1d-1604a7eacbe9";
-
-      var SanAppsSendingApplicationCode = "SANAPPS";
-      var CareZoneSendingApplicationCode = "CareZone";
+      BreakPoint;
 
       //When sending to a [base]/fhir/Bundle endpoint for testing as a POST
       //you can not have an id, however, when sending to $process-message you must
       var oBundle = new BundleFhirResource();
       oBundle.SetId(FhirTool.GetGuid());
       oBundle.SetType("message");
-      var bundleProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsMessageBundleProfileName]);
-      oBundle.SetMetaProfile([bundleProfileUrl]);
+      oBundle.SetMetaProfile([Constant.fhirResourceProfile.icims.messageBundle]);
 
       //--------------------------------------------------------------------------
       //MessageHeader Resource
@@ -62,15 +41,18 @@
       var MessageHeaderId = oModels.Pathology.Meta.MessageControlID;
       var oMsgHeader = new MessageHeaderFhirResource();
       oMsgHeader.SetId(MessageHeaderId);
-      var msgHeadProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsMessageHeaderProfileName], "/");
-      oMsgHeader.SetMetaProfile([msgHeadProfileUrl]);
+      oMsgHeader.SetMetaProfile([Constant.fhirResourceProfile.icims.messageHeader]);
       var HeaderEventCoding = FhirDataType.GetCoding("diagnosticreport-provide", "http://hl7.org/fhir/message-events", "diagnosticreport-provide");
       oMsgHeader.SetEvent(HeaderEventCoding);
-      oMsgHeader.SetDestination("ICIMS", undefined, oModels.FacilityConfig.EndPoint);
+      if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
+        oMsgHeader.SetDestination(Constant.organization.sah.application.cliniSearch.code, undefined, oModels.FacilityConfig.EndPoint);
+      } else {
+        oMsgHeader.SetDestination("ICIMS", undefined, oModels.FacilityConfig.EndPoint);
+      }
       oMsgHeader.SetTimestamp(FhirTool.SetTimeZone(oModels.Pathology.Meta.MessageDateTime.AsXML));
-      var oReceiverReference = FhirDataType.GetReference("Organization", IcimsOrganizationId, IcimsOrganizationName);
+      var oReceiverReference = FhirDataType.GetReference("Organization", Constant.organization.icims.id, Constant.organization.icims.name);
       oMsgHeader.SetReceiver(oReceiverReference);
-      var oSenderReference = FhirDataType.GetReference("Organization", SAHOrganizationId, SAHOrganizationName);
+      var oSenderReference = FhirDataType.GetReference("Organization", Constant.organization.sah.id, Constant.organization.sah.name);
       oMsgHeader.SetSender(oSenderReference);
       oMsgHeader.SetSource(oModels.Pathology.Meta.SendingApplication);
       var messageheaderResponseRequestExtension = FhirDataType.GetExtension("http://hl7.org/fhir/StructureDefinition/messageheader-response-request", "valueCode", "on-error");
@@ -87,21 +69,21 @@
       var oPatient = new PatientFhirResource();
       oPatient.SetId(PatientId);
 
-      var patientProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsPatientProfileName], "/");
       //var oMeta = FhirDataType.GetMeta(undefined, undefined, [patientProfileUrl], undefined, undefined);
       //oPatient.SetMeta(oMeta);
-      oPatient.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-patient", patientProfileUrl]);
+      oPatient.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-patient", Constant.fhirResourceProfile.icims.patient]);
 
       var PatientIdentifierArray = [];
 
       //MRN
-      var oPatMrnTypeCoding = FhirDataType.GetCoding("MR", "http://hl7.org/fhir/v2/0203", "Medical record number");
-      var oPatMrnType = FhirDataType.GetCodeableConcept(oPatMrnTypeCoding, "Medical record number");
-      var MrnIdentifier = FhirDataType.GetIdentifier("official", oPatMrnType,
-        oModels.FacilityConfig.PrimaryMRNSystemUri,
-        oModels.Pathology.Patient.PrimaryMrnValue);
-      PatientIdentifierArray.push(MrnIdentifier);
-
+      if (oModels.Pathology.Patient.PrimaryMrnValue != null) {
+        var oPatMrnTypeCoding = FhirDataType.GetCoding("MR", "http://hl7.org/fhir/v2/0203", "Medical record number");
+        var oPatMrnType = FhirDataType.GetCodeableConcept(oPatMrnTypeCoding, "Medical record number");
+        var MrnIdentifier = FhirDataType.GetIdentifier("official", oPatMrnType,
+          oModels.FacilityConfig.PrimaryMRNSystemUri,
+          oModels.Pathology.Patient.PrimaryMrnValue);
+        PatientIdentifierArray.push(MrnIdentifier);
+      }
       //MedicareNumber
       if (oModels.Pathology.Patient.MedicareNumberValue != null) {
         var oPatMedicareTypeCoding = FhirDataType.GetCoding("MC", "http://hl7.org/fhir/v2/0203", "Medicare Number");
@@ -112,7 +94,9 @@
         PatientIdentifierArray.push(MedicareIdentifier);
       }
 
-      oPatient.SetIdentifier(PatientIdentifierArray);
+      if (PatientIdentifierArray.length > 0) {
+        oPatient.SetIdentifier(PatientIdentifierArray);
+      }
 
       var HumanName = FhirDataType.GetHumanName("official", oModels.Pathology.Patient.FormattedName,
         oModels.Pathology.Patient.Family,
@@ -122,6 +106,7 @@
       oPatient.SetGender(oModels.Pathology.Patient.Gender);
       oPatient.SetBirthDate(oModels.Pathology.Patient.Dob.AsXML);
 
+      BreakPoint;
       var PatientAddress = oModels.Pathology.Patient.PatientAddress;
       var lineArray = [];
       if (PatientAddress.AddressLine1 != null) {
@@ -138,23 +123,33 @@
       //--------------------------------------------------------------------------
       //Observation Resource List
       //--------------------------------------------------------------------------
+      BreakPoint;
       var oPatientReference = FhirDataType.GetReference("Patient", PatientId, oModels.Pathology.Patient.FormattedName);
-      var ObsCategoryCoding = FhirDataType.GetCoding("procedure", "http://hl7.org/fhir/observation-category", "Procedure");
+      if (oModels.Pathology.Meta.SendingFacility.toUpperCase() == Constant.organization.dhm.name.toUpperCase()) {
+        var ObsCategoryCoding = FhirDataType.GetCoding("laboratory", "http://hl7.org/fhir/observation-category", "Laboratory");
+      } else {
+        var ObsCategoryCoding = FhirDataType.GetCoding("procedure", "http://hl7.org/fhir/observation-category", "Procedure");
+      }
+
       var ObsCategoryCodeableConcept = FhirDataType.GetCodeableConcept(ObsCategoryCoding);
       var BundleObservationResourceList = [];
       var DiagnosticReportObservationResourceList = [];
-      var obsProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsObservationProfileName]);
       var SubIdProcessedArray = [];
       var oArraySupport = new ArraySupport();
-      BreakPoint;
+
       for (var i = 0; (i < oModels.Pathology.ObservationList.length); i++) {
         var oV2Obs = oModels.Pathology.ObservationList[i];
         if (oV2Obs.Code != "PDF" && oV2Obs.CodeSystem != "AUSPDI") {
           if (oV2Obs.SetId == null) {
-            var oObservation = FhirObsFactory(oV2Obs, oModels.Pathology.Report.ReportIssuedDateTime.AsXML, oPatientReference, ObsCategoryCodeableConcept, obsProfileUrl);
+            var oObservation = FhirObsFactory(oV2Obs,
+              oModels.Pathology.Report.ReportIssuedDateTime.AsXML,
+              oPatientReference,
+              ObsCategoryCodeableConcept,
+              Constant.fhirResourceProfile.icims.observation);
             BundleObservationResourceList.push(oObservation);
             DiagnosticReportObservationResourceList.push(oObservation);
           } else {
+
             if (!oArraySupport.Contains(SubIdProcessedArray, oV2Obs.SetId)) {
               var oParentObservation = new ObservationFhirResource();
               oParentObservation.SetId(FhirTool.GetGuid());
@@ -168,7 +163,11 @@
               DiagnosticReportObservationResourceList.push(oParentObservation);
               for (var x = 0; (x < oSubIdObsGroup.length); x++) {
                 var oSubObs = oSubIdObsGroup[x];
-                var oSubObservation = FhirObsFactory(oSubObs, oModels.Pathology.Report.ReportIssuedDateTime.AsXML, oPatientReference, ObsCategoryCodeableConcept, obsProfileUrl);
+                var oSubObservation = FhirObsFactory(oSubObs,
+                  oModels.Pathology.Report.ReportIssuedDateTime.AsXML,
+                  oPatientReference,
+                  ObsCategoryCodeableConcept,
+                  Constant.fhirResourceProfile.icims.observation);
                 var oSubObservationReference = FhirDataType.GetReference("Observation", oSubObservation.id, undefined);
                 oParentObservation.AddRelated(oSubObservationReference, "has-member");
                 BundleObservationResourceList.push(oSubObservation);
@@ -210,19 +209,27 @@
       //--------------------------------------------------------------------------
       var oDiagReport = new DiagnosticReportFhirResource();
       oDiagReport.SetId(DiagnosticReportId);
-      var oDiagRepProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsDiagnosticReportProfileName]);
-      oDiagReport.SetMetaProfile([oDiagRepProfileUrl]);
+      if (oModels.Pathology.Meta.SendingFacility.toUpperCase() == Constant.organization.dhm.name.toUpperCase()) {
+        var XhtmlNarrative = GetDiagnosticReportNarative(oModels.Pathology.DisplayDataLineList);
+        var oNarrative = FhirDataType.GetNarrative("additional", XhtmlNarrative)
+      }
+      oDiagReport.SetText(oNarrative);
+      oDiagReport.SetMetaProfile([Constant.fhirResourceProfile.icims.diagnosticReport]);
       var oTypeCoding = FhirDataType.GetCoding("FILL", "http://hl7.org/fhir/identifier-type", "Filler Identifier");
       var oType = FhirDataType.GetCodeableConcept(oTypeCoding, "Report Identifier");
 
       var ReportIdentifier = null;
-      if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == CareZoneSendingApplicationCode.toUpperCase()) {
+      if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == Constant.organization.sah.application.careZone.code.toUpperCase()) {
         ReportIdentifier = FhirDataType.GetIdentifier("official", oType,
-          FhirTool.PreFixUuid(EpiSoftSystemGuid),
+          FhirTool.PreFixUuid(Constant.organization.sah.application.epiSoft.codeSystem.FillerOrderNumber),
           oModels.Pathology.Report.FillerOrderNumberValue);
-      } else if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == SanAppsSendingApplicationCode.toUpperCase()) {
+      } else if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == Constant.organization.sah.application.sanApps.code.toUpperCase()) {
         ReportIdentifier = FhirDataType.GetIdentifier("official", oType,
           FhirTool.PreFixUuid(oModels.Pathology.Report.FillerOrderNumberUniversalId.toLowerCase()),
+          oModels.Pathology.Report.FillerOrderNumberValue);
+      } else if (oModels.Pathology.Meta.SendingFacility.toUpperCase() == Constant.organization.dhm.name.toUpperCase()) {
+        ReportIdentifier = FhirDataType.GetIdentifier("official", oType,
+          Constant.organization.dhm.codeSystem.FillerOrderNumber,
           oModels.Pathology.Report.FillerOrderNumberValue);
       }
 
@@ -234,11 +241,17 @@
       oDiagReport.SetCategory(oCategoryCodeableConcept);
 
       var oCodeCoding = null;
-      if (oModels.Pathology.Report.ReportCode == null && oModels.Pathology.Report.ReportCodeDescription != null) {
-        oCodeCoding = FhirDataType.GetCoding(undefined, undefined, oModels.Pathology.Report.ReportCodeDescription);
+      if (oModels.Pathology.Meta.SendingFacility.toUpperCase() == Constant.organization.dhm.name.toUpperCase()) {
+        oCodeCoding = FhirDataType.GetCoding(oModels.Pathology.Report.ReportCode, Constant.organization.dhm.codeSystem.ReportPanel, oModels.Pathology.Report.ReportCodeDescription);
       } else {
-        oCodeCoding = FhirDataType.GetCoding(oModels.Pathology.Report.ReportCode, "http://loinc.org", oModels.Pathology.Report.ReportCodeDescription);
+        if (oModels.Pathology.Report.ReportCode == null && oModels.Pathology.Report.ReportCodeDescription != null) {
+          oCodeCoding = FhirDataType.GetCoding(undefined, undefined, oModels.Pathology.Report.ReportCodeDescription);
+        } else {
+          oCodeCoding = FhirDataType.GetCoding(oModels.Pathology.Report.ReportCode, "http://loinc.org", oModels.Pathology.Report.ReportCodeDescription);
+        }
       }
+
+
 
       var oCodeCodeableConcept = FhirDataType.GetCodeableConcept(oCodeCoding);
       oDiagReport.SetCode(oCodeCodeableConcept);
@@ -247,11 +260,10 @@
       oDiagReport.SetEffectiveDateTime(FhirTool.SetTimeZone(oModels.Pathology.Report.CollectionDateTime.AsXML));
       oDiagReport.SetIssued(FhirTool.SetTimeZone(oModels.Pathology.Report.ReportIssuedDateTime.AsXML));
 
-      //Add Performer Practitioner
-      BreakPoint;
+      //Add Performer Practitioner      
       if (oPractitioner != null) {
         var oPerformerRoleCodeableConcept = undefined;
-        if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == CareZoneSendingApplicationCode.toUpperCase()) {
+        if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == Constant.organization.sah.application.careZone.code.toUpperCase()) {
           var oPerformerRoleCoding = FhirDataType.GetCoding("310512001", "http://snomed.info/sct", "Medical oncologist");
           oPerformerRoleCodeableConcept = FhirDataType.GetCodeableConcept(oPerformerRoleCoding, undefined);
         }
@@ -299,24 +311,23 @@
       //Organization ICIMS
       //--------------------------------------------------------------------------
       var oOrgIcims = new OrganizationFhirResource();
-      oOrgIcims.SetId(IcimsOrganizationId);
-      var oOrgProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsOrganizationProfileName]);
-      oOrgIcims.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", oOrgProfileUrl]);
-      oOrgIcims.SetName(IcimsOrganizationName);
-      oOrgIcims.SetAlias(IcimsOrganizationAliasArray);
+      oOrgIcims.SetId(Constant.organization.icims.id);
+      oOrgIcims.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", Constant.fhirResourceProfile.icims.organization]);
+      oOrgIcims.SetName(Constant.organization.icims.name);
+      oOrgIcims.SetAlias(Constant.organization.icims.aliasList);
       //Add Organization ICIMS to Bundle
-      oBundle.AddEntry(FhirTool.PreFixUuid(IcimsOrganizationId), oOrgIcims);
+      oBundle.AddEntry(FhirTool.PreFixUuid(Constant.organization.icims.id), oOrgIcims);
 
       //--------------------------------------------------------------------------
       //Organization SAH
       //--------------------------------------------------------------------------
-      var oOrgSAH = new OrganizationFhirResource(SAHOrganizationId, SAHOrganizationName);
-      oOrgSAH.SetId(SAHOrganizationId);
-      oOrgSAH.SetMetaProfile([oOrgProfileUrl]);
-      oOrgSAH.SetName(SAHOrganizationName);
-      oOrgSAH.SetAlias(SAHOrganizationAliasArray);
+      var oOrgSAH = new OrganizationFhirResource();
+      oOrgSAH.SetId(Constant.organization.sah.id);
+      oOrgSAH.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", Constant.fhirResourceProfile.icims.organization]);
+      oOrgSAH.SetName(Constant.organization.sah.name);
+      oOrgSAH.SetAlias(Constant.organization.sah.aliasList);
       //Add Organization SAH to Bundle
-      oBundle.AddEntry(FhirTool.PreFixUuid(SAHOrganizationId), oOrgSAH);
+      oBundle.AddEntry(FhirTool.PreFixUuid(Constant.organization.sah.id), oOrgSAH);
 
       //--------------------------------------------------------------------------
       //Provenance SAH
@@ -324,8 +335,7 @@
       var provenanceId = FhirTool.GetGuid();
       var oProvenance = new ProvenanceFhirResource();
       oProvenance.SetId(provenanceId);
-      var oProvenanceProfileUrl = FhirTool.PathCombine([IcimsProfileBase, IcimsProvenanceProfileName]);
-      oProvenance.SetMetaProfile([oProvenanceProfileUrl]);
+      oProvenance.SetMetaProfile([Constant.fhirResourceProfile.icims.provenance]);
 
       var TargetReferenceArray = [];
       TargetReferenceArray.push(FhirDataType.GetReference("MessageHeader", MessageHeaderId, "MessageHeader"));
@@ -337,8 +347,8 @@
       for (var i = 0; (i < BundleObservationResourceList.length); i++) {
         TargetReferenceArray.push(FhirDataType.GetReference("Observation", BundleObservationResourceList[i].id, "Observation"));
       }
-      TargetReferenceArray.push(FhirDataType.GetReference("Organization", IcimsOrganizationId, "Organization ICIMS"));
-      TargetReferenceArray.push(FhirDataType.GetReference("Organization", SAHOrganizationId, "Organization SAH"));
+      TargetReferenceArray.push(FhirDataType.GetReference("Organization", Constant.organization.icims.id, "Organization ICIMS"));
+      TargetReferenceArray.push(FhirDataType.GetReference("Organization", Constant.organization.sah.id, "Organization SAH"));
       oProvenance.SetTarget(TargetReferenceArray);
 
       var Today = FhirTool.GetNow();
@@ -353,7 +363,7 @@
       //var roleCodeableConcept = FhirDataType.GetCodeableConcept(roleCoding, text);
 
       var whoReference = FhirDataType.GetReference(undefined, undefined, "HL7 Connect Integration Engine");
-      var onBehalfOfReference = FhirDataType.GetReference("Organization", IcimsOrganizationId, "ICIMS");
+      var onBehalfOfReference = FhirDataType.GetReference("Organization", Constant.organization.icims.id, "ICIMS");
       oProvenance.SetAgent(undefined, whoReference, onBehalfOfReference);
 
       var messageControlIdIdentifier = FhirDataType.GetIdentifier("official", undefined,
@@ -367,7 +377,7 @@
     }
 
     function FhirObsFactory(oV2Obs, ReportIssuedDateTime, oPatientReference, ObsCategoryCodeableConcept, obsProfileUrl) {
-      if (oV2Obs.DataType == "ST" || oV2Obs.DataType == "NM") {
+      if (oV2Obs.DataType == "ST" || oV2Obs.DataType == "NM" || oV2Obs.DataType == "FT") {
         var oFhirTool = new FhirTools();
         var oFhirDataType = new FhirDataTypeTool();
         var oObservation = new ObservationFhirResource();
@@ -377,8 +387,15 @@
         oObservation.SetMetaProfile([obsProfileUrl]);
         oObservation.SetStatus(oV2Obs.Status);
         oObservation.SetCategory([ObsCategoryCodeableConcept]);
-        var ObsCodeCoding = oFhirDataType.GetCoding(oV2Obs.Code,
-          "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oV2Obs.CodeDescription);
+        var ObsCodeCoding = null;
+        if (oV2Obs.CodeSystem.toUpperCase() == "LN") {
+          ObsCodeCoding = oFhirDataType.GetCoding(oV2Obs.Code,
+            "http://loinc.org", oV2Obs.CodeDescription);
+        } else {
+          ObsCodeCoding = oFhirDataType.GetCoding(oV2Obs.Code,
+            "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oV2Obs.CodeDescription);
+        }
+
         var ObsCodeCodeableConcept = oFhirDataType.GetCodeableConcept(ObsCodeCoding);
         oObservation.SetCode(ObsCodeCodeableConcept);
 
@@ -386,7 +403,10 @@
         //Collection DateTime Clinically relevant date Time
         oObservation.SetEffectiveDateTime(oFhirTool.SetTimeZone(ReportIssuedDateTime));
         //Time off analyser, when the observation was observerd
-        oObservation.SetIssued(oFhirTool.SetTimeZone(oV2Obs.ObsDateTime.AsXML));
+        if (oV2Obs.ObsDateTime != null) {
+          oObservation.SetIssued(oFhirTool.SetTimeZone(oV2Obs.ObsDateTime.AsXML));
+        }
+
         //Abnormal Flag (Interpretation)
         if (oV2Obs.InterpretationCode != null) {
           var InterpCoding = oFhirDataType.GetCoding(oV2Obs.InterpretationCode,
@@ -397,6 +417,14 @@
         //The Result
         if (oV2Obs.DataType == "ST") {
           oObservation.SetValueString(oV2Obs.Value);
+        } else if (oV2Obs.DataType == "FT") {
+          //Here we strip any Formated Text formating and add Json line breaks in place of HL7 V2 breaks e.g (\.br\)
+          var StripFormatting = oV2Obs.Value
+            .replace(/\\H\\/g, "") //HL7 V2 Highligh On
+            .replace(/\\N\\/g, "") //HL7 V2 Highligh Off (Normal Text on)
+            .replace(/\\.br\\/g, "\n") //HL7 V2 LineBreaks
+            .replace(/\\X0D\\/g, "\n"); //Carriage return
+          oObservation.SetValueString(StripFormatting);
         } else if (oV2Obs.DataType == "NM") {
           oObservation.SetValueQuantity(oFhirDataType.GetQuantity(oV2Obs.Value, undefined, oV2Obs.Units, undefined, undefined));
           if (oV2Obs.ReferenceRangeText != null) {
@@ -408,9 +436,18 @@
         }
         return oObservation;
       } else {
-        throw  new Error("OBX DataType in OBX-2 of " + oV2Obs.DataType + " is not supported in the FHIR output.");
+        throw new Error("OBX DataType in OBX-2 of " + oV2Obs.DataType + " is not supported in the FHIR output.");
       }
     }
 
+    function GetDiagnosticReportNarative(DisplayLineList) {
+      var oStringSupport = new StringSupport();
+      var output = "<div xmlns=\"http://www.w3.org/1999/xhtml\">\n  <pre>"
+      for (var i = 0; (i < DisplayLineList.length); i++) {
+        output = output + oStringSupport.XMLEscape(DisplayLineList[i]) + "\n";
+      }
+      output = output + "  </pre>\n</div>";
+      return output;
+    }
 
   }

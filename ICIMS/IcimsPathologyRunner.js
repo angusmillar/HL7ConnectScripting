@@ -26,26 +26,48 @@
 
         //Enviroment Switch
         switch (oHL7CParameterSupport.Enviroment) {
-          case oHL7CParameterSupport.EnviromentCodes.DEV:
-            FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+          case EnvironmentTypeEnum.DEV:
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+              FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
+            } else {
+              FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
+            }
+            FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
             FacilityConfiguration.OperationName = "Bundle";
-            FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
             break;
 
-          case oHL7CParameterSupport.EnviromentCodes.TEST:
-            FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+          case EnvironmentTypeEnum.TEST:
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+              FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsReportsScriptOutbound";
+            } else {
+              FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsReportsScriptOutbound";
+            }
+            FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
             FacilityConfiguration.OperationName = "$process-message";
-            FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsReportsScriptOutbound";
             break;
 
-          case oHL7CParameterSupport.EnviromentCodes.PROD:
-            FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+          case EnvironmentTypeEnum.PROD:
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+              FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
+            } else {
+              FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
+              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
+            }
+            FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
             FacilityConfiguration.OperationName = "$process-message";
-            FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
             break;
+
         }
 
         //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
@@ -256,14 +278,22 @@
 
 //enum of the sites configured for this script.
 //Add to this list as new sites are brought on board.
-
-/**
- * Enum for Site Context.
- * @readonly
- * @enum {string}
- * @global
-*/
 var SiteContextEnum = {
-  /** RMH */
-  SAH: "SAH"
+  SAH: "SAH",
+  RMH: "RMH"
+};
+
+//enum for Implementation
+var ImplementationTypeEnum = {
+  None: "NONE",
+  CliniSearch: "CLINISEARCH",
+  Theater: "THEATER",
+  CareZone: "CAREZONE"
+};
+
+//enum for Environment
+var EnvironmentTypeEnum = {
+  DEV: "DEV",
+  TEST: "TEST",
+  PROD: "PROD"
 };
