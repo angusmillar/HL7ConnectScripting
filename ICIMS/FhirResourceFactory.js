@@ -47,12 +47,17 @@
       if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
         oMsgHeader.SetDestination(Constant.organization.sah.application.cliniSearch.code, undefined, oModels.FacilityConfig.EndPoint);
       } else {
-        oMsgHeader.SetDestination("ICIMS", undefined, oModels.FacilityConfig.EndPoint);
+        oMsgHeader.SetDestination(Constant.organization.icims.name, undefined, oModels.FacilityConfig.EndPoint);
       }
       oMsgHeader.SetTimestamp(FhirTool.SetTimeZone(oModels.Pathology.Meta.MessageDateTime.AsXML));
       var oReceiverReference = FhirDataType.GetReference("Organization", Constant.organization.icims.id, Constant.organization.icims.name);
       oMsgHeader.SetReceiver(oReceiverReference);
-      var oSenderReference = FhirDataType.GetReference("Organization", Constant.organization.sah.id, Constant.organization.sah.name);
+      var oSenderReference = null;
+      if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
+        oSenderReference = FhirDataType.GetReference("Organization", Constant.organization.dhm.id, Constant.organization.dhm.name);
+      } else {
+        oSenderReference = FhirDataType.GetReference("Organization", Constant.organization.sah.id, Constant.organization.sah.name);
+      }
       oMsgHeader.SetSender(oSenderReference);
       oMsgHeader.SetSource(oModels.Pathology.Meta.SendingApplication);
       var messageheaderResponseRequestExtension = FhirDataType.GetExtension("http://hl7.org/fhir/StructureDefinition/messageheader-response-request", "valueCode", "on-error");
@@ -115,10 +120,12 @@
       if (PatientAddress.AddressLine2 != null) {
         lineArray.push(PatientAddress.AddressLine2);
       }
+      if (PatientAddress.FormattedAddress != null) {
+        var oAddress = FhirDataType.GetAddressAustrlian(undefined, PatientAddress.FormattedAddress,
+          lineArray, PatientAddress.Suburb, undefined, PatientAddress.Postcode);
+        oPatient.SetAddress([oAddress]);
+      }
 
-      var oAddress = FhirDataType.GetAddressAustrlian(undefined, PatientAddress.FormattedAddress,
-        lineArray, PatientAddress.Suburb, undefined, PatientAddress.Postcode);
-      oPatient.SetAddress([oAddress]);
 
       //--------------------------------------------------------------------------
       //Observation Resource List
@@ -315,20 +322,30 @@
       oOrgIcims.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", Constant.fhirResourceProfile.icims.organization]);
       oOrgIcims.SetName(Constant.organization.icims.name);
       oOrgIcims.SetAlias(Constant.organization.icims.aliasList);
-      //Add Organization ICIMS to Bundle
-      oBundle.AddEntry(FhirTool.PreFixUuid(Constant.organization.icims.id), oOrgIcims);
+      oBundle.AddEntry(FhirTool.PreFixUuid(oOrgIcims.id), oOrgIcims);
 
       //--------------------------------------------------------------------------
-      //Organization SAH
+      //Organization DHM
       //--------------------------------------------------------------------------
-      var oOrgSAH = new OrganizationFhirResource();
-      oOrgSAH.SetId(Constant.organization.sah.id);
-      oOrgSAH.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", Constant.fhirResourceProfile.icims.organization]);
-      oOrgSAH.SetName(Constant.organization.sah.name);
-      oOrgSAH.SetAlias(Constant.organization.sah.aliasList);
-      //Add Organization SAH to Bundle
-      oBundle.AddEntry(FhirTool.PreFixUuid(Constant.organization.sah.id), oOrgSAH);
+      if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
+        var oOrgDHM = new OrganizationFhirResource();
+        oOrgDHM.SetId(Constant.organization.dhm.id);
+        oOrgDHM.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", Constant.fhirResourceProfile.icims.organization]);
+        oOrgDHM.SetName(Constant.organization.dhm.name);
+        oOrgDHM.SetAlias(Constant.organization.dhm.aliasList);
+        oBundle.AddEntry(FhirTool.PreFixUuid(oOrgDHM.id), oOrgDHM);
+      } else {
 
+        //--------------------------------------------------------------------------
+        //Organization SAH
+        //--------------------------------------------------------------------------
+        var oOrgSAH = new OrganizationFhirResource();
+        oOrgSAH.SetId(Constant.organization.sah.id);
+        oOrgSAH.SetMetaProfile(["http://hl7.org.au/fhir/StructureDefinition/au-organisation", Constant.fhirResourceProfile.icims.organization]);
+        oOrgSAH.SetName(Constant.organization.sah.name);
+        oOrgSAH.SetAlias(Constant.organization.sah.aliasList);
+        oBundle.AddEntry(FhirTool.PreFixUuid(oOrgSAH.id), oOrgSAH);
+      }
       //--------------------------------------------------------------------------
       //Provenance SAH
       //--------------------------------------------------------------------------
@@ -347,8 +364,13 @@
       for (var i = 0; (i < BundleObservationResourceList.length); i++) {
         TargetReferenceArray.push(FhirDataType.GetReference("Observation", BundleObservationResourceList[i].id, "Observation"));
       }
-      TargetReferenceArray.push(FhirDataType.GetReference("Organization", Constant.organization.icims.id, "Organization ICIMS"));
-      TargetReferenceArray.push(FhirDataType.GetReference("Organization", Constant.organization.sah.id, "Organization SAH"));
+
+      TargetReferenceArray.push(FhirDataType.GetReference("Organization", Constant.organization.icims.id, "Organization " + Constant.organization.icims.name));
+      if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
+        TargetReferenceArray.push(FhirDataType.GetReference("Organization", Constant.organization.dhm.id, "Organization " + Constant.organization.dhm.name));
+      } else {
+        TargetReferenceArray.push(FhirDataType.GetReference("Organization", Constant.organization.sah.id, "Organization " + Constant.organization.sah.name));
+      }
       oProvenance.SetTarget(TargetReferenceArray);
 
       var Today = FhirTool.GetNow();
@@ -363,7 +385,7 @@
       //var roleCodeableConcept = FhirDataType.GetCodeableConcept(roleCoding, text);
 
       var whoReference = FhirDataType.GetReference(undefined, undefined, "HL7 Connect Integration Engine");
-      var onBehalfOfReference = FhirDataType.GetReference("Organization", Constant.organization.icims.id, "ICIMS");
+      var onBehalfOfReference = FhirDataType.GetReference("Organization", Constant.organization.icims.id, Constant.organization.icims.name);
       oProvenance.SetAgent(undefined, whoReference, onBehalfOfReference);
 
       var messageControlIdIdentifier = FhirDataType.GetIdentifier("official", undefined,
