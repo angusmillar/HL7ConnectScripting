@@ -25,7 +25,10 @@ function Constants() {
         },
         sanApps: {
           code: "SANAPPS",
-          name: "SAN APPS"
+          name: "SAN APPS",
+          codeSystem: {
+            messageControlId: "https://www.sah.org.au/systems/fhir/hl7-v2/message-control-id"
+          }
         },
         careZone: {
           code: "CareZone",
@@ -52,7 +55,8 @@ function Constants() {
       },
       codeSystem: {
         FillerOrderNumber: "http://www.dhm.com.au/fhir/pathology/fillerOrderNumber",
-        ReportPanel: "http://www.dhm.com.au/fhir/pathology/reportPanelCode"
+        ReportPanel: "http://www.dhm.com.au/fhir/pathology/reportPanelCode",
+        messageControlId: "http://www.dhm.com.au/fhir/pathology/hl7-v2/message-control-id"
       }
     }
   };

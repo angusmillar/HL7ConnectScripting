@@ -422,9 +422,17 @@
       var onBehalfOfReference = FhirDataType.GetReference("Organization", Constant.organization.icims.id, Constant.organization.icims.name);
       oProvenance.SetAgent(undefined, whoReference, onBehalfOfReference);
 
-      var messageControlIdIdentifier = FhirDataType.GetIdentifier("official", undefined,
-        "https://www.sah.org.au/systems/fhir/hl7-v2/message-control-id", oModels.Pathology.Meta.MessageControlID);
+      if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
+        var messageControlIdIdentifier = FhirDataType.GetIdentifier("official", undefined,
+          Constant.organization.dhm.codeSystem.messageControlId, oModels.Pathology.Meta.MessageControlID);
+      } else {
+        var messageControlIdIdentifier = FhirDataType.GetIdentifier("official", undefined,
+          Constant.organization.sanApps.codeSystem.messageControlId, oModels.Pathology.Meta.MessageControlID);
+      }
+
       oProvenance.SetEntity("source", messageControlIdIdentifier);
+
+      Constant.organization.dhm.codeSystem.ReportPanel
 
       //Add Provenanceto Bundle
       oBundle.AddEntry(FhirTool.PreFixUuid(provenanceId), oProvenance);
