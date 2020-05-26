@@ -9,6 +9,13 @@ function DiagnosticReportFhirResource() {
     Resource.identifier = FhirTool.SetFhir(identifierArray);
   };
 
+  Resource.AddBasedOn = function (oReference) {
+    if (Resource.basedOn == undefined) {
+      Resource.basedOn = [];
+    }
+    Resource.basedOn.push(GetBasedOn(oReference));
+  };
+
   Resource.SetStatus = function (code) {
     Resource.status = FhirTool.SetFhir(code);
   };
@@ -40,13 +47,6 @@ function DiagnosticReportFhirResource() {
     Resource.performer.push(GetPerformer(oRoleCodableConcept, oActorPractitionerReference));
   };
 
-  function GetPerformer(oRoleCodableConcept, oActorPractitionerReference) {
-    var Performer = new function () { };
-    Performer.role = FhirTool.SetFhir(oRoleCodableConcept);
-    Performer.actor = FhirTool.SetFhir(oActorPractitionerReference);
-    return Performer;
-  }
-
   Resource.SetResult = function (resultReferenceArray) {
     Resource.result = FhirTool.SetFhir(resultReferenceArray);
   };
@@ -54,6 +54,19 @@ function DiagnosticReportFhirResource() {
   Resource.SetPresentedForm = function (AttachmentArray) {
     Resource.presentedForm = FhirTool.SetFhir(AttachmentArray);
   };
+
+  function GetPerformer(oRoleCodableConcept, oActorPractitionerReference) {
+    var Performer = new function () { };
+    Performer.role = FhirTool.SetFhir(oRoleCodableConcept);
+    Performer.actor = FhirTool.SetFhir(oActorPractitionerReference);
+    return Performer;
+  }
+
+  function GetBasedOn(oReference) {
+    var BasedOn = new function () { };
+    BasedOn.role = FhirTool.SetFhir(oReference);
+    return BasedOn;
+  }
 
   return Resource
 

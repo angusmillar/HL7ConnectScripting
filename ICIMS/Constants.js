@@ -67,7 +67,8 @@ function Constants() {
       patient: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-patient",
       observation: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-observation",
       organization: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-organization",
-      provenance: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-provenance"
+      provenance: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-provenance",
+      procedureRequest: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-procedureRequest"
     }
   };
 

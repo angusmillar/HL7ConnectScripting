@@ -107,6 +107,8 @@
       this.Report = null;
       this.ObservationList = null;
       this.OrderingPractitioner = null;
+      this.DisplayDataLineList = null;
+      this.ObservationList = null;
 
       //Meta-data
       this.Meta = new Meta("PathologyPost", oHL7.Segment("MSH", 0));
@@ -121,11 +123,13 @@
       this.OrderingPractitioner = new Practitioner();
       this.OrderingPractitioner.InflateXCN(oHL7.Segment("OBR", 0).Field(16));
 
-      var OBXList = oHL7.SegmentQuery("OBX");
-      this.ObservationList = GetObservationList(OBXList, FacilityConfig);
-
-      var DSPList = oHL7.SegmentQuery("DSP");
-      this.DisplayDataLineList = GetDisplayDataList(DSPList, FacilityConfig);
+      if (FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
+        var DSPList = oHL7.SegmentQuery("DSP");
+        this.DisplayDataLineList = GetDisplayDataList(DSPList, FacilityConfig);
+      } else {
+        var OBXList = oHL7.SegmentQuery("OBX");
+        this.ObservationList = GetObservationList(OBXList, FacilityConfig);
+      }
 
     }
 

@@ -9,6 +9,7 @@
 <% include $repo$\FhirLibrary\STU3\ObservationFhirResource.js %>
 <% include $repo$\FhirLibrary\STU3\ProvenanceFhirResource.js %>
 <% include $repo$\FhirLibrary\STU3\PractitionerFhirResource.js %>
+<% include $repo$\FhirLibrary\STU3\ProcedureRequestFhirResource.js %>
 <% include $repo$\FhirLibrary\STU3\FhirDataTypeTool.js %>
 <% include $repo$\FhirLibrary\STU3\FhirTools.js %>
 <% include $repo$\ICIMS\Constants.js %>
@@ -131,60 +132,60 @@
       //Observation Resource List
       //--------------------------------------------------------------------------
       BreakPoint;
-      var oPatientReference = FhirDataType.GetReference("Patient", PatientId, oModels.Pathology.Patient.FormattedName);
-      if (oModels.Pathology.Meta.SendingFacility.toUpperCase() == Constant.organization.dhm.name.toUpperCase()) {
-        var ObsCategoryCoding = FhirDataType.GetCoding("laboratory", "http://hl7.org/fhir/observation-category", "Laboratory");
-      } else {
-        var ObsCategoryCoding = FhirDataType.GetCoding("procedure", "http://hl7.org/fhir/observation-category", "Procedure");
-      }
-
-      var ObsCategoryCodeableConcept = FhirDataType.GetCodeableConcept(ObsCategoryCoding);
       var BundleObservationResourceList = [];
       var DiagnosticReportObservationResourceList = [];
-      var SubIdProcessedArray = [];
-      var oArraySupport = new ArraySupport();
+      if (oModels.Pathology.ObservationList != null) {
+        var oPatientReference = FhirDataType.GetReference("Patient", PatientId, oModels.Pathology.Patient.FormattedName);
+        if (oModels.Pathology.Meta.SendingFacility.toUpperCase() == Constant.organization.dhm.name.toUpperCase()) {
+          var ObsCategoryCoding = FhirDataType.GetCoding("laboratory", "http://hl7.org/fhir/observation-category", "Laboratory");
+        } else {
+          var ObsCategoryCoding = FhirDataType.GetCoding("procedure", "http://hl7.org/fhir/observation-category", "Procedure");
+        }
+        var ObsCategoryCodeableConcept = FhirDataType.GetCodeableConcept(ObsCategoryCoding);
+        var SubIdProcessedArray = [];
+        var oArraySupport = new ArraySupport();
 
-      for (var i = 0; (i < oModels.Pathology.ObservationList.length); i++) {
-        var oV2Obs = oModels.Pathology.ObservationList[i];
-        if (oV2Obs.Code != "PDF" && oV2Obs.CodeSystem != "AUSPDI") {
-          if (oV2Obs.SetId == null) {
-            var oObservation = FhirObsFactory(oV2Obs,
-              oModels.Pathology.Report.ReportIssuedDateTime.AsXML,
-              oPatientReference,
-              ObsCategoryCodeableConcept,
-              Constant.fhirResourceProfile.icims.observation);
-            BundleObservationResourceList.push(oObservation);
-            DiagnosticReportObservationResourceList.push(oObservation);
-          } else {
+        for (var i = 0; (i < oModels.Pathology.ObservationList.length); i++) {
+          var oV2Obs = oModels.Pathology.ObservationList[i];
+          if (oV2Obs.Code != "PDF" && oV2Obs.CodeSystem != "AUSPDI") {
+            if (oV2Obs.SetId == null) {
+              var oObservation = FhirObsFactory(oV2Obs,
+                oModels.Pathology.Report.ReportIssuedDateTime.AsXML,
+                oPatientReference,
+                ObsCategoryCodeableConcept,
+                Constant.fhirResourceProfile.icims.observation);
+              BundleObservationResourceList.push(oObservation);
+              DiagnosticReportObservationResourceList.push(oObservation);
+            } else {
 
-            if (!oArraySupport.Contains(SubIdProcessedArray, oV2Obs.SetId)) {
-              var oParentObservation = new ObservationFhirResource();
-              oParentObservation.SetId(FhirTool.GetGuid());
-              var ObsCodeCoding = FhirDataType.GetCoding(oV2Obs.SetId,
-                "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oV2Obs.SetId);
-              var ObsCodeCodeableConcept = FhirDataType.GetCodeableConcept(ObsCodeCoding);
-              oParentObservation.SetCode(ObsCodeCodeableConcept);
-              oParentObservation.SetSubject(oPatientReference);
-              var oSubIdObsGroup = oArraySupport.Filter(oModels.Pathology.ObservationList, "SetId", oV2Obs.SetId);
-              BundleObservationResourceList.push(oParentObservation);
-              DiagnosticReportObservationResourceList.push(oParentObservation);
-              for (var x = 0; (x < oSubIdObsGroup.length); x++) {
-                var oSubObs = oSubIdObsGroup[x];
-                var oSubObservation = FhirObsFactory(oSubObs,
-                  oModels.Pathology.Report.ReportIssuedDateTime.AsXML,
-                  oPatientReference,
-                  ObsCategoryCodeableConcept,
-                  Constant.fhirResourceProfile.icims.observation);
-                var oSubObservationReference = FhirDataType.GetReference("Observation", oSubObservation.id, undefined);
-                oParentObservation.AddRelated(oSubObservationReference, "has-member");
-                BundleObservationResourceList.push(oSubObservation);
+              if (!oArraySupport.Contains(SubIdProcessedArray, oV2Obs.SetId)) {
+                var oParentObservation = new ObservationFhirResource();
+                oParentObservation.SetId(FhirTool.GetGuid());
+                var ObsCodeCoding = FhirDataType.GetCoding(oV2Obs.SetId,
+                  "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oV2Obs.SetId);
+                var ObsCodeCodeableConcept = FhirDataType.GetCodeableConcept(ObsCodeCoding);
+                oParentObservation.SetCode(ObsCodeCodeableConcept);
+                oParentObservation.SetSubject(oPatientReference);
+                var oSubIdObsGroup = oArraySupport.Filter(oModels.Pathology.ObservationList, "SetId", oV2Obs.SetId);
+                BundleObservationResourceList.push(oParentObservation);
+                DiagnosticReportObservationResourceList.push(oParentObservation);
+                for (var x = 0; (x < oSubIdObsGroup.length); x++) {
+                  var oSubObs = oSubIdObsGroup[x];
+                  var oSubObservation = FhirObsFactory(oSubObs,
+                    oModels.Pathology.Report.ReportIssuedDateTime.AsXML,
+                    oPatientReference,
+                    ObsCategoryCodeableConcept,
+                    Constant.fhirResourceProfile.icims.observation);
+                  var oSubObservationReference = FhirDataType.GetReference("Observation", oSubObservation.id, undefined);
+                  oParentObservation.AddRelated(oSubObservationReference, "has-member");
+                  BundleObservationResourceList.push(oSubObservation);
+                }
+                SubIdProcessedArray.push(oV2Obs.SetId);
               }
-              SubIdProcessedArray.push(oV2Obs.SetId);
             }
           }
         }
       }
-
       //--------------------------------------------------------------------------
       //PractitionerFhir Resource
       //--------------------------------------------------------------------------
@@ -209,6 +210,22 @@
           oModels.Pathology.OrderingPractitioner.Given,
           oModels.Pathology.OrderingPractitioner.Title);
         oPractitioner.SetName([oPractHumanName]);
+        var oPractitionerReference = FhirDataType.GetReference("Practitioner", oPractitioner.id, oModels.Pathology.OrderingPractitioner.FormattedName);
+      }
+
+
+      //--------------------------------------------------------------------------
+      //ProcedureRequest Resource
+      //--------------------------------------------------------------------------
+      if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
+        var oProcedureRequest = new ProcedureRequestFhirResource();
+        oProcedureRequest.SetId(FhirTool.GetGuid());
+        oProcedureRequest.SetMetaProfile([Constant.fhirResourceProfile.icims.procedureRequest]);
+        oProcedureRequest.SetStatus("active");
+        oProcedureRequest.SetIntent("order");
+        oProcedureRequest.SetSubject(oPatientReference);
+        oProcedureRequest.SetRequester(oPractitionerReference, null);
+        var oProcedureRequestReference = FhirDataType.GetReference("ProcedureRequest", oProcedureRequest.id, "ProcedureRequest");
       }
 
       //--------------------------------------------------------------------------
@@ -241,6 +258,14 @@
       }
 
       oDiagReport.SetIdentifierArray([ReportIdentifier]);
+
+      //This is the correct way to set the Requesting Practitioner
+      if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
+        if (oProcedureRequestReference != null) {
+          oDiagReport.AddBasedOn(oProcedureRequestReference);
+        }
+      }
+
       oDiagReport.SetStatus(oModels.Pathology.Report.Status);
 
       var oCategoryCoding = FhirDataType.GetCoding(oModels.Pathology.Report.DiagServSectId, "http://hl7.org/fhir/v2/0074");
@@ -258,8 +283,6 @@
         }
       }
 
-
-
       var oCodeCodeableConcept = FhirDataType.GetCodeableConcept(oCodeCoding);
       oDiagReport.SetCode(oCodeCodeableConcept);
       oDiagReport.SetSubject(oPatientReference);
@@ -267,16 +290,18 @@
       oDiagReport.SetEffectiveDateTime(FhirTool.SetTimeZone(oModels.Pathology.Report.CollectionDateTime.AsXML));
       oDiagReport.SetIssued(FhirTool.SetTimeZone(oModels.Pathology.Report.ReportIssuedDateTime.AsXML));
 
-      //Add Performer Practitioner      
-      if (oPractitioner != null) {
-        var oPerformerRoleCodeableConcept = undefined;
-        if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == Constant.organization.sah.application.careZone.code.toUpperCase()) {
-          var oPerformerRoleCoding = FhirDataType.GetCoding("310512001", "http://snomed.info/sct", "Medical oncologist");
-          oPerformerRoleCodeableConcept = FhirDataType.GetCodeableConcept(oPerformerRoleCoding, undefined);
+      //Add Performer Practitioner which is incorrect if this is a Requesting Practitioner   
+      if (oModels.FacilityConfig.Implementation != ImplementationTypeEnum.CliniSearch) {
+        if (oPractitioner != null) {
+          var oPerformerRoleCodeableConcept = undefined;
+          if (oModels.Pathology.Meta.SendingApplication.toUpperCase() == Constant.organization.sah.application.careZone.code.toUpperCase()) {
+            var oPerformerRoleCoding = FhirDataType.GetCoding("310512001", "http://snomed.info/sct", "Medical oncologist");
+            oPerformerRoleCodeableConcept = FhirDataType.GetCodeableConcept(oPerformerRoleCoding, undefined);
+          }
+          oDiagReport.AddPerformer(oPerformerRoleCodeableConcept, oPractitionerReference);
         }
-        var oPerformerActorPractitionerReference = FhirDataType.GetReference("Practitioner", oPractitioner.id, oModels.Pathology.OrderingPractitioner.FormattedName);
-        oDiagReport.AddPerformer(oPerformerRoleCodeableConcept, oPerformerActorPractitionerReference);
       }
+
       //Add All the DiagnosticReportObservationResourceList References to the DiagnosticReport Resource
       var ResultReferenceArray = [];
       for (var i = 0; (i < DiagnosticReportObservationResourceList.length); i++) {
@@ -306,6 +331,12 @@
       if (oPractitioner != null) {
         oBundle.AddEntry(FhirTool.PreFixUuid(oPractitioner.id), oPractitioner);
       }
+
+      //Add ProcedureRequest to Bundle      
+      if (oProcedureRequest != null) {
+        oBundle.AddEntry(FhirTool.PreFixUuid(oProcedureRequest.id), oProcedureRequest);
+      }
+
       //Add Patient to Bundle
       oBundle.AddEntry(FhirTool.PreFixUuid(PatientId), oPatient);
 
@@ -360,6 +391,9 @@
       TargetReferenceArray.push(FhirDataType.GetReference("DiagnosticReport", DiagnosticReportId, "DiagnosticReport"));
       if (oPractitioner != null) {
         TargetReferenceArray.push(FhirDataType.GetReference("Practitioner", oPractitioner.id, "Practitioner"));
+      }
+      if (oProcedureRequest != null) {
+        TargetReferenceArray.push(FhirDataType.GetReference("ProcedureRequest", oProcedureRequest.id, "ProcedureRequest"));
       }
       for (var i = 0; (i < BundleObservationResourceList.length); i++) {
         TargetReferenceArray.push(FhirDataType.GetReference("Observation", BundleObservationResourceList[i].id, "Observation"));
