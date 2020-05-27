@@ -254,7 +254,7 @@
             if (oV2NextOfKin.EndDate != null) {
               NextOfKinEndDate = oV2NextOfKin.EndDate.AsXML;
             }
-            var oNOKPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(NextOfKinStartDate), oFhirTool.SetTimeZone(NextOfKinEndDate))
+            var oNOKPeriod = oFhirDataType.GetPeriod(oFhirTool.FhirDateTimeFormat(NextOfKinStartDate), oFhirTool.FhirDateTimeFormat(NextOfKinEndDate))
           }
           var NextOfKinGender = undefined;
           if (oV2NextOfKin.Sex != null) {
@@ -293,7 +293,7 @@
         var oCategoryCodeableConcept = oFhirDataType.GetCodeableConcept(oCategoryCoding, "Admitting");
         oCondition.SetCategory(oCategoryCodeableConcept);
 
-        var DateTime = oFhirTool.SetTimeZone(oModels.Encounter.DiagnosisList[i].DateTime.AsXML)
+        var DateTime = oFhirTool.FhirDateTimeFormat(oModels.Encounter.DiagnosisList[i].DateTime.AsXML)
         oCondition.SetRecordedDate(DateTime);
         oConditionResourceArray.push(oCondition);
 
@@ -358,13 +358,13 @@
       //Admission & Discharge dateTimes
       oEncounterPeriod = null;
       if (oModels.Encounter.AdmissionDateTime != null && oModels.Encounter.DischargeDateTime == null) {
-        oEncounterPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(oModels.Encounter.AdmissionDateTime.AsXML), undefined)
+        oEncounterPeriod = oFhirDataType.GetPeriod(oFhirTool.FhirDateTimeFormat(oModels.Encounter.AdmissionDateTime.AsXML), undefined)
         oEncounter.SetPeriod(oEncounterPeriod)
       } else if (oModels.Encounter.AdmissionDateTime == null && oModels.Encounter.DischargeDateTime != null) {
-        oEncounterPeriod = oFhirDataType.GetPeriod(undefined, oFhirTool.SetTimeZone(oModels.Encounter.DischargeDateTime.AsXML))
+        oEncounterPeriod = oFhirDataType.GetPeriod(undefined, oFhirTool.FhirDateTimeFormat(oModels.Encounter.DischargeDateTime.AsXML))
         oEncounter.SetPeriod(oEncounterPeriod)
       } else if (oModels.Encounter.AdmissionDateTime != null && oModels.Encounter.DischargeDateTime != null) {
-        oEncounterPeriod = oFhirDataType.GetPeriod(oFhirTool.SetTimeZone(oModels.Encounter.AdmissionDateTime.AsXML), oFhirTool.SetTimeZone(oModels.Encounter.DischargeDateTime.AsXML))
+        oEncounterPeriod = oFhirDataType.GetPeriod(oFhirTool.FhirDateTimeFormat(oModels.Encounter.AdmissionDateTime.AsXML), oFhirTool.FhirDateTimeFormat(oModels.Encounter.DischargeDateTime.AsXML))
         oEncounter.SetPeriod(oEncounterPeriod)
       }
 
@@ -448,7 +448,7 @@
         TargetReferenceArray.push(oFhirDataType.GetReference(oEntry.fullUrl, oResource.resourceType, undefined, oResource.resourceType));
       }
       oProvenance.SetTarget(TargetReferenceArray);
-      oProvenance.SetOccurredDateTime(oFhirTool.SetTimeZone(oModels.MessageHeader.MessageDateTime.AsXML));
+      oProvenance.SetOccurredDateTime(oFhirTool.FhirDateTimeFormat(oModels.MessageHeader.MessageDateTime.AsXML));
       oProvenance.SetRecorded(oFhirTool.GetNow());
 
       var activityCoding = oFhirDataType.GetCoding("CREATE", "http://hl7.org/fhir/v3/DataOperation", "create");

@@ -68,6 +68,48 @@ function FhirTools() {
     }
   }
 
+  this.FhirDateTimeFormat = function (v2DateTimeString) {
+    BreakPoint;
+    //2020-12-04T20:17:27+10:00  With Secs
+    //2020-12-04T20:17+10:00  With Out Secs
+    function AddSec(TimeNoZone) {
+      //20:17 = 5 (needs seconds)
+      //20:17:27 = 8 (already has seconds)
+      //20:17:27.123 = 12 (already has seconds)
+      //20 = 2 (and is an invalid time)
+      if (TimeNoZone.length === 5) {
+        return TimeNoZone + ":00";
+      } else {
+        return TimeNoZone;
+      }
+    }
+
+    function AddSecToZonedTime(ZonedTime, TypeOfZone) {
+      var ZoneSplit = TimeSplit[1].split(TypeOfZone);
+      return TimeSplit[0] + "T" + AddSec(ZoneSplit[0]) + TypeOfZone + ZoneSplit[1];
+    }
+
+    if (v2DateTimeString.indexOf("T") === -1) {
+      //no time elements found must be a Date only
+      return v2DateTimeString;
+    } else {
+      var TimeSplit = v2DateTimeString.split("T");
+      if (TimeSplit[1].indexOf("+") === -1 && TimeSplit[1].indexOf("-") === -1) {
+        //no Plus(+) or Minius(-) zone info found 
+        return SetTimeZone(TimeSplit[0] + "T" + AddSec(TimeSplit[1]));
+      } else if (TimeSplit[1].indexOf("+") !== -1 && TimeSplit[1].indexOf("-") === -1) {
+        //Plus(+) zone found
+        return AddSecToZonedTime(TimeSplit[1], "+");
+      } else if (TimeSplit[1].indexOf("+") === -1 && TimeSplit[1].indexOf("-") !== -1) {
+        //Minius(-) zone found
+        return AddSecToZonedTime(TimeSplit[1], "-");
+      } else {
+        throw new Error("Attempt to format a HL7 V2 dateTime string of " + v2DateTimeString + "failed do to unexpected format.");
+      }
+    }
+  }
+
+
   this.FormattedHumanName = function (Family, Given, Title) {
     if (IsSet(Title) && IsSet(Given) && IsSet(Family)) {
       return Family.toUpperCase() + ", " + Title + " " + Given;

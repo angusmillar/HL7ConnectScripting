@@ -13,7 +13,7 @@ function DiagnosticReportFhirResource() {
     if (Resource.basedOn == undefined) {
       Resource.basedOn = [];
     }
-    Resource.basedOn.push(GetBasedOn(oReference));
+    Resource.basedOn.push(oReference);
   };
 
   Resource.SetStatus = function (code) {
@@ -60,12 +60,6 @@ function DiagnosticReportFhirResource() {
     Performer.role = FhirTool.SetFhir(oRoleCodableConcept);
     Performer.actor = FhirTool.SetFhir(oActorPractitionerReference);
     return Performer;
-  }
-
-  function GetBasedOn(oReference) {
-    var BasedOn = new function () { };
-    BasedOn.role = FhirTool.SetFhir(oReference);
-    return BasedOn;
   }
 
   return Resource

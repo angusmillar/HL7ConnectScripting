@@ -29,24 +29,43 @@
       case SiteContextEnum.RMH:
         //The Site Context enum we are running the script under
         FacilityConfiguration = oModels.FacilityConfiguration(SiteContext);
+        FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
         //Enviroment Switch
         switch (oHL7CParameterSupport.Enviroment) {
           case oHL7CParameterSupport.EnviromentCodes.DEV:
-            FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
-            FacilityConfiguration.AuthorizationToken = "Basic NotRequired";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+              FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
+              FacilityConfiguration.AuthorizationToken = "Basic NotRequired";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            } else {
+              FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
+              FacilityConfiguration.AuthorizationToken = "Basic NotRequired";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            }
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.TEST:
-            FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py"
-            FacilityConfiguration.AuthorizationToken = "Basic aGw3dGVzdDppY2ltczIwMTc=";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+              FacilityConfiguration.EndPoint = "http://NeedsToBeUpdated"
+              FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "ADT-CliniSearch-Test";
+            } else {
+              FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py"
+              FacilityConfiguration.AuthorizationToken = "Basic aGw3dGVzdDppY2ltczIwMTc=";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            }
             break;
 
           case oHL7CParameterSupport.EnviromentCodes.PROD:
-            FacilityConfiguration.EndPoint = "http://icimsprod01.sah.com/staging/api/pas_sah.py"
-            FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+              FacilityConfiguration.EndPoint = "http://NeedsToBeUpdated"
+              FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "ADT-CliniSearch-Prod";
+            } else {
+              FacilityConfiguration.EndPoint = "http://icimsprod01.sah.com/staging/api/pas_sah.py"
+              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            }
             break;
         }
         //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code

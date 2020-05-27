@@ -23,7 +23,7 @@
       case SiteContextEnum.SAH:
         //The Site Context enum we are running the script under
         FacilityConfiguration = oModels.FacilityConfiguration(SiteContext);
-
+        FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
         //Enviroment Switch
         switch (oHL7CParameterSupport.Enviroment) {
           case EnvironmentTypeEnum.DEV:
@@ -36,35 +36,32 @@
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
               FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
             }
-            FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
             FacilityConfiguration.OperationName = "Bundle";
             break;
 
           case EnvironmentTypeEnum.TEST:
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
-              FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
-              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsReportsScriptOutbound";
+              FacilityConfiguration.EndPoint = "http://NeedsToBeUpdated";
+              FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "Pathology-CliniSearch-Test";
             } else {
               FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
               FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsReportsScriptOutbound";
             }
-            FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
             FacilityConfiguration.OperationName = "$process-message";
             break;
 
           case EnvironmentTypeEnum.PROD:
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
-              FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
-              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
+              FacilityConfiguration.EndPoint = "http://NeedsToBeUpdated";
+              FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
+              FacilityConfiguration.NameOfInterfaceRunnningScript = "Pathology-CliniSearch-Prod";
             } else {
               FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
               FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
             }
-            FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
             FacilityConfiguration.OperationName = "$process-message";
             break;
 

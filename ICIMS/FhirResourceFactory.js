@@ -50,7 +50,10 @@
       } else {
         oMsgHeader.SetDestination(Constant.organization.icims.name, undefined, oModels.FacilityConfig.EndPoint);
       }
-      oMsgHeader.SetTimestamp(FhirTool.SetTimeZone(oModels.Pathology.Meta.MessageDateTime.AsXML));
+      //oMsgHeader.SetTimestamp(FhirTool.SetTimeZone(oModels.Pathology.Meta.MessageDateTime.AsXML));
+      oMsgHeader.SetTimestamp(FhirTool.FhirDateTimeFormat(oModels.Pathology.Meta.MessageDateTime.AsXML));
+
+
       var oReceiverReference = FhirDataType.GetReference("Organization", Constant.organization.icims.id, Constant.organization.icims.name);
       oMsgHeader.SetReceiver(oReceiverReference);
       var oSenderReference = null;
@@ -287,8 +290,8 @@
       oDiagReport.SetCode(oCodeCodeableConcept);
       oDiagReport.SetSubject(oPatientReference);
 
-      oDiagReport.SetEffectiveDateTime(FhirTool.SetTimeZone(oModels.Pathology.Report.CollectionDateTime.AsXML));
-      oDiagReport.SetIssued(FhirTool.SetTimeZone(oModels.Pathology.Report.ReportIssuedDateTime.AsXML));
+      oDiagReport.SetEffectiveDateTime(FhirTool.FhirDateTimeFormat(oModels.Pathology.Report.CollectionDateTime.AsXML));
+      oDiagReport.SetIssued(FhirTool.FhirDateTimeFormat(oModels.Pathology.Report.ReportIssuedDateTime.AsXML));
 
       //Add Performer Practitioner which is incorrect if this is a Requesting Practitioner   
       if (oModels.FacilityConfig.Implementation != ImplementationTypeEnum.CliniSearch) {
@@ -465,10 +468,10 @@
 
         oObservation.SetSubject(oPatientReference);
         //Collection DateTime Clinically relevant date Time
-        oObservation.SetEffectiveDateTime(oFhirTool.SetTimeZone(ReportIssuedDateTime));
+        oObservation.SetEffectiveDateTime(oFhirTool.FhirDateTimeFormat(ReportIssuedDateTime));
         //Time off analyser, when the observation was observerd
         if (oV2Obs.ObsDateTime != null) {
-          oObservation.SetIssued(oFhirTool.SetTimeZone(oV2Obs.ObsDateTime.AsXML));
+          oObservation.SetIssued(oFhirTool.FhirDateTimeFormat(oV2Obs.ObsDateTime.AsXML));
         }
 
         //Abnormal Flag (Interpretation)
