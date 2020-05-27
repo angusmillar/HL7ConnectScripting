@@ -40,7 +40,7 @@
 
         //Enviroment Switch
         switch (oHL7CParameterSupport.Enviroment) {
-          case oHL7CParameterSupport.EnviromentCodes.DEV:
+          case EnvironmentTypeEnum.DEV:
             oFacilityConfig.NameOfInterfaceRunnningScript = "PASFhir";
             oFacilityConfig.Fhir.FhirEndpoint = "http://localhost:8888/fhir";
             oFacilityConfig.Fhir.OperationNameProcessMessage = "$process-message"
@@ -48,7 +48,7 @@
             oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
             break;
 
-          case oHL7CParameterSupport.EnviromentCodes.TEST:
+          case EnvironmentTypeEnum.TEST:
             oFacilityConfig.NameOfInterfaceRunnningScript = "PASFhir";
             oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
             oFacilityConfig.Fhir.OperationNameProcessMessage = "$process-message"
@@ -56,7 +56,7 @@
             oFacilityConfig.Fhir.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
             break;
 
-          case oHL7CParameterSupport.EnviromentCodes.PROD:
+          case EnvironmentTypeEnum.PROD:
             oFacilityConfig.NameOfInterfaceRunnningScript = "PASFhir";
             oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
             oFacilityConfig.Fhir.OperationNameProcessMessage = "$process-message"

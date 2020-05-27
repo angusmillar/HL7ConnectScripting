@@ -40,7 +40,6 @@ function FhirTools() {
 
 
   this.SetTimeZone = function (dateString) {
-    BreakPoint;
     //2020-04-27T17:27+10:00
     if (dateString.indexOf("+") !== -1 || dateString.indexOf("+") !== -1) {
       return dateString;
@@ -54,7 +53,6 @@ function FhirTools() {
 
 
   this.FhirDateTimeFormat = function (v2DateTimeString) {
-    BreakPoint;
     //2020-12-04T20:17:27+10:00  With Secs
     //2020-12-04T20:17+10:00  With Out Secs
     function AddSec(TimeNoZone) {

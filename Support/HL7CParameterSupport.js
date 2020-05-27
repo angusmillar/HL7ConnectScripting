@@ -1,3 +1,25 @@
+//enum of the sites configured for this script.
+//Add to this list as new sites are brought on board.
+var SiteContextEnum = {
+  SAH: "SAH",
+  RMH: "RMH"
+};
+
+//enum for Implementation
+var ImplementationTypeEnum = {
+  None: "NONE",
+  CliniSearch: "CLINISEARCH",
+  Theater: "THEATER",
+  CareZone: "CAREZONE"
+};
+
+//enum for Environment
+var EnvironmentTypeEnum = {
+  DEV: "DEV",
+  TEST: "TEST",
+  PROD: "PROD"
+};
+
 function HL7CParameterSupport(oLogger, Parameter) {
 
   var ParameterMask = "[SiteCode]|[EnvironmentCode]|{ImplementationCode}";

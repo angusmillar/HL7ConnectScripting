@@ -73,8 +73,6 @@
         FacilityConfiguration.PrimaryMRNSystemUri = "https://www.sah.org.au/systems/fhir/pas/medical-record-number";
         //Send the Pathology Pdf report if provided in V2 message
         FacilityConfiguration.SendPathologyPdfReport = false;
-        //NameOfInterfaceRunnningScript - The name of the HL7 Connect interface this script is triggered from
-        FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
         FacilityConfiguration.MaxRejectBeforeInterfaceStop = 20;
         break;
