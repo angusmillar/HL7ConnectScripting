@@ -76,7 +76,7 @@
 
           case EnvironmentTypeEnum.TEST:
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
-              FacilityConfiguration.EndPoint = "http://NeedsToBeUpdated"
+              FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9001/adt/$process-message"
               FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
               FacilityConfiguration.NameOfInterfaceRunnningScript = "ADT-CliniSearch-Test";
             } else {
