@@ -41,7 +41,7 @@
 
           case EnvironmentTypeEnum.TEST:
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
-              FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9000/fhir/$process-message";
+              FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
               FacilityConfiguration.NameOfInterfaceRunnningScript = "Pathology-CliniSearch-Test";
             } else {
