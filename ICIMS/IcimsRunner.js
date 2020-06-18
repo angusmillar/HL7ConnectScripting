@@ -76,8 +76,8 @@
 
           case EnvironmentTypeEnum.TEST:
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
-              FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9001/adt/$process-message"
-              FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
+              FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9001/adt"
+              FacilityConfiguration.AuthorizationToken = "";
               FacilityConfiguration.NameOfInterfaceRunnningScript = "ADT-CliniSearch-Test";
             } else {
               FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py"
@@ -88,8 +88,8 @@
 
           case EnvironmentTypeEnum.PROD:
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
-              FacilityConfiguration.EndPoint = "http://NeedsToBeUpdated"
-              FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
+              FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9001/adt"
+              FacilityConfiguration.AuthorizationToken = "";
               FacilityConfiguration.NameOfInterfaceRunnningScript = "ADT-CliniSearch-Prod";
             } else {
               FacilityConfiguration.EndPoint = "http://icimsprod01.sah.com/staging/api/pas_sah.py"

@@ -42,7 +42,7 @@
           case EnvironmentTypeEnum.TEST:
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
               FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9000/fhir";
-              FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
+              FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunnningScript = "Pathology-CliniSearch-Test";
             } else {
               FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
@@ -54,8 +54,8 @@
 
           case EnvironmentTypeEnum.PROD:
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
-              FacilityConfiguration.EndPoint = "http://NeedsToBeUpdated";
-              FacilityConfiguration.AuthorizationToken = "Basic NeedsToBeUpdated";
+              FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9000/fhir";
+              FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunnningScript = "Pathology-CliniSearch-Prod";
             } else {
               FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
