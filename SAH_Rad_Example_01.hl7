@@ -1,8 +1,0 @@
-MSH|^~\&|BIZTALK|SAH|CLINISEARCH_RADIOLOGY|SAH|20200622162006||ORU^R01^ORU_R01|202006220000003|P|2.4
-PID|1||420668|420668|Topolovec^Test||19450412|M||N|11 Ewan L  Avenue^Radiology Testing^Normanhurst^^2076^AUS||121212|||M||K23819
-PV1||O||||||||||||||||A||||||||||||||||||||||||||||||||2006050005
-OBR|1||535096^SANRAD|X2000^X-Ray Left Hand||20200605123500|20200605124200|||||||||094286EL^Hughes^T Michael||535096||||20200622161956||SANRAD|C|||094286EL^Hughes^T Michael||||2292333W&Saks&Avigdor||ELA&Ewan Layton^^20200605124200|&Layton&Ewan ^20200609094838^20200609094853
-OBX|1|FT|X2000&GDT^X-Ray Left Hand^AGFA^2212||X-Ray Hand Left\.br\\.br\Test OMS2 PAC rule -  ewan \.br\\.br\Dr Avigdor Saks MBChB, FRANZCR\.br\Radiologist\.br\Electronically Validated /    22/6/2020 04:19 PM||||||C|||20200609094853||2292333W^Saks^Avigdor
-OBR|2||535096b^SANRAD|X2001^X-Ray Right Hand||20200605123500|20200605124200|||||||||0574246B^Smith^Jacqueline M||535096||||20200622161956||SANRAD|C|||0574246B^Smith^Jacqueline M||||2292333W&Saks&Avigdor||ELA&Ewan Layton^^20200605124200|&Layton&Ewan ^20200609094838^20200609094853
-OBX|1|FT|X2001&GDT^X-Ray Right Hand^AGFA^2212||X-Ray Hand Right\.br\\.br\Test OMS2 PAC rule -  ewan \.br\\.br\Dr Avigdor Saks MBChB, FRANZCR\.br\Radiologist\.br\Electronically Validated /    22/6/2020 04:19 PM||||||C|||20200609094853||2292333W^Saks^Avigdor
-
