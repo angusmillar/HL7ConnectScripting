@@ -1,43 +1,44 @@
 
-function DiagnosticReportFhirResource(){
+function DiagnosticReportFhirResource() {
   var FhirTool = new FhirTools();
-
+  var oFhirConfig = new FhirConfig();
   var Resource = new DomainResource();
-  Resource.resourceType = "DiagnosticReport";
 
-  Resource.SetIdentifierArray = function(identifierArray){
+  Resource.resourceType = oFhirConfig.ResourceName.DiagnosticReport;
+
+  Resource.SetIdentifierArray = function (identifierArray) {
     Resource.identifier = FhirTool.SetFhir(identifierArray);
   };
 
-  Resource.SetStatus = function(code){
+  Resource.SetStatus = function (code) {
     Resource.status = FhirTool.SetFhir(code);
   };
 
-  Resource.SetCategory = function(codableConcept){
+  Resource.SetCategory = function (codableConcept) {
     Resource.category = FhirTool.SetFhir(codableConcept);
   };
-  
-  Resource.SetCode = function(codableConcept){
+
+  Resource.SetCode = function (codableConcept) {
     Resource.code = FhirTool.SetFhir(codableConcept);
   };
 
-  Resource.SetSubject = function(reference){
+  Resource.SetSubject = function (reference) {
     Resource.subject = FhirTool.SetFhir(reference);
   };
 
-  Resource.SetEffectiveDateTime = function(dateTime){
+  Resource.SetEffectiveDateTime = function (dateTime) {
     Resource.effectiveDateTime = FhirTool.SetFhir(dateTime);
   };
 
-  Resource.SetIssued = function(dateTime){
+  Resource.SetIssued = function (dateTime) {
     Resource.issued = FhirTool.SetFhir(dateTime);
   };
 
-  Resource.SetResult = function(resultReferenceArray){
+  Resource.SetResult = function (resultReferenceArray) {
     Resource.result = FhirTool.SetFhir(resultReferenceArray);
   };
 
-  Resource.SetPresentedForm = function(AttachmentArray){
+  Resource.SetPresentedForm = function (AttachmentArray) {
     Resource.presentedForm = FhirTool.SetFhir(AttachmentArray);
   };
 

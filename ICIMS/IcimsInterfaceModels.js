@@ -10,58 +10,48 @@
  * @constructor
  * @param {enum} SiteContext Icims Interface Models
  */
-function IcimsInterfaceModels()
-{
+function IcimsInterfaceModels() {
   /**
    * @function
    * @description On passing in a BusinessModel it will map the apropirate properties to the apropirate ICIMS interface model
    * @param {BusinessModel} BusinessModel The BusinessModel object
    * @returns {string} URLEncoded payload to be sent to ICIMS
   */
-  this.MapToIcimsInterface = function(BusinessModel)
-  {
-  BreakPoint;
+  this.MapToIcimsInterface = function (BusinessModel) {
+    BreakPoint;
     if (!BusinessModel.Meta)
-      throw "Meta can not be null for MapToIcimsInterface.";
-      
-    if (BusinessModel.Meta.Action == IcimsPostAction.Add)
-    {
+      throw new Error("Meta can not be null for MapToIcimsInterface.");
+
+    if (BusinessModel.Meta.Action == IcimsPostAction.Add) {
       if (!BusinessModel.Patient)
-        throw "Patient can not be null for MapToIcimsInterface.";
-      //if (!BusinessModel.Doctor)
-      //  throw "Doctor can not be null for MapToIcimsInterface.";
+        throw new Error("Patient can not be null for MapToIcimsInterface.");
 
       var AddRecord = new IcimsAddInterface();
       var InterfaceModel = MapToModel(AddRecord, BusinessModel);
       return EncodeFormData(InterfaceModel);
     }
-    else if (BusinessModel.Meta.Action == IcimsPostAction.Update)
-    {
+    else if (BusinessModel.Meta.Action == IcimsPostAction.Update) {
       if (!BusinessModel.Patient)
-        throw "Patient can not be null for MapToIcimsInterface.";
-      //if (!BusinessModel.Doctor)
-      //  throw "Doctor can not be null for MapToIcimsInterface.";
+        throw new Error("Patient can not be null for MapToIcimsInterface.");
 
       var UpdateRecord = new IcimsUpdateInterface();
       var InterfaceModel = MapToModel(UpdateRecord, BusinessModel);
       return EncodeFormData(InterfaceModel);
     }
-    else if (BusinessModel.Meta.Action == IcimsPostAction.Merge)
-    {
+    else if (BusinessModel.Meta.Action == IcimsPostAction.Merge) {
       if (!BusinessModel.Patient)
-        throw "Patient can not be null for MapToIcimsInterface.";
+        throw new Error("Patient can not be null for MapToIcimsInterface.");
       if (!BusinessModel.MergeIdentifers)
-        throw "MergeIdentifers can not be null for MapToIcimsInterface.";
+        throw new Error("MergeIdentifers can not be null for MapToIcimsInterface.");
 
       var MergeRecord = new IcimsMergeInterface();
       var InterfaceModel = MapToModel(MergeRecord, BusinessModel);
       return EncodeFormData(InterfaceModel);
     }
-    else
-    {
-      Kernel.WriteToLog(DBG_Serious, "ICIMS Scripting error, Model Context unkowen "+ Context);
+    else {
+      Kernel.WriteToLog(DBG_Serious, "ICIMS Scripting error, Model Context unkowen " + Context);
       Kernel.WriteToLog(DBG_Serious, "ICIMS Script is stopping interface due to scripting error.");
-      Kernel.GetInterface("SendToICIMSScripted").Stop(false, "Script-Error", "Model Context unkowen "+ Context);
+      Kernel.GetInterface("SendToICIMSScripted").Stop(false, "Script-Error", "Model Context unkowen " + Context);
       aEvent.IncomingHandled = false;
     }
     return new IcimsAddUpdateInterface();
@@ -74,9 +64,8 @@ function IcimsInterfaceModels()
    * @param {BusinessModel} BusinessModel The internal Business Model
    * @inner
   */
-  function MapToModel(Model, BusinessModel)
-  {
-Breakpoint;
+  function MapToModel(Model, BusinessModel) {
+    Breakpoint;
     //"addpatient"
     Model.action = BusinessModel.Meta.Action;
     //HL7 Message ID (MSH-10)
@@ -87,7 +76,7 @@ Breakpoint;
     Model.ur_num = BusinessModel.Patient.PrimaryMrnValue;
     //institution id (string)
     Model.assigning_authority = BusinessModel.Patient.PrimaryMrnAssigningAuthority;
-BreakPoint;
+    BreakPoint;
     //patient Medicare Number (string)
     Model.MedicareNumberValue = BusinessModel.Patient.MedicareNumberValue
     //patient first name (string)
@@ -95,54 +84,44 @@ BreakPoint;
     //patient surname (string)
     Model.surname = BusinessModel.Patient.Family;
     //patient DOB (string - ISO8601)
-    if (BusinessModel.Patient.Dob !== null)
-    {
+    if (BusinessModel.Patient.Dob !== null) {
       Model.dob = BusinessModel.Patient.Dob.AsXML;
     }
     //patient sex (string)
     Model.sex = BusinessModel.Patient.Sex;
-    
+
     //Patient Address
-    if (BusinessModel.Patient.PatientAddress)
-    {
+    if (BusinessModel.Patient.PatientAddress) {
       Model.addr_line_1 = BusinessModel.Patient.PatientAddress.AddressLine1;
       Model.addr_line_2 = BusinessModel.Patient.PatientAddress.AddressLine2;
       Model.suburb = BusinessModel.Patient.PatientAddress.Suburb;
       Model.state = BusinessModel.Patient.PatientAddress.State;
       Model.postcode = BusinessModel.Patient.PatientAddress.Postcode;
     }
-    
+
     BreakPoint;
     //Patient Contacts Home
-    if (BusinessModel.Patient.ContactHome)
-    {
-     if (BusinessModel.Patient.ContactHome.Phone.length > 0)
-     {
-       Model.phone = BusinessModel.Patient.ContactHome.Phone[0];
-     }
+    if (BusinessModel.Patient.ContactHome) {
+      if (BusinessModel.Patient.ContactHome.Phone.length > 0) {
+        Model.phone = BusinessModel.Patient.ContactHome.Phone[0];
+      }
     }
-    if (Model.phone == null && BusinessModel.Patient.ContactBusiness)
-    {
-     if (BusinessModel.Patient.ContactBusiness.Phone.length > 0)
-     {
-       Model.phone = BusinessModel.Patient.ContactBusiness.Phone[0];
-     }
+    if (Model.phone == null && BusinessModel.Patient.ContactBusiness) {
+      if (BusinessModel.Patient.ContactBusiness.Phone.length > 0) {
+        Model.phone = BusinessModel.Patient.ContactBusiness.Phone[0];
+      }
     }
 
     //Patient Contacts mobile
-    if (BusinessModel.Patient.ContactHome)
-    {
-     if (BusinessModel.Patient.ContactHome.Mobile.length > 0)
-     {
-       Model.mobile = BusinessModel.Patient.ContactHome.Mobile[0];
-     }
+    if (BusinessModel.Patient.ContactHome) {
+      if (BusinessModel.Patient.ContactHome.Mobile.length > 0) {
+        Model.mobile = BusinessModel.Patient.ContactHome.Mobile[0];
+      }
     }
-    if (Model.mobile == null && BusinessModel.Patient.ContactBusiness)
-    {
-     if (BusinessModel.Patient.ContactBusiness.Mobile.length > 0)
-     {
-       Model.mobile = BusinessModel.Patient.ContactBusiness.Mobile[0];
-     }
+    if (Model.mobile == null && BusinessModel.Patient.ContactBusiness) {
+      if (BusinessModel.Patient.ContactBusiness.Mobile.length > 0) {
+        Model.mobile = BusinessModel.Patient.ContactBusiness.Mobile[0];
+      }
     }
     //marital status (string)
     Model.marital_status = BusinessModel.Patient.MaritalStatus;
@@ -150,65 +129,61 @@ BreakPoint;
     Model.language = BusinessModel.Patient.Language;
     //aboriginality (string)
     Model.aboriginality = BusinessModel.Patient.Aboriginality;
-    
+    //Patient DeathDateTime (DateTime)
+    if (BusinessModel.Patient.DeathDateTime !== null) {
+      Model.deathDateTime = BusinessModel.Patient.DeathDateTime.AsXML;
+    }
+    //Patient DeathDateTime (DateTime)
+    Model.deathIndicator = BusinessModel.Patient.DeathIndicator;
+
     if ((BusinessModel.Meta.Action == IcimsPostAction.Add || BusinessModel.Meta.Action == IcimsPostAction.Update)
-    && (BusinessModel.Doctor != null))
-    {
+      && (BusinessModel.Doctor != null)) {
       Model.gp_fname = BusinessModel.Doctor.Given;
       Model.gp_surname = BusinessModel.Doctor.Family;
-      
+
       //Doctor Address
-      if (BusinessModel.Doctor.Address)
-      {
+      if (BusinessModel.Doctor.Address) {
         Model.gp_addr_line_1 = BusinessModel.Doctor.Address.AddressLine1;
         Model.gp_addr_line_2 = BusinessModel.Doctor.Address.AddressLine2;
         Model.gp_suburb = BusinessModel.Doctor.Address.Suburb;
         Model.gp_state = BusinessModel.Doctor.Address.State;
         Model.gp_postcode = BusinessModel.Doctor.Address.Postcode;
       }
-      
+
       //Doctor Contacts
-      if (BusinessModel.Doctor.Contact)
-      {
-        if (BusinessModel.Doctor.Contact.Email.length > 0)
-        {
+      if (BusinessModel.Doctor.Contact) {
+        if (BusinessModel.Doctor.Contact.Email.length > 0) {
           Model.gp_email = BusinessModel.Doctor.Contact.Email[0];
         }
-        if (BusinessModel.Doctor.Contact.Fax.length > 0)
-        {
+        if (BusinessModel.Doctor.Contact.Fax.length > 0) {
           Model.gp_fax = BusinessModel.Doctor.Contact.Fax[0];
         }
       }
     }
     //Merge info
-    if (BusinessModel.Meta.Action == IcimsPostAction.Merge)
-    {
+    if (BusinessModel.Meta.Action == IcimsPostAction.Merge) {
       Model.prior_ur = BusinessModel.MergeIdentifers.PriorMRNValue;
       Model.prior_assigning_authority = BusinessModel.MergeIdentifers.PriorMRNAssigningAuthority;
     }
     return Model;
   }
 
-   /**
-   * @function
-   * @description URL Encode the objects to be sent over HTTP
-   * @inner
-  */
-  function EncodeFormData(Obj)
-  {
+  /**
+  * @function
+  * @description URL Encode the objects to be sent over HTTP
+  * @inner
+ */
+  function EncodeFormData(Obj) {
     var formBody = [];
-    for(var name in Obj)
-    {
+    for (var name in Obj) {
       var PropertyName = name;
       var PropertyValue = Obj[name];
       //BreakPoint;
-      if (PropertyValue == "\"\"")
-      {
+      if (PropertyValue == "\"\"") {
         //Note ICIMS is requiring that HL7 Null e.g |""| is to be sent as "empty_str";
         PropertyValue = "empty_str";
       }
-      if (PropertyValue != null)
-      {
+      if (PropertyValue != null) {
         var encodedKey = encodeURIComponent(PropertyName);
         var encodedValue = encodeURIComponent(PropertyValue);
         formBody.push(encodedKey + "=" + encodedValue);
@@ -219,43 +194,40 @@ BreakPoint;
   }
 
 
-   /**
-   * @class
-   * @classdesc  The ICIMS IcimsAddInterface inherit's from IcimsAddUpdateInterfaceBase
-   * @version 3
-   * @inner
-   * @constructor
-  */
-  function IcimsAddInterface()
-  {
+  /**
+  * @class
+  * @classdesc  The ICIMS IcimsAddInterface inherit's from IcimsAddUpdateInterfaceBase
+  * @version 3
+  * @inner
+  * @constructor
+ */
+  function IcimsAddInterface() {
     //Inherit's from IcimsAddUpdateInterfaceBase and scope as Add
     var Add = new IcimsAddUpdateInterfaceBase();
     return Add;
   }
 
-   /**
-   * @class
-   * @classdesc  The ICIMS IcimsUpdateInterface inherit's from IcimsAddUpdateInterfaceBase
-   * @version 3
-   * @inner
-   * @constructor
-  */
-  function IcimsUpdateInterface()
-  {
+  /**
+  * @class
+  * @classdesc  The ICIMS IcimsUpdateInterface inherit's from IcimsAddUpdateInterfaceBase
+  * @version 3
+  * @inner
+  * @constructor
+ */
+  function IcimsUpdateInterface() {
     //Inherit's from IcimsAddUpdateInterfaceBase and scope as Update
     var Update = new IcimsAddUpdateInterfaceBase();
     return Update;
   }
 
-   /**
-   * @class
-   * @classdesc  The ICIMS IcimsMergeInterface inherit's from IcimsAddUpdateInterfaceBase
-   * @version 3
-   * @inner
-   * @constructor
-  */
-  function IcimsMergeInterface()
-  {
+  /**
+  * @class
+  * @classdesc  The ICIMS IcimsMergeInterface inherit's from IcimsAddUpdateInterfaceBase
+  * @version 3
+  * @inner
+  * @constructor
+ */
+  function IcimsMergeInterface() {
     //Inherit's from IcimsAddUpdateInterfaceBase and scope and add properties for Merge
     var Merge = new IcimsInterfaceBase();
 
@@ -263,22 +235,21 @@ BreakPoint;
     Merge.prior_ur = null;
     /** @property {string} assigning_authority - prior institution id */
     Merge.prior_assigning_authority = null;
-   
+
     return Merge;
   }
 
- /**
-   * @class
-   * @classdesc  The ICIMS IcimsAddUpdateInterfaceBase inherit's from IcimsInterfaceBase
-   * @version 3
-   * @inner
-   * @constructor
-  */
-  function IcimsAddUpdateInterfaceBase()
-  {
+  /**
+    * @class
+    * @classdesc  The ICIMS IcimsAddUpdateInterfaceBase inherit's from IcimsInterfaceBase
+    * @version 3
+    * @inner
+    * @constructor
+   */
+  function IcimsAddUpdateInterfaceBase() {
     //Inherit's from IcimsInterfaceBase and add properties for Add and Update
     var Base = new IcimsInterfaceBase();
-    
+
     Base.gp_fname = null;
     /** @property {string} gp_surname - usual GP surname name*/
     Base.gp_surname = null;
@@ -296,7 +267,7 @@ BreakPoint;
     Base.gp_email = null;
     /** @property {string} gp_fax - usual GP fax number*/
     Base.gp_fax = null;
-    
+
     return Base;
   }
 
@@ -307,8 +278,7 @@ BreakPoint;
    * @inner
    * @constructor
   */
-  function IcimsInterfaceBase()
-  {
+  function IcimsInterfaceBase() {
     /** @property {string} action - the ICIMS action string 'addpatient', 'updatepatient' */
     this.action = null;
     /** @property {string} msgid - unique message id sent by the HL7 caller */
@@ -349,9 +319,12 @@ BreakPoint;
     this.language = null;
     /** @property {string} aboriginality - The Patient's ATSI code value*/
     this.aboriginality = null;
-    /** @property {string} gp_fname - usual GP first name*/
+    /** @property {string} deathIndicator - Boolean: Pateint death Indicator of the pateint's death*/
+    this.deathIndicator = null;
+    /** @property {string} deathDateTime - DateTime: Patient death daetTime*/
+    this.deathDateTime = null;
   }
-  
+
 }
 
 /** @global*/
@@ -363,9 +336,9 @@ BreakPoint;
 */
 var IcimsPostAction = {
   /** addpatient */
-  Add : "addpatient",
+  Add: "addpatient",
   /** updatepatient */
-  Update : "updatepatient",
+  Update: "updatepatient",
   /** mergepatient */
-  Merge : "mergepatient"
+  Merge: "mergepatient"
 };
