@@ -24,50 +24,61 @@
         //The Site Context enum we are running the script under
         FacilityConfiguration = oModels.FacilityConfiguration(SiteContext);
         FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
-        //Enviroment Switch
-        switch (oHL7CParameterSupport.Enviroment) {
+        //Environment Switch
+        switch (oHL7CParameterSupport.Environment) {
           case EnvironmentTypeEnum.DEV:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
               FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-ClinicalReports-Outbound";
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+              FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+              FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-ClinicalReports-Outbound";
             } else {
               FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-ClinicalReports-Outbound";
             }
             FacilityConfiguration.OperationName = "Bundle";
             break;
 
           case EnvironmentTypeEnum.TEST:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
               FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "Pathology-CliniSearch-Test";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Pathology-CliniSearch-Test";
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+              FacilityConfiguration.EndPoint = "??";
+              FacilityConfiguration.AuthorizationToken = ""; //Not required
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Test";
             } else {
               FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsReportsScriptOutbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsReportsScriptOutbound";
             }
             FacilityConfiguration.OperationName = "$process-message";
             break;
 
           case EnvironmentTypeEnum.PROD:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
               FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "Pathology-CliniSearch-Prod";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Pathology-CliniSearch-Prod";
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+              FacilityConfiguration.EndPoint = "??";
+              FacilityConfiguration.AuthorizationToken = ""; //Not required
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Prod";
             } else {
               FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "Icims-ClinicalReports-Outbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-ClinicalReports-Outbound";
             }
             FacilityConfiguration.OperationName = "$process-message";
             break;
-
         }
 
-        //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to colllect the single MRN wiht this AssigningAuthority code
+        //PrimaryMRNAssigningAuthority - This is used for Patient Merges and to collect the single MRN with this AssigningAuthority code
         FacilityConfiguration.PrimaryMRNAssigningAuthority = "SAH";
         //EndPoint - The REST endpoint url for ICIMS
         FacilityConfiguration.PrimaryMRNSystemUri = "https://www.sah.org.au/systems/fhir/pas/medical-record-number";
@@ -81,15 +92,15 @@
     }
     //===========================================================================
 
-    //Boolean to detect if script is run in test development enviroment, set by the OnScriptSend event
+    //Boolean to detect if script is run in test development Environment, set by the OnScriptSend event
     var IsTestCase = aEvent.IsTestCase;
     //The inbound HL7 V2 message object
     var oHL7 = aEvent.OutMessage;
-    //The programaticaly build HL7 V2 acknowledgment message, effectivly an acknowledgment to our selves
+    //The programaticaly build HL7 V2 acknowledgement message, effectively an acknowledgement to our selves
     //to indicate this message successfully was sent to ICIMS or not.
     var oHL7Reply = aEvent.ReplyMessage;
     //Boolean that indicates the the data was collected from the V2 Message with out error and that
-    //The script can now proced to attempting to call the ICIMS Rest service
+    //The script can now proceed to attempting to call the ICIMS Rest service
     var CallRESTService = false;
     //Variable to hold the ICIMS payload, sent in a Form data type format
     var FormData = "";
@@ -104,11 +115,11 @@
       if (MessageType == "ORU") {
         if (MessageEvent == "R01") {
           BreakPoint;
-          oModels.PathologyOruMessage(oHL7);
+          oModels.DiagnosticReportOruMessage(oHL7);
 
           BreakPoint;
           var FhirResFactory = new FhirResourceFactory();
-          var Bundle = new FhirResFactory.CreatePathologyBundle(oModels);
+          var Bundle = new FhirResFactory.CreateDiagnosticReportBundle(oModels);
 
           BreakPoint;
           var BodyData = JSON.stringify(Bundle, null, 4);
@@ -182,7 +193,7 @@
           }
         }
       } else {
-        //A HL7 V2 message type that is not suported by this script was passed in.
+        //A HL7 V2 message type that is not supported by this script was passed in.
         var ErrorMsg = "ICIMS expected Message type: " + MessageType;
         oLogger.Log("ICIMS Unknown Message type, only expect ORU messages");
         RejectMessage(ErrorMsg);
@@ -190,7 +201,7 @@
       }
     }
     catch (Exec) {
-      //The script has throwen and exception, should not happen!
+      //The script has thrown and exception, should not happen!
       var ErrorMsg = "ICIMS Unknown Scripting exception of :" + Exec.message;
       oLogger.Log(ErrorMsg);
       oLogger.Log("ICIMS Error Message: " + Exec.message);
@@ -205,7 +216,7 @@
     */
     function StopInterface(ErrorMsg, oLogger, oFacilityConfig, IsTestCase) {
       if (IsTestCase == false) {
-        var oInterfaceOut = Kernel.Getinterface(oFacilityConfig.NameOfInterfaceRunnningScript);
+        var oInterfaceOut = Kernel.Getinterface(oFacilityConfig.NameOfInterfaceRunningScript);
         var RejectCount = oInterfaceOut.RejCount
         if (RejectCount > oFacilityConfig.MaxRejectBeforeInterfaceStop - 2) {
           oLogger.Log("ICIMS Script is stopping the interface due to Reject count max reached.")
@@ -281,7 +292,8 @@ var SiteContextEnum = {
 //enum for Implementation
 var ImplementationTypeEnum = {
   None: "NONE",
-  CliniSearch: "CLINISEARCH",
+  CliniSearchPathology: "CLINISEARCHPATHOLOGY",
+  CliniSearchRadiology: "CLINISEARCHRADIOLOGY",
   Theater: "THEATER",
   CareZone: "CAREZONE"
 };

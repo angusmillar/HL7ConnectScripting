@@ -24,10 +24,10 @@ function HL7CParameterSupport(oLogger, Parameter) {
 
   var ParameterMask = "[SiteCode]|[EnvironmentCode]|{ImplementationCode}";
   this.SiteCode = null;
-  this.Enviroment = null;
+  this.Environment = null;
   this.Implementation = "NONE";
 
-  // this.EnviromentCodes = {
+  // this.EnvironmentCodes = {
   //   TEST: "TEST",
   //   DEV: "DEV",
   //   PROD: "PROD"
@@ -55,15 +55,15 @@ function HL7CParameterSupport(oLogger, Parameter) {
     //EnvironmentCode
     if (SplitParam.length >= 2) {
       if (SplitParam[1] != "") {
-        this.Enviroment = SplitParam[1].toUpperCase();
+        this.Environment = SplitParam[1].toUpperCase();
       }
     }
 
-    if (this.Enviroment == null) {
+    if (this.Environment == null) {
       var ErrorMsg = "The interface's script parameter appears to have no EnvironmentCode in the mask : " + ParameterMask;
       oLogger.Log(ErrorMsg);
       throw new Error(ErrorMsg);
-    } else if (this.Enviroment in EnvironmentTypeEnum === false) {
+    } else if (this.Environment in EnvironmentTypeEnum === false) {
       var ErrorMsg = "The interface's script parameter appears to have no EnvironmentCode must be one of (Dev, Test, Prod)";
     }
 

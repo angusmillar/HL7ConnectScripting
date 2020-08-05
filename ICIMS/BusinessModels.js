@@ -8,7 +8,7 @@
     this.Action = null;
     this.Patient = null;
     this.Doctor = null;
-    this.Pathology = null;
+    this.DiagnosticReport = null;
     this.Merge = null;
     this.MergeIdentifers = null;
     this.Meta = null;
@@ -18,8 +18,8 @@
       return this.FacilityConfig;
     };
 
-    this.PathologyOruMessage = function (oHL7) {
-      this.Pathology = new Pathology(oHL7, this.FacilityConfig);
+    this.DiagnosticReportOruMessage = function (oHL7) {
+      this.DiagnosticReport = new DiagnosticReport(oHL7, this.FacilityConfig);
       return this.Pathology;
     };
 
@@ -95,13 +95,13 @@
       this.AuthorizationToken = null;
 
       // The name of the HL7 Connect interface this script is triggered from */
-      this.NameOfInterfaceRunnningScript = null;
+      this.NameOfInterfaceRunningScript = null;
 
       // The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page    
       this.MaxRejectBeforeInterfaceStop = 20;
     }
 
-    function Pathology(oHL7, FacilityConfig) {
+    function DiagnosticReport(oHL7, FacilityConfig) {
       this.Meta = null;
       this.Patient = null;
       this.Report = null;
@@ -123,7 +123,7 @@
       this.OrderingPractitioner = new Practitioner();
       this.OrderingPractitioner.InflateXCN(oHL7.Segment("OBR", 0).Field(16));
 
-      if (FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearch) {
+      if (FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
         var DSPList = oHL7.SegmentQuery("DSP");
         this.DisplayDataLineList = GetDisplayDataList(DSPList, FacilityConfig);
       } else {
@@ -266,8 +266,9 @@
           this.Language = V2Support.Set(oSeg.Field(15));
         }
 
+        Breakpoint;
         //The Patient ATSI code value
-        if (oSeg.Field(10).AsString != "" && oSeg.Field(10).ComponentCount > 1 && Component(1).AsString != "") {
+        if (oSeg.Field(10).AsString != "" && oSeg.Field(10).ComponentCount > 1 && oSeg.Field(10).Component(1).AsString != "") {
           this.Aboriginality = V2Support.Set(oSeg.Field(10).Component(1));
         }
 
@@ -302,7 +303,7 @@
 
 
         var oXADAdressTarget = null;
-        if (FacilityConfig.Implementation == "SONICDHM") {
+        if (FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
           oXADAdressTarget = oSeg.Field(11);
         } else {
           var Dic = ResolveAddressTypeFromXADList(oSeg.Field(11), AddressTypeArray);

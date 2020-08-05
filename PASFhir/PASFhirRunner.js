@@ -38,10 +38,10 @@
         //MaxRejectBeforeInterfaceStop  - The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
         oFacilityConfig.MaxRejectBeforeInterfaceStop = 2;
 
-        //Enviroment Switch
-        switch (oHL7CParameterSupport.Enviroment) {
+        //Environment Switch
+        switch (oHL7CParameterSupport.Environment) {
           case EnvironmentTypeEnum.DEV:
-            oFacilityConfig.NameOfInterfaceRunnningScript = "PASFhir";
+            oFacilityConfig.NameOfInterfaceRunningScript = "PASFhir";
             oFacilityConfig.Fhir.FhirEndpoint = "http://localhost:8888/fhir";
             oFacilityConfig.Fhir.OperationNameProcessMessage = "$process-message"
             oFacilityConfig.Fhir.OperationNameMergePatient = "$merge-patient"
@@ -49,7 +49,7 @@
             break;
 
           case EnvironmentTypeEnum.TEST:
-            oFacilityConfig.NameOfInterfaceRunnningScript = "PASFhir";
+            oFacilityConfig.NameOfInterfaceRunningScript = "PASFhir";
             oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
             oFacilityConfig.Fhir.OperationNameProcessMessage = "$process-message"
             oFacilityConfig.Fhir.OperationNameMergePatient = "$merge-patient"
@@ -57,7 +57,7 @@
             break;
 
           case EnvironmentTypeEnum.PROD:
-            oFacilityConfig.NameOfInterfaceRunnningScript = "PASFhir";
+            oFacilityConfig.NameOfInterfaceRunningScript = "PASFhir";
             oFacilityConfig.Fhir.FhirEndpoint = "https://r4.test.pyrohealth.net/fhir";
             oFacilityConfig.Fhir.OperationNameProcessMessage = "$process-message"
             oFacilityConfig.Fhir.OperationNameMergePatient = "$merge-patient"
@@ -186,7 +186,7 @@
     //Function to stop the interface if 'oModel.FacilityConfig.MaxRejectBeforeInterfaceStop' Reject Count max reached    
     function StopInterface(ErrorMsg, IsTestCase) {
       if (IsTestCase == false) {
-        var oInterfaceOut = Kernel.Getinterface(oModel.FacilityConfig.NameOfInterfaceRunnningScript);
+        var oInterfaceOut = Kernel.Getinterface(oModel.FacilityConfig.NameOfInterfaceRunningScript);
         var RejectCount = oInterfaceOut.RejCount
         if (RejectCount > oModel.FacilityConfig.MaxRejectBeforeInterfaceStop - 2) {
           oLogger.Log("Script is stopping the interface due to Reject count max reached.")

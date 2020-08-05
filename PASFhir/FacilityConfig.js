@@ -33,7 +33,7 @@ function FacilityConfig() {
   this.AuthorizationToken = null;
 
   // The name of the HL7 Connect interface this script is triggered from */
-  this.NameOfInterfaceRunnningScript = null;
+  this.NameOfInterfaceRunningScript = null;
 
   // The number of Reject counts before the interface will stop, these are the red errors on the HL7Connect status page
   this.MaxRejectBeforeInterfaceStop = 20;

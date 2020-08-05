@@ -30,24 +30,24 @@
         //The Site Context enum we are running the script under
         FacilityConfiguration = oModels.FacilityConfiguration(SiteContext);
         FacilityConfiguration.Implementation = oHL7CParameterSupport.Implementation;
-        //Enviroment Switch
-        switch (oHL7CParameterSupport.Enviroment) {
+        //Environment Switch
+        switch (oHL7CParameterSupport.Environment) {
           case EnvironmentTypeEnum.DEV:
             FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
             FacilityConfiguration.AuthorizationToken = "Basic NotRequired";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
             break;
 
           case EnvironmentTypeEnum.TEST:
             FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py"
             FacilityConfiguration.AuthorizationToken = "Basic aGw3dGVzdDppY2ltczIwMTc=";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
             break;
 
           case EnvironmentTypeEnum.PROD:
             FacilityConfiguration.EndPoint = "http://icimsprod01.sah.com/staging/api/pas_sah.py"
             FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-            FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+            FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
 
             break;
         }
@@ -60,41 +60,41 @@
       case SiteContextEnum.SAH:
         //The Site Context enum we are running the script under
         FacilityConfiguration = oModels.FacilityConfiguration(SiteContext);
-        //Enviroment Switch
-        switch (oHL7CParameterSupport.Enviroment) {
+        //Environment Switch
+        switch (oHL7CParameterSupport.Environment) {
           case EnvironmentTypeEnum.DEV:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
               FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
               FacilityConfiguration.AuthorizationToken = "Basic NotRequired";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
             } else {
               FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
             }
             break;
 
           case EnvironmentTypeEnum.TEST:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
               FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9001/adt"
               FacilityConfiguration.AuthorizationToken = "";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "ADT-CliniSearch-Test";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "ADT-CliniSearch-Test";
             } else {
               FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py"
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
             }
             break;
 
           case EnvironmentTypeEnum.PROD:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearch) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
               FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9001/adt"
               FacilityConfiguration.AuthorizationToken = "";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "ADT-CliniSearch-Prod";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "ADT-CliniSearch-Prod";
             } else {
               FacilityConfiguration.EndPoint = "http://icimsprod01.sah.com/staging/api/pas_sah.py"
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunnningScript = "IcimsScriptOutbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
             }
             break;
         }
@@ -109,7 +109,7 @@
     }
     //===========================================================================
 
-    //Boolean to detect if script is run in test development enviroment, set by the OnScriptSend event
+    //Boolean to detect if script is run in test development Environment, set by the OnScriptSend event
     var IsTestCase = aEvent.IsTestCase;
     //The inbound HL7 V2 message object
     var oHL7 = aEvent.OutMessage;
@@ -233,7 +233,7 @@
     //Function to stop the interface if 'FacilityConfiguration.MaxRejectBeforeInterfaceStop' Reject Count max reached    
     function StopInterface(ErrorMsg, oLogger, oFacilityConfig, IsTestCase) {
       if (IsTestCase == false) {
-        var oInterfaceOut = Kernel.Getinterface(oFacilityConfig.NameOfInterfaceRunnningScript);
+        var oInterfaceOut = Kernel.Getinterface(oFacilityConfig.NameOfInterfaceRunningScript);
         var RejectCount = oInterfaceOut.RejCount
         if (RejectCount > oFacilityConfig.MaxRejectBeforeInterfaceStop - 2) {
           oLogger.Log("ICIMS Script is stopping the interface due to Reject count max reached.")
