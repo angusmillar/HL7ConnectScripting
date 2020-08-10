@@ -101,7 +101,48 @@
       this.MaxRejectBeforeInterfaceStop = 20;
     }
 
+
+    function GetSegmentsListForOBRIndex(oHL7, OBRIndex, TargetSegmentCode) {
+      var List = [];
+      if (oHL7.SegmentByIndex(OBRIndex).Code !== "OBR") {
+        throw new Error("The GetSegmentsListForOBRIndex function was provided a segment index which did not resolve to an OBR segment. The segment found was : " + oHL7.SegmentByIndex(OBRIndex).Code);
+      }
+      //Loop forward from the OBR collecting each TargetSegment until we reach another OBR or ORC or the end of all segments
+      for (var i = OBRIndex + 1; (i < oHL7.SegmentCount); i++) {
+        if (oHL7.SegmentByIndex(i).Code === TargetSegmentCode) {
+          List.push(oHL7.SegmentByIndex(i));
+        } else if (oHL7.SegmentByIndex(i).Code === "OBR") {
+          break;
+        }
+      }
+      return List;
+    }
+
+
     function DiagnosticReport(oHL7, FacilityConfig) {
+      this.Meta = null;
+      this.Patient = null;
+      this.ReportList = [];
+
+      //Meta-data
+      this.Meta = new Meta("PathologyPost", oHL7.Segment("MSH", 0));
+
+      //Patient
+      this.Patient = new Patient(oHL7.Segment("PID", 0), FacilityConfig);
+      Breakpoint;
+      for (var i = 0; (i < oHL7.CountSegment("OBR")); i++) {
+        //For each OBR collect the Observation Segments 
+        var OBR = oHL7.Segment("OBR", i);
+        var OBXList = new GetSegmentsListForOBRIndex(oHL7, OBR.SegmentIndex, "OBX");
+        var DSPList = new GetSegmentsListForOBRIndex(oHL7, OBR.SegmentIndex, "DSP");
+
+        //Report
+        this.ReportList.push(new Report(oHL7.Segment("OBR", 0), OBXList, DSPList, FacilityConfig));
+      }
+    }
+
+
+    function DiagnosticReportOLD(oHL7, FacilityConfig) {
       this.Meta = null;
       this.Patient = null;
       this.Report = null;
@@ -367,8 +408,84 @@
       }
     }
 
-    function Report(oOBR) {
-      /** @property {string}  PrimaryMrnValue - The Medical Record Number value for the patient */
+
+    function Report(oOBR, OBXList, DSPList, oFacilityConfig) {
+
+      this.FillerOrderNumberValue = null;
+      this.FillerOrderNumberNamespaceId = null;
+      this.FillerOrderNumberUniversalId = null;
+      this.Status = null;
+      this.DiagServSectId = null;
+
+      this.ReportCode = null;
+      this.ReportCodeDescription = null;
+      this.ReportCodeSystem = null;
+
+      this.CollectionDateTime = null;
+      this.ReportIssuedDateTime = null;
+      this.OrderingPractitioner = null;
+      this.ObservationList = [];
+      this.DisplayDataLineList = [];
+
+      var V2Support = new HL7V2Support();
+
+      this.FillerOrderNumberValue = V2Support.Set(oOBR.Field(3).Component(1));
+      this.FillerOrderNumberNamespaceId = V2Support.Set(oOBR.Field(3).Component(2));
+      this.FillerOrderNumberUniversalId = V2Support.Set(oOBR.Field(3).Component(3));
+
+      //OrderingPractitioner
+      this.OrderingPractitioner = new Practitioner();
+      this.OrderingPractitioner.InflateXCN(oOBR.Field(16));
+
+      //Get the Observations and DisplayDataLineList
+      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+        this.DisplayDataLineList = GetDisplayDataList(DSPList, oFacilityConfig);
+      } else {
+        this.ObservationList = GetObservationList(OBXList, oFacilityConfig);
+      }
+
+
+      switch (oOBR.Field(25).AsString) {
+        case "F":
+          this.Status = "final";
+          break;
+        case "C":
+          this.Status = "corrected";
+          break;
+        case "P":
+          this.Status = "preliminary";
+          break;
+        case "X":
+          this.Status = "cancelled";
+          break;
+        default:
+          throw new Error("The Report status found in OBR-25 was not expected, value is : " + oOBR.Field(25).AsString);
+      }
+
+      this.DiagServSectId = V2Support.Set(oOBR.Field(24));
+
+      this.ReportCode = V2Support.Set(oOBR.Field(4).Component(1));
+      this.ReportCodeDescription = V2Support.Set(oOBR.Field(4).Component(2));
+      this.ReportCodeSystem = V2Support.Set(oOBR.Field(4).Component(3));
+
+      try {
+        this.CollectionDateTime = DateAndTimeFromHL7(oOBR.Field(7).AsString);
+      }
+      catch (Exec) {
+        throw new Error("Collection Date & Time in OBR-7 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(7).AsString);
+      }
+
+      try {
+        this.ReportIssuedDateTime = DateAndTimeFromHL7(oOBR.Field(22).AsString);
+      }
+      catch (Exec) {
+        throw new Error("Results Rpt/Status Change Date & Time in OBR-22 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(22).AsString);
+      }
+    }
+
+
+
+    function ReportOLD(oOBR) {
       this.FillerOrderNumberValue = null;
       this.FillerOrderNumberNamespaceId = null;
       this.FillerOrderNumberUniversalId = null;
@@ -424,17 +541,16 @@
       catch (Exec) {
         throw new Error("Results Rpt/Status Change Date & Time in OBR-22 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(22).AsString);
       }
-
     }
 
-    //Loops through each DSP segment colating the display lines into an array
+    //Loops through each DSP segment collating the display lines into an array
     function GetDisplayDataList(DSPList, oFacilityConfig) {
       var DisplayDataLineList = [];
-      for (var i = 0; (i < DSPList.Count); i++) {
-        if (DSPList.Item(i).Field(2).AsString == "1") {
-          DisplayDataLineList.push(DSPList.Item(i).Field(3).AsString);
+      for (var i = 0; (i < DSPList.length); i++) {
+        if (DSPList[i].Field(2).AsString == "1") {
+          DisplayDataLineList.push(DSPList[i].Field(3).AsString);
         } else {
-          throw new Error("Encounterd a Display Level in DSP-2 that is not equal to 1. This interface can only manage a single Display Level of 1.");
+          throw new Error("Encountered a Display Level in DSP-2 that is not equal to 1. This interface can only manage a single Display Level of 1.");
         }
       }
       return DisplayDataLineList;
@@ -444,12 +560,12 @@
     //Loops through each OBX segment and creates an array of Observation object instances
     function GetObservationList(OBXList, oFacilityConfig) {
       var ObservationList = [];
-      for (var i = 0; (i < OBXList.Count); i++) {
-        if (oFacilityConfig.SiteContext == SiteContextEnum.SAH && OBXList.Item(i).Field(2).AsString == "XCN" && OBXList.Item(i).Field(3).Component(1).AsString == "LS") {
+      for (var i = 0; (i < OBXList.length); i++) {
+        if (oFacilityConfig.SiteContext == SiteContextEnum.SAH && OBXList[i].Field(2).AsString == "XCN" && OBXList[i].Field(3).Component(1).AsString == "LS") {
           //Custom logic for SAH
-          SahOBXLeadSurgeonProcessing(ObservationList, OBXList.Item(i));
+          SahOBXLeadSurgeonProcessing(ObservationList, OBXList[i]);
         } else {
-          var obs = new Observation(OBXList.Item(i));
+          var obs = new Observation(OBXList[i]);
           if (obs.Code != null)
             ObservationList.push(obs);
         }
@@ -513,7 +629,7 @@
           this.CodeSystem = V2Support.Set(oOBX.Field(3).Component(3));
         }
 
-        this.SetId = V2Support.Set(oOBX.Field(4));
+        this.SubId = V2Support.Set(oOBX.Field(4));
 
         //OBX-2 DataType
         if (this.DataType.toUpperCase() == "ED" && this.Code.toUpperCase() == "PDF") {

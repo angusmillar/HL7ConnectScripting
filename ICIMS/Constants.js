@@ -40,6 +40,15 @@ function Constants() {
           codeSystem: {
             FillerOrderNumber: "70a870ef-2a29-4475-bd1d-1604a7eacbe9"
           }
+        },
+        sanRad: {
+          code: "SANRAD",
+          name: "SAN Radiology",
+          codeSystem: {
+            FillerOrderNumber: "https://www.sah.org.au/systems/fhir/radiology/agfa/fillerOrderNumber",
+            ReportPanel: "https://www.sah.org.au/systems/fhir/radiology/agfa/reportPanelCode",
+            messageControlId: "https://www.sah.org.au/systems/fhir/radiology/agfa/hl7-v2/message-control-id"
+          }
         }
       }
     },

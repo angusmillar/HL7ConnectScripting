@@ -60,7 +60,7 @@ function FhirTools() {
       //20:17:27 = 8 (already has seconds)
       //20:17:27.123 = 12 (already has seconds)
       //20 = 2 (and is an invalid time)
-      if (TimeNoZone.length === 5) {
+      if (TimeNoZone.length == 5) {
         return TimeNoZone + ":00";
       } else {
         return TimeNoZone;
@@ -78,19 +78,19 @@ function FhirTools() {
     } else {
       var TimeSplit = v2DateTimeString.split("T");
       if (TimeSplit[1].indexOf("+") === -1 && TimeSplit[1].indexOf("-") === -1) {
-        //no Plus(+) or Minius(-) zone info found 
-        return SetTimeZone(TimeSplit[0] + "T" + AddSec(TimeSplit[1]));
+        //no Plus(+) or Minus(-) zone info found       
+        return this.SetTimeZone(TimeSplit[0] + "T" + AddSec(TimeSplit[1]));
       } else if (TimeSplit[1].indexOf("+") !== -1 && TimeSplit[1].indexOf("-") === -1) {
         //Plus(+) zone found
         return AddSecToZonedTime(TimeSplit[1], "+");
       } else if (TimeSplit[1].indexOf("+") === -1 && TimeSplit[1].indexOf("-") !== -1) {
-        //Minius(-) zone found
+        //Minus(-) zone found
         return AddSecToZonedTime(TimeSplit[1], "-");
       } else {
         throw new Error("Attempt to format a HL7 V2 dateTime string of " + v2DateTimeString + "failed do to unexpected format.");
       }
     }
-  }
+  };
 
 
 
