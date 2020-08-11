@@ -65,20 +65,39 @@
         DiagnosticReportLogical.OrderingPractitionerResource = FhirPractitionerFactory(CurrentReport.OrderingPractitioner);
         var oPractitionerResourceReference = null;
         if (DiagnosticReportLogical.OrderingPractitionerResource != null) {
-          oPractitionerResourceReference = oFhirDataType.GetReference("Practitioner", DiagnosticReportLogical.OrderingPractitionerResource.id, CurrentReport.OrderingPractitioner.FormattedName);
+          oPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, DiagnosticReportLogical.OrderingPractitionerResource.id, CurrentReport.OrderingPractitioner.FormattedName);
         }
 
         //ProcedureRequest Resource
         var oProcedureRequestResourceReference = null;
         if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology || oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
           DiagnosticReportLogical.ProcedureRequestResource = FhirProcedureRequestFactory(oPatientResourceReference, oPractitionerResourceReference);
-          var oProcedureRequestResourceReference = oFhirDataType.GetReference("ProcedureRequest", DiagnosticReportLogical.ProcedureRequestResource.id, "ProcedureRequest");
+          var oProcedureRequestResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.ProcedureRequest, DiagnosticReportLogical.ProcedureRequestResource.id, oFhirConstants.ResourceName.ProcedureRequest);
         }
         //DiagnosticReport Resource       
         DiagnosticReportLogical.DiagnosticReportResource = FhirDiagnosticReportFactory(CurrentReport, oModels.DiagnosticReport.Meta.SendingFacility, oModels.DiagnosticReport.Meta.SendingApplication, oPatientResourceReference, oProcedureRequestResourceReference, oPractitionerResourceReference, DiagnosticReportLogical.ObservationResourceList, oModels.FacilityConfig);
         BundleLogical.DiagnosticReportLogicalList.push(DiagnosticReportLogical);
 
       }
+
+      BreakPoint;
+      var FocusReferenceArray = [];
+      for (var k = 0; (k < BundleLogical.DiagnosticReportLogicalList.length); k++) {
+        FocusReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.DiagnosticReport, BundleLogical.DiagnosticReportLogicalList[k].DiagnosticReportResource.id, oFhirConstants.ResourceName.DiagnosticReport));
+      }
+      BundleLogical.MessageHeaderResource.SetFocus(FocusReferenceArray);
+
+      // var DiagnosticReportIdArray = [];
+      // var FocusArray = [];
+      // for (var i = 0; (i < oModels.DiagnosticReport.ReportList.length); i++) {
+      //   var DiagnosticReportId = oFhirTool.GetGuid();
+      //   DiagnosticReportIdArray.push(DiagnosticReportId);
+      //   var oFocusReference = oFhirDataType.GetReference("DiagnosticReport", DiagnosticReportId, "DiagnosticReport");
+      //   FocusArray.push(oFocusReference);
+      // }
+      //oMsgHeader.SetFocus(FocusArray);
+
+
       //Icims Organization Resource
       BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(oConstant.organization.icims.id, oConstant.organization.icims.name, oConstant.organization.icims.aliasList));
       if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
@@ -100,6 +119,7 @@
 
     function FhirMessageHeaderFactory(oMeta, oFacilityConfig) {
       var oConstant = new Constants();
+      var oFhirConstants = new FhirConstants();
       var oFhirDataType = new FhirDataTypeTool();
       var oFhirTool = new FhirTools();
 
@@ -114,28 +134,19 @@
         oMsgHeader.SetDestination(oConstant.organization.icims.name, undefined, oFacilityConfig.EndPoint);
       }
       oMsgHeader.SetTimestamp(oFhirTool.FhirDateTimeFormat(oMeta.MessageDateTime.AsXML));
-      var oReceiverReference = oFhirDataType.GetReference("Organization", oConstant.organization.icims.id, oConstant.organization.icims.name);
+      var oReceiverReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Organization, oConstant.organization.icims.id, oConstant.organization.icims.name);
       oMsgHeader.SetReceiver(oReceiverReference);
       var oSenderReference = null;
       if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
-        oSenderReference = oFhirDataType.GetReference("Organization", oConstant.organization.dhm.id, oConstant.organization.dhm.name);
+        oSenderReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Organization, oConstant.organization.dhm.id, oConstant.organization.dhm.name);
       } else {
-        oSenderReference = oFhirDataType.GetReference("Organization", oConstant.organization.sah.id, oConstant.organization.sah.name);
+        oSenderReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Organization, oConstant.organization.sah.id, oConstant.organization.sah.name);
       }
       oMsgHeader.SetSender(oSenderReference);
       oMsgHeader.SetSource(oMeta.SendingApplication);
       var messageheaderResponseRequestExtension = oFhirDataType.GetExtension("http://hl7.org/fhir/StructureDefinition/messageheader-response-request", "valueCode", "on-error");
       oMsgHeader.SetExtension(messageheaderResponseRequestExtension);
 
-      // var DiagnosticReportIdArray = [];
-      // var FocusArray = [];
-      // for (var i = 0; (i < oModels.DiagnosticReport.ReportList.length); i++) {
-      //   var DiagnosticReportId = oFhirTool.GetGuid();
-      //   DiagnosticReportIdArray.push(DiagnosticReportId);
-      //   var oFocusReference = oFhirDataType.GetReference("DiagnosticReport", DiagnosticReportId, "DiagnosticReport");
-      //   FocusArray.push(oFocusReference);
-      // }
-      //oMsgHeader.SetFocus(FocusArray);
       return oMsgHeader;
     }
 
@@ -371,6 +382,7 @@
     function FhirObservationFactory(oObservationList, oReportIssuedDateTime, oPatientResourceReference, oFacilityConfig) {
       var oFhirTool = new FhirTools();
       var oConstant = new Constants();
+      var oFhirConstants = new FhirConstants();
       var oFhirDataType = new FhirDataTypeTool();
       var oArraySupport = new ArraySupport();
 
@@ -420,7 +432,7 @@
                   oReportIssuedDateTime.AsXML,
                   oPatientResourceReference,
                   ObsCategoryCodeableConcept);
-                var oSubObservationReference = oFhirDataType.GetReference("Observation", oSubObservation.id, undefined);
+                var oSubObservationReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Observation, oSubObservation.id, undefined);
                 oParentObservation.AddRelated(oSubObservationReference, "has-member");
                 oDiagnosticReportLogical.SubObservationResourceList.push(oSubObservation);
               }
@@ -511,38 +523,40 @@
       var oFhirTool = new FhirTools();
       var oFhirDataType = new FhirDataTypeTool();
       var oConstant = new Constants();
+      var oFhirConstants = new FhirConstants();
 
       var oProvenance = new ProvenanceFhirResource();
       oProvenance.SetId(oFhirTool.GetGuid());
       oProvenance.SetMetaProfile([oConstant.fhirResourceProfile.icims.provenance]);
 
       var TargetReferenceArray = [];
-      TargetReferenceArray.push(oFhirDataType.GetReference("MessageHeader", oBundleLogical.MessageHeaderResource.id, "MessageHeader"));
-      TargetReferenceArray.push(oFhirDataType.GetReference("Patient", oBundleLogical.PatientResource.id, "Patient"));
+      TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.MessageHeader, oBundleLogical.MessageHeaderResource.id, oFhirConstants.ResourceName.MessageHeader));
+      TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.Patient, oBundleLogical.PatientResource.id, oFhirConstants.ResourceName.Patient));
       for (var i = 0; (i < oBundleLogical.DiagnosticReportLogicalList.length); i++) {
         var DiagnosticReportLogical = oBundleLogical.DiagnosticReportLogicalList[i];
-        TargetReferenceArray.push(oFhirDataType.GetReference("DiagnosticReport", DiagnosticReportLogical.DiagnosticReportResource.id, "DiagnosticReport"));
+        TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.DiagnosticReport, DiagnosticReportLogical.DiagnosticReportResource.id, oFhirConstants.ResourceName.DiagnosticReport));
 
         if (DiagnosticReportLogical.OrderingPractitionerResource != null) {
-          TargetReferenceArray.push(oFhirDataType.GetReference("Practitioner", DiagnosticReportLogical.OrderingPractitionerResource.id, "Practitioner"));
+          BreakPoint;
+          TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, DiagnosticReportLogical.OrderingPractitionerResource.id, oFhirConstants.ResourceName.Practitioner));
         }
 
         if (DiagnosticReportLogical.ProcedureRequestResource != null) {
-          TargetReferenceArray.push(oFhirDataType.GetReference("ProcedureRequest", DiagnosticReportLogical.ProcedureRequestResource.id, "ProcedureRequest"));
+          TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.ProcedureRequest, DiagnosticReportLogical.ProcedureRequestResource.id, oFhirConstants.ResourceName.ProcedureRequest));
         }
 
         for (var o = 0; (o < DiagnosticReportLogical.ObservationResourceList.length); o++) {
-          TargetReferenceArray.push(oFhirDataType.GetReference("Observation", DiagnosticReportLogical.ObservationResourceList[o].id, "Observation"));
+          TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.Observation, DiagnosticReportLogical.ObservationResourceList[o].id, oFhirConstants.ResourceName.Observation));
         }
 
         for (var s = 0; (s < DiagnosticReportLogical.SubObservationResourceList.length); s++) {
-          TargetReferenceArray.push(oFhirDataType.GetReference("Observation", DiagnosticReportLogical.SubObservationResourceList[s].id, "Observation"));
+          TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.Observation, DiagnosticReportLogical.SubObservationResourceList[s].id, oFhirConstants.ResourceName.Observation));
         }
 
       }
 
       for (var OrgIndex = 0; (OrgIndex < oBundleLogical.OrganizationResourceList.length); OrgIndex++) {
-        TargetReferenceArray.push(oFhirDataType.GetReference("Organization", oBundleLogical.OrganizationResourceList[OrgIndex].id, "Organization " + oBundleLogical.OrganizationResourceList[OrgIndex].name));
+        TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.Organization, oBundleLogical.OrganizationResourceList[OrgIndex].id, oFhirConstants.ResourceName.Organization + " " + oBundleLogical.OrganizationResourceList[OrgIndex].name));
       }
 
       oProvenance.SetTarget(TargetReferenceArray);
@@ -555,7 +569,7 @@
       oProvenance.SetActivity(activityCoding);
 
       var whoReference = oFhirDataType.GetReference(undefined, undefined, "HL7 Connect Integration Engine");
-      var onBehalfOfReference = oFhirDataType.GetReference("Organization", oConstant.organization.icims.id, oConstant.organization.icims.name);
+      var onBehalfOfReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Organization, oConstant.organization.icims.id, oConstant.organization.icims.name);
       oProvenance.SetAgent(undefined, whoReference, onBehalfOfReference);
 
       var messageControlIdIdentifier = null;
