@@ -617,6 +617,7 @@
         for (var o = 0; (o < oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList.length); o++) {
           var ob = oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList[o];
           oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList[o].id), oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList[o]);
+          //The only reason we arrange the SubObservations this way it to remain backward compatible with the solution prior to implementing the Multi-OBR Radiology reports
           if (ob.related != null) {
             for (var q = 0; (q < ob.related.length); q++) {
               var SubObservationId = ob.related[q].target.reference;
@@ -629,12 +630,6 @@
             }
           }
         }
-
-        // //Add Sub-Observations to Bundle
-        // for (var s = 0; (s < oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList.length); s++) {
-        //   oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList[s].id), oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList[s]);
-        // }
-
       }
 
       //Add Organizations to Bundle
