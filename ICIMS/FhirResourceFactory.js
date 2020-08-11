@@ -12,6 +12,7 @@
 <% include $repo$\FhirLibrary\STU3\ProcedureRequestFhirResource.js %>
 <% include $repo$\FhirLibrary\STU3\FhirDataTypeTool.js %>
 <% include $repo$\FhirLibrary\STU3\FhirTools.js %>
+<% include $repo$\FhirLibrary\STU3\FhirConstants.js %>
 <% include $repo$\ICIMS\Constants.js %>
 
 
@@ -23,8 +24,9 @@
 
     function CreateDiagnosticReportBundle(oModels) {
 
-      var FhirDataType = new FhirDataTypeTool();
-      var Constant = new Constants();
+      var oFhirDataType = new FhirDataTypeTool();
+      var oConstant = new Constants();
+      var oFhirConstants = new FhirConstants();
 
       BreakPoint;
 
@@ -36,15 +38,13 @@
         ProvenanceResource: null
       }
 
-      //--------------------------------------------------------------------------
-      //MessageHeader Resource
-      //--------------------------------------------------------------------------
+
+      //MessageHeader Resource      
       BundleLogical.MessageHeaderResource = FhirMessageHeaderFactory(oModels.DiagnosticReport.Meta, oModels.FacilityConfig);
-      //--------------------------------------------------------------------------
-      //Patient Resource
-      //--------------------------------------------------------------------------
+
+      //Patient Resource     
       BundleLogical.PatientResource = FhirPatientFactory(oModels.DiagnosticReport.Patient, oModels.FacilityConfig);
-      var oPatientResourceReference = FhirDataType.GetReference("Patient", BundleLogical.PatientResource.id, oModels.DiagnosticReport.Patient.FormattedName);
+      var oPatientResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Patient, BundleLogical.PatientResource.id, oModels.DiagnosticReport.Patient.FormattedName);
       //========================================================================================================
 
       for (var r = 0; (r < oModels.DiagnosticReport.ReportList.length); r++) {
@@ -58,35 +58,41 @@
           SubObservationResourceList: []
         }
 
-        //Observation--------------------------------------------------          
+        //Observation Resource       
         var DiagnosticReportLogical = FhirObservationFactory(CurrentReport.ObservationList, CurrentReport.ReportIssuedDateTime, oPatientResourceReference, oModels.FacilityConfig);
 
-        //OrderingPractitioner--------------------------------------------------
+        //OrderingPractitioner Resource
         DiagnosticReportLogical.OrderingPractitionerResource = FhirPractitionerFactory(CurrentReport.OrderingPractitioner);
-        var oPractitionerResourceReference = FhirDataType.GetReference("Practitioner", DiagnosticReportLogical.OrderingPractitionerResource.id, CurrentReport.OrderingPractitioner.FormattedName);
-        //ProcedureRequest------------------------------------------------------
+        var oPractitionerResourceReference = null;
+        if (DiagnosticReportLogical.OrderingPractitionerResource != null) {
+          oPractitionerResourceReference = oFhirDataType.GetReference("Practitioner", DiagnosticReportLogical.OrderingPractitionerResource.id, CurrentReport.OrderingPractitioner.FormattedName);
+        }
+
+        //ProcedureRequest Resource
         var oProcedureRequestResourceReference = null;
         if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology || oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
           DiagnosticReportLogical.ProcedureRequestResource = FhirProcedureRequestFactory(oPatientResourceReference, oPractitionerResourceReference);
-          var oProcedureRequestResourceReference = FhirDataType.GetReference("ProcedureRequest", DiagnosticReportLogical.ProcedureRequestResource.id, "ProcedureRequest");
+          var oProcedureRequestResourceReference = oFhirDataType.GetReference("ProcedureRequest", DiagnosticReportLogical.ProcedureRequestResource.id, "ProcedureRequest");
         }
-        //DiagnosticReport--------------------------------------------------        
+        //DiagnosticReport Resource       
         DiagnosticReportLogical.DiagnosticReportResource = FhirDiagnosticReportFactory(CurrentReport, oModels.DiagnosticReport.Meta.SendingFacility, oModels.DiagnosticReport.Meta.SendingApplication, oPatientResourceReference, oProcedureRequestResourceReference, oPractitionerResourceReference, DiagnosticReportLogical.ObservationResourceList, oModels.FacilityConfig);
         BundleLogical.DiagnosticReportLogicalList.push(DiagnosticReportLogical);
 
       }
-      //Icims Organization
-      BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(Constant.organization.icims.id, Constant.organization.icims.name, Constant.organization.icims.aliasList));
+      //Icims Organization Resource
+      BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(oConstant.organization.icims.id, oConstant.organization.icims.name, oConstant.organization.icims.aliasList));
       if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
-        //DHM Organization
-        BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(Constant.organization.dhm.id, Constant.organization.dhm.name, Constant.organization.dhm.aliasList));
+        //DHM Organization Resource
+        BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(oConstant.organization.dhm.id, oConstant.organization.dhm.name, oConstant.organization.dhm.aliasList));
       } else {
-        //SAH Organization
-        BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(Constant.organization.sah.id, Constant.organization.sah.name, Constant.organization.sah.aliasLis));
+        //SAH Organization Resource
+        BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(oConstant.organization.sah.id, oConstant.organization.sah.name, oConstant.organization.sah.aliasList));
       }
 
+      //Provenance Resource
       BundleLogical.ProvenanceResource = FhirProvenanceFactory(BundleLogical, oModels.DiagnosticReport.Meta.MessageControlID, oModels.FacilityConfig);
 
+      //Bundle Resource
       var oBundle = FhirBundleFactory(BundleLogical);
 
       return oBundle;
@@ -195,10 +201,13 @@
 
     function FhirPractitionerFactory(oPractitioner) {
       var oFhirTool = new FhirTools();
+      var oConstant = new Constants();
       var oFhirDataType = new FhirDataTypeTool();
+
       var oPractitionerResource = null;
       if (oPractitioner != null && oPractitioner.Family != null) {
         var oPractitionerResource = new PractitionerFhirResource();
+        oPractitionerResource.SetMetaProfile([oConstant.fhirResourceProfile.icims.Practitioner]);
         oPractitionerResource.SetId(oFhirTool.GetGuid());
         //MedicareProviderNumber      
         var oPractitionerIdentifierArray = [];
@@ -248,9 +257,13 @@
         oDiagReport.SetText(oNarrative);
       } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
         //ToDo: Check we have the correct OBX and not just [0]
-        XhtmlNarrative = GetDiagnosticReportNarrativeFromFT(oReport.ObservationList[0]);
-        var oNarrative = oFhirDataType.GetNarrative("additional", XhtmlNarrative)
-        oDiagReport.SetText(oNarrative);
+        if (oReport.ObservationList != null || oReport.ObservationList.length != 0) {
+          XhtmlNarrative = GetDiagnosticReportNarrativeFromFT(oReport.ObservationList[oReport.ObservationList.length - 1].Value);
+          var oNarrative = oFhirDataType.GetNarrative("additional", XhtmlNarrative)
+          oDiagReport.SetText(oNarrative);
+        } else {
+          throw new Error("Unable to locate OBX segments under the " + ImplementationTypeEnum.CliniSearchRadiology + " messages' OBR segment.");
+        }
       }
 
       oDiagReport.SetMetaProfile([oConstant.fhirResourceProfile.icims.diagnosticReport]);
@@ -264,7 +277,7 @@
           oReport.FillerOrderNumberValue);
       } else if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.sanApps.code.toUpperCase()) {
         ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
-          oFhirTool.PreFixUuid(oModels.DiagnosticReport.Report.FillerOrderNumberUniversalId.toLowerCase()),
+          oFhirTool.PreFixUuid(oReport.FillerOrderNumberUniversalId.toLowerCase()),
           oReport.FillerOrderNumberValue);
       } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
         if (SendingFacilityCode.toUpperCase() == oConstant.organization.dhm.name.toUpperCase()) {
@@ -357,8 +370,8 @@
 
     function FhirObservationFactory(oObservationList, oReportIssuedDateTime, oPatientResourceReference, oFacilityConfig) {
       var oFhirTool = new FhirTools();
-      var oFhirDataType = new FhirDataTypeTool();
       var oConstant = new Constants();
+      var oFhirDataType = new FhirDataTypeTool();
       var oArraySupport = new ArraySupport();
 
       var oDiagnosticReportLogical = {
@@ -387,13 +400,13 @@
             var oObservationResource = FhirObsFactory(oObservation,
               oReportIssuedDateTime.AsXML,
               oPatientResourceReference,
-              ObsCategoryCodeableConcept,
-              oConstant.fhirResourceProfile.icims.observation);
+              ObsCategoryCodeableConcept);
             oDiagnosticReportLogical.ObservationResourceList.push(oObservationResource);
           } else {
             if (!oArraySupport.Contains(SubIdProcessedArray, oObservation.SubId)) {
               var oParentObservation = new ObservationFhirResource();
               oParentObservation.SetId(oFhirTool.GetGuid());
+              oParentObservation.SetMetaProfile([oConstant.fhirResourceProfile.icims.observation]);
               var ObsCodeCoding = oFhirDataType.GetCoding(oObservation.SubId,
                 "https://www.sah.org.au/systems/fhir/observation/procedure-observation", oObservation.SubId);
               var ObsCodeCodeableConcept = oFhirDataType.GetCodeableConcept(ObsCodeCoding);
@@ -406,8 +419,7 @@
                 var oSubObservation = FhirObsFactory(oSubObs,
                   oReportIssuedDateTime.AsXML,
                   oPatientResourceReference,
-                  ObsCategoryCodeableConcept,
-                  oConstant.fhirResourceProfile.icims.observation);
+                  ObsCategoryCodeableConcept);
                 var oSubObservationReference = oFhirDataType.GetReference("Observation", oSubObservation.id, undefined);
                 oParentObservation.AddRelated(oSubObservationReference, "has-member");
                 oDiagnosticReportLogical.SubObservationResourceList.push(oSubObservation);
@@ -420,15 +432,16 @@
       return oDiagnosticReportLogical;
     }
 
-    function FhirObsFactory(oV2Obs, ReportIssuedDateTime, oPatientReference, ObsCategoryCodeableConcept, obsProfileUrl) {
+    function FhirObsFactory(oV2Obs, ReportIssuedDateTime, oPatientReference, ObsCategoryCodeableConcept) {
       if (oV2Obs.DataType == "ST" || oV2Obs.DataType == "NM" || oV2Obs.DataType == "FT") {
         var oFhirTool = new FhirTools();
+        var oConstant = new Constants();
         var oFhirDataType = new FhirDataTypeTool();
         var oObservation = new ObservationFhirResource();
 
         var ObservationId = oFhirTool.GetGuid();
         oObservation.SetId(ObservationId);
-        oObservation.SetMetaProfile([obsProfileUrl]);
+        oObservation.SetMetaProfile([oConstant.fhirResourceProfile.icims.observation]);
         oObservation.SetStatus(oV2Obs.Status);
         oObservation.SetCategory([ObsCategoryCodeableConcept]);
         var ObsCodeCoding = null;
@@ -518,13 +531,18 @@
           TargetReferenceArray.push(oFhirDataType.GetReference("ProcedureRequest", DiagnosticReportLogical.ProcedureRequestResource.id, "ProcedureRequest"));
         }
 
-        for (var i = 0; (i < DiagnosticReportLogical.ObservationResourceList.length); i++) {
-          TargetReferenceArray.push(oFhirDataType.GetReference("Observation", DiagnosticReportLogical.ObservationResourceList[i].id, "Observation"));
+        for (var o = 0; (o < DiagnosticReportLogical.ObservationResourceList.length); o++) {
+          TargetReferenceArray.push(oFhirDataType.GetReference("Observation", DiagnosticReportLogical.ObservationResourceList[o].id, "Observation"));
         }
+
+        for (var s = 0; (s < DiagnosticReportLogical.SubObservationResourceList.length); s++) {
+          TargetReferenceArray.push(oFhirDataType.GetReference("Observation", DiagnosticReportLogical.SubObservationResourceList[s].id, "Observation"));
+        }
+
       }
 
-      for (var i = 0; (i < oBundleLogical.OrganizationResourceList.length); i++) {
-        TargetReferenceArray.push(oFhirDataType.GetReference("Organization", oBundleLogical.OrganizationResourceList[i].id, "Organization " + oBundleLogical.OrganizationResourceList[i].name));
+      for (var OrgIndex = 0; (OrgIndex < oBundleLogical.OrganizationResourceList.length); OrgIndex++) {
+        TargetReferenceArray.push(oFhirDataType.GetReference("Organization", oBundleLogical.OrganizationResourceList[OrgIndex].id, "Organization " + oBundleLogical.OrganizationResourceList[OrgIndex].name));
       }
 
       oProvenance.SetTarget(TargetReferenceArray);
@@ -561,6 +579,7 @@
       BreakPoint;
       var oFhirTool = new FhirTools();
       var oConstant = new Constants();
+      var oArraySupport = new ArraySupport();
       //When sending to a [base]/fhir/Bundle endpoint for testing as a POST
       //you can not have an id, however, when sending to $process-message you must
       var oBundle = new BundleFhirResource();
@@ -571,6 +590,11 @@
       //Add MessageHeader to Bundle
       if (oBundleLogical.MessageHeaderResource != null) {
         oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.MessageHeaderResource.id), oBundleLogical.MessageHeaderResource);
+      }
+
+      //Add Patient to Bundle
+      if (oBundleLogical.PatientResource != null) {
+        oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.PatientResource.id), oBundleLogical.PatientResource);
       }
 
       //DiagnosticReports
@@ -591,19 +615,26 @@
 
         //Add Observations to Bundle
         for (var o = 0; (o < oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList.length); o++) {
+          var ob = oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList[o];
           oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList[o].id), oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList[o]);
+          if (ob.related != null) {
+            for (var q = 0; (q < ob.related.length); q++) {
+              var SubObservationId = ob.related[q].target.reference;
+              var SubObservationResource = oArraySupport.Find(oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList, "id", SubObservationId.split('/')[1]);
+              if (SubObservationResource != null) {
+                oBundle.AddEntry(oFhirTool.PreFixUuid(SubObservationResource.id), SubObservationResource);
+              } else {
+                throw new Error("Unable to locate a sub related Observation referenced by a parent Observation.");
+              }
+            }
+          }
         }
 
-        //Add Sub-Observations to Bundle
-        for (var s = 0; (s < oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList.length); s++) {
-          oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList[s].id), oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList[s]);
-        }
+        // //Add Sub-Observations to Bundle
+        // for (var s = 0; (s < oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList.length); s++) {
+        //   oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList[s].id), oBundleLogical.DiagnosticReportLogicalList[i].SubObservationResourceList[s]);
+        // }
 
-      }
-
-      //Add Patient to Bundle
-      if (oBundleLogical.PatientResource != null) {
-        oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.PatientResource.id), oBundleLogical.PatientResource);
       }
 
       //Add Organizations to Bundle
@@ -636,6 +667,7 @@
       for (var i = 0; (i < BRSplit.length); i++) {
         output = output + oStringSupport.XMLEscape(BRSplit[i]) + "\n";
       }
+      output = output.replace(/\\H\\/g, "<b>").replace(/\\N\\/g, "</b>");//HL7 V2 Highligh Off (Normal Text on)
       output = output + "  </pre>\n</div>";
       return output;
     }

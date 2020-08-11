@@ -1,6 +1,6 @@
 function ArraySupport() {
 
-  //returns a new array of objects filted from the scource array
+  //returns a new array of objects filtered from the source array
   //where the prop == value
   this.Filter = function (arr, prop, value) {
     var result = [];
@@ -16,8 +16,8 @@ function ArraySupport() {
     return result;
   }
 
-  //return the first single object from from the scource array
-  //where the prop == value, or null is none found.
+  //return the first single object from the source array
+  //where the prop == value, or null if none found.
   this.Find = function (arr, prop, value) {
     var o;
     for (var i = 0, iLen = arr.length; i < iLen; i++) {

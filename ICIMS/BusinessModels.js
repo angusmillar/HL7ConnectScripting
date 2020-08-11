@@ -101,7 +101,6 @@
       this.MaxRejectBeforeInterfaceStop = 20;
     }
 
-
     function GetSegmentsListForOBRIndex(oHL7, OBRIndex, TargetSegmentCode) {
       var List = [];
       if (oHL7.SegmentByIndex(OBRIndex).Code !== "OBR") {
@@ -117,7 +116,6 @@
       }
       return List;
     }
-
 
     function DiagnosticReport(oHL7, FacilityConfig) {
       this.Meta = null;
@@ -141,38 +139,6 @@
       }
     }
 
-
-    function DiagnosticReportOLD(oHL7, FacilityConfig) {
-      this.Meta = null;
-      this.Patient = null;
-      this.Report = null;
-      this.ObservationList = null;
-      this.OrderingPractitioner = null;
-      this.DisplayDataLineList = null;
-      this.ObservationList = null;
-
-      //Meta-data
-      this.Meta = new Meta("PathologyPost", oHL7.Segment("MSH", 0));
-
-      //Patient
-      this.Patient = new Patient(oHL7.Segment("PID", 0), FacilityConfig);
-
-      //Patient
-      this.Report = new Report(oHL7.Segment("OBR", 0), FacilityConfig);
-
-      //Practitioner
-      this.OrderingPractitioner = new Practitioner();
-      this.OrderingPractitioner.InflateXCN(oHL7.Segment("OBR", 0).Field(16));
-
-      if (FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
-        var DSPList = oHL7.SegmentQuery("DSP");
-        this.DisplayDataLineList = GetDisplayDataList(DSPList, FacilityConfig);
-      } else {
-        var OBXList = oHL7.SegmentQuery("OBX");
-        this.ObservationList = GetObservationList(OBXList, FacilityConfig);
-      }
-
-    }
 
     //==============================================================================
     // Support Classes
@@ -561,8 +527,10 @@
     function GetObservationList(OBXList, oFacilityConfig) {
       var ObservationList = [];
       for (var i = 0; (i < OBXList.length); i++) {
+        Breakpoint;
         if (oFacilityConfig.SiteContext == SiteContextEnum.SAH && OBXList[i].Field(2).AsString == "XCN" && OBXList[i].Field(3).Component(1).AsString == "LS") {
           //Custom logic for SAH
+          Breakpoint;
           SahOBXLeadSurgeonProcessing(ObservationList, OBXList[i]);
         } else {
           var obs = new Observation(OBXList[i]);

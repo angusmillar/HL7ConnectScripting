@@ -81,7 +81,8 @@ function Constants() {
       observation: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-observation",
       organization: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-organization",
       provenance: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-provenance",
-      procedureRequest: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-procedureRequest"
+      procedureRequest: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-procedureRequest",
+      Practitioner: this.baseUrl.icims.resourceProfile + "/StructureDefinition/icims-practitioner"
     }
   };
 
