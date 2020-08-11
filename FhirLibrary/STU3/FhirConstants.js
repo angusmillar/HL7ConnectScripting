@@ -12,7 +12,9 @@ function FhirConstants() {
     AllergyIntolerance: "AllergyIntolerance",
     Provenance: "Provenance",
     Bundle: "Bundle",
-    Parameters: "Parameters"
+    Parameters: "Parameters",
+    ProcedureRequest: "ProcedureRequest",
+    Practitioner: "Practitioner"
   };
 
 }
