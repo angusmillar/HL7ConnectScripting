@@ -613,7 +613,7 @@
           oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].ProcedureRequestResource.id), oBundleLogical.DiagnosticReportLogicalList[i].ProcedureRequestResource);
         }
 
-        //Add Observations to Bundle
+        //Add Observations to Bundle        
         for (var o = 0; (o < oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList.length); o++) {
           var ob = oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList[o];
           oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList[o].id), oBundleLogical.DiagnosticReportLogicalList[i].ObservationResourceList[o]);
