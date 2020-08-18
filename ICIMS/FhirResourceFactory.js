@@ -34,6 +34,7 @@
         MessageHeaderResource: null,
         PatientResource: null,
         OrganizationResourceList: [],
+        PractitionerResourceList: [],
         DiagnosticReportLogicalList: [],
         ProvenanceResource: null
       }
@@ -52,30 +53,53 @@
 
         var DiagnosticReportLogical = {
           DiagnosticReportResource: null,
-          OrderingPractitionerResource: null,
+          OrderingPractitionerResourceReference: null,
+          PrincipalResultInterpreterPractitionerResourceReference: null,
           ProcedureRequestResource: null,
           ObservationResourceList: [],
           SubObservationResourceList: []
         }
 
         //Observation Resource       
-        var DiagnosticReportLogical = FhirObservationFactory(CurrentReport.ObservationList, CurrentReport.ReportIssuedDateTime, oPatientResourceReference, oModels.FacilityConfig);
+        if (oModels.FacilityConfig.Implementation != ImplementationTypeEnum.CliniSearchPathology) {
+          if (oModels.FacilityConfig.Implementation != ImplementationTypeEnum.CliniSearchRadiology) {
+            var DiagnosticReportLogical = FhirObservationFactory(CurrentReport.ObservationList, CurrentReport.ReportIssuedDateTime, oPatientResourceReference, oModels.FacilityConfig);
+          }
+        }
 
-        //OrderingPractitioner Resource
-        DiagnosticReportLogical.OrderingPractitionerResource = FhirPractitionerFactory(CurrentReport.OrderingPractitioner);
-        var oPractitionerResourceReference = null;
-        if (DiagnosticReportLogical.OrderingPractitionerResource != null) {
-          oPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, DiagnosticReportLogical.OrderingPractitionerResource.id, CurrentReport.OrderingPractitioner.FormattedName);
+        BreakPoint;
+        //OrderingPractitioner Resource            
+        var oTargetOrderingPractitionerResource = FindPractitionerResourceIdByMedicareProviderNumber(BundleLogical.PractitionerResourceList, CurrentReport.OrderingPractitioner.MedicareProviderNumber);
+        if (oTargetOrderingPractitionerResource == null) {
+          oTargetOrderingPractitionerResource = FhirPractitionerFactory(CurrentReport.OrderingPractitioner);
+          if (oTargetOrderingPractitionerResource != null) {
+            BundleLogical.PractitionerResourceList.push(oTargetOrderingPractitionerResource);
+          }
+        }
+        if (oTargetOrderingPractitionerResource != null) {
+          DiagnosticReportLogical.OrderingPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, oTargetOrderingPractitionerResource.id, "Ordering Practitioner:" + CurrentReport.OrderingPractitioner.FormattedName);
+        }
+
+        //PrincipalResultInterpreter Practitioner Resource        
+        var oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByMedicareProviderNumber(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.MedicareProviderNumber);
+        if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
+          oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter);
+          if (oTargetPrincipalResultInterpreterPractitionerResource != null) {
+            BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
+          }
+        }
+        if (oTargetPrincipalResultInterpreterPractitionerResource != null) {
+          DiagnosticReportLogical.PrincipalResultInterpreterPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, oTargetPrincipalResultInterpreterPractitionerResource.id, "Principal Result Interpreter: " + CurrentReport.PrincipalResultInterpreter.FormattedName);
         }
 
         //ProcedureRequest Resource
         var oProcedureRequestResourceReference = null;
         if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology || oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
-          DiagnosticReportLogical.ProcedureRequestResource = FhirProcedureRequestFactory(oPatientResourceReference, oPractitionerResourceReference);
+          DiagnosticReportLogical.ProcedureRequestResource = FhirProcedureRequestFactory(oPatientResourceReference, DiagnosticReportLogical.OrderingPractitionerResourceReference);
           var oProcedureRequestResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.ProcedureRequest, DiagnosticReportLogical.ProcedureRequestResource.id, oFhirConstants.ResourceName.ProcedureRequest);
         }
         //DiagnosticReport Resource       
-        DiagnosticReportLogical.DiagnosticReportResource = FhirDiagnosticReportFactory(CurrentReport, oModels.DiagnosticReport.Meta.SendingFacility, oModels.DiagnosticReport.Meta.SendingApplication, oPatientResourceReference, oProcedureRequestResourceReference, oPractitionerResourceReference, DiagnosticReportLogical.ObservationResourceList, oModels.FacilityConfig);
+        DiagnosticReportLogical.DiagnosticReportResource = FhirDiagnosticReportFactory(CurrentReport, oModels.DiagnosticReport.Meta.SendingFacility, oModels.DiagnosticReport.Meta.SendingApplication, oPatientResourceReference, oProcedureRequestResourceReference, DiagnosticReportLogical.OrderingPractitionerResourceReference, DiagnosticReportLogical.PrincipalResultInterpreterPractitionerResourceReference, DiagnosticReportLogical.ObservationResourceList, oModels.FacilityConfig);
         BundleLogical.DiagnosticReportLogicalList.push(DiagnosticReportLogical);
 
       }
@@ -86,17 +110,6 @@
         FocusReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.DiagnosticReport, BundleLogical.DiagnosticReportLogicalList[k].DiagnosticReportResource.id, oFhirConstants.ResourceName.DiagnosticReport));
       }
       BundleLogical.MessageHeaderResource.SetFocus(FocusReferenceArray);
-
-      // var DiagnosticReportIdArray = [];
-      // var FocusArray = [];
-      // for (var i = 0; (i < oModels.DiagnosticReport.ReportList.length); i++) {
-      //   var DiagnosticReportId = oFhirTool.GetGuid();
-      //   DiagnosticReportIdArray.push(DiagnosticReportId);
-      //   var oFocusReference = oFhirDataType.GetReference("DiagnosticReport", DiagnosticReportId, "DiagnosticReport");
-      //   FocusArray.push(oFocusReference);
-      // }
-      //oMsgHeader.SetFocus(FocusArray);
-
 
       //Icims Organization Resource
       BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(oConstant.organization.icims.id, oConstant.organization.icims.name, oConstant.organization.icims.aliasList));
@@ -254,7 +267,7 @@
       return oProcedureRequestResource;
     }
 
-    function FhirDiagnosticReportFactory(oReport, SendingFacilityCode, SendingApplicationCode, oPatientResourceReference, oProcedureRequestResourceReference, oPractitionerResourceReference, oObservationResourceList, oFacilityConfig) {
+    function FhirDiagnosticReportFactory(oReport, SendingFacilityCode, SendingApplicationCode, oPatientResourceReference, oProcedureRequestResourceReference, oOrderingPractitionerResourceReference, oPrincipalResultInterpreterResourceReference, oObservationResourceList, oFacilityConfig) {
       var oFhirTool = new FhirTools();
       var oFhirDataType = new FhirDataTypeTool();
       var oConstant = new Constants();
@@ -344,15 +357,22 @@
       //Add Performer Practitioner which is incorrect if this is a Requesting Practitioner   
       if (oFacilityConfig.Implementation != ImplementationTypeEnum.CliniSearchRadiology) {
         if (oFacilityConfig.Implementation != ImplementationTypeEnum.CliniSearchPathology) {
-          if (oPractitionerResourceReference != null) {
-            var oPerformerRoleCodeableConcept = undefined;
+          if (oOrderingPractitionerResourceReference != null) {
+            var oOrderingPerformerRoleCodeableConcept = undefined;
             if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.careZone.code.toUpperCase()) {
-              var oPerformerRoleCoding = oFhirDataType.GetCoding("310512001", "http://snomed.info/sct", "Medical oncologist");
-              oPerformerRoleCodeableConcept = oFhirDataType.GetCodeableConcept(oPerformerRoleCoding, undefined);
+              var oOrderingPerformerRoleCoding = oFhirDataType.GetCoding("310512001", "http://snomed.info/sct", "Medical oncologist");
+              oOrderingPerformerRoleCodeableConcept = oFhirDataType.GetCodeableConcept(oOrderingPerformerRoleCoding, undefined);
             }
-            oDiagReport.AddPerformer(oPerformerRoleCodeableConcept, oPractitionerResourceReference);
+            oDiagReport.AddPerformer(oOrderingPerformerRoleCodeableConcept, oOrderingPractitionerResourceReference);
           }
         }
+      }
+
+      BreakPoint;
+      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology && oPrincipalResultInterpreterResourceReference != null) {
+        var oResultInterpreterPerformerRoleCoding = oFhirDataType.GetCoding("78729002", "http://snomed.info/sct", "Diagnostic radiologist");
+        var oResultInterpreterPerformerRoleCodeableConcept = oFhirDataType.GetCodeableConcept(oResultInterpreterPerformerRoleCoding, undefined);
+        oDiagReport.AddPerformer(oResultInterpreterPerformerRoleCodeableConcept, oPrincipalResultInterpreterResourceReference)
       }
 
       //Add All the DiagnosticReportObservationResourceList References to the DiagnosticReport Resource
@@ -376,6 +396,7 @@
       //     }
       //   }
       // }
+
       return oDiagReport
     }
 
@@ -386,13 +407,24 @@
       var oFhirDataType = new FhirDataTypeTool();
       var oArraySupport = new ArraySupport();
 
+
       var oDiagnosticReportLogical = {
         DiagnosticReportResource: null,
-        OrderingPractitionerResource: null,
+        OrderingPractitionerResourceReference: null,
+        PrincipalResultInterpreterPractitionerResourceReference: null,
         ProcedureRequestResource: null,
         ObservationResourceList: [],
         SubObservationResourceList: []
       }
+
+      // var oDiagnosticReportLogical = {
+      //   DiagnosticReportResource: null,
+      //   OrderingPractitionerResource: null,
+      //   PrincipalResultInterpreterPractitionerResource: null,
+      //   ProcedureRequestResource: null,
+      //   ObservationResourceList: [],
+      //   SubObservationResourceList: []
+      // }
 
       var SubIdProcessedArray = [];
       for (var o = 0; (o < oObservationList.length); o++) {
@@ -536,10 +568,15 @@
         var DiagnosticReportLogical = oBundleLogical.DiagnosticReportLogicalList[i];
         TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.DiagnosticReport, DiagnosticReportLogical.DiagnosticReportResource.id, oFhirConstants.ResourceName.DiagnosticReport));
 
-        if (DiagnosticReportLogical.OrderingPractitionerResource != null) {
-          BreakPoint;
-          TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, DiagnosticReportLogical.OrderingPractitionerResource.id, oFhirConstants.ResourceName.Practitioner));
-        }
+
+        // if (DiagnosticReportLogical.OrderingPractitionerResource != null) {          
+        //   TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, DiagnosticReportLogical.OrderingPractitionerResource.id, oFhirConstants.ResourceName.Practitioner));
+        // }
+
+        // if (DiagnosticReportLogical.PrincipalResultInterpreterPractitionerResource != null) {
+        //   BreakPoint;
+        //   TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, DiagnosticReportLogical.PrincipalResultInterpreterPractitionerResource.id, oFhirConstants.ResourceName.Practitioner));
+        // }
 
         if (DiagnosticReportLogical.ProcedureRequestResource != null) {
           TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.ProcedureRequest, DiagnosticReportLogical.ProcedureRequestResource.id, oFhirConstants.ResourceName.ProcedureRequest));
@@ -553,6 +590,10 @@
           TargetReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.Observation, DiagnosticReportLogical.SubObservationResourceList[s].id, oFhirConstants.ResourceName.Observation));
         }
 
+      }
+
+      for (var p = 0; (p < oBundleLogical.PractitionerResourceList.length); p++) {
+        TargetReferenceArray.push(oFhirDataType.GetReference(oBundleLogical.PractitionerResourceList[p].resourceType, oBundleLogical.PractitionerResourceList[p].id, oBundleLogical.PractitionerResourceList[p].resourceType));
       }
 
       for (var OrgIndex = 0; (OrgIndex < oBundleLogical.OrganizationResourceList.length); OrgIndex++) {
@@ -617,11 +658,6 @@
         //Add DiagnosticReport to Bundle
         oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].DiagnosticReportResource.id), oBundleLogical.DiagnosticReportLogicalList[i].DiagnosticReportResource);
 
-        //Add Practitioner to Bundle
-        if (oBundleLogical.DiagnosticReportLogicalList[i].OrderingPractitionerResource != null) {
-          oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].OrderingPractitionerResource.id), oBundleLogical.DiagnosticReportLogicalList[i].OrderingPractitionerResource);
-        }
-
         //Add ProcedureRequest to Bundle  
         if (oBundleLogical.DiagnosticReportLogicalList[i].ProcedureRequestResource != null) {
           oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.DiagnosticReportLogicalList[i].ProcedureRequestResource.id), oBundleLogical.DiagnosticReportLogicalList[i].ProcedureRequestResource);
@@ -644,6 +680,11 @@
             }
           }
         }
+      }
+
+      //Add Practitioner to Bundle
+      for (var p = 0; (p < oBundleLogical.PractitionerResourceList.length); p++) {
+        oBundle.AddEntry(oFhirTool.PreFixUuid(oBundleLogical.PractitionerResourceList[p].id), oBundleLogical.PractitionerResourceList[p]);
       }
 
       //Add Organizations to Bundle
@@ -680,5 +721,21 @@
       output = output + "  </pre>\n</div>";
       return output;
     }
+
+    function FindPractitionerResourceIdByMedicareProviderNumber(oPractitionerResourceList, MedicareProviderNumber) {
+      for (var r = 0; (r < oPractitionerResourceList.length); r++) {
+        if (oPractitionerResourceList[r].identifier != null && oPractitionerResourceList[r].identifier != undefined) {
+          for (var i = 0; (i < oPractitionerResourceList[r].identifier.length); i++) {
+            if (oPractitionerResourceList[r].identifier[i].system == "http://ns.electronichealth.net.au/id/medicare-provider-number") {
+              if (oPractitionerResourceList[r].identifier[i].value == MedicareProviderNumber) {
+                return oPractitionerResourceList[r];
+              }
+            }
+          }
+        }
+      }
+      return null;
+    }
+
 
   }

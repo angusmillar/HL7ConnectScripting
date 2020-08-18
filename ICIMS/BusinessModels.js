@@ -135,7 +135,7 @@
         var DSPList = new GetSegmentsListForOBRIndex(oHL7, OBR.SegmentIndex, "DSP");
 
         //Report
-        this.ReportList.push(new Report(oHL7.Segment("OBR", 0), OBXList, DSPList, FacilityConfig));
+        this.ReportList.push(new Report(oHL7.Segment("OBR", i), OBXList, DSPList, FacilityConfig));
       }
     }
 
@@ -390,6 +390,7 @@
       this.CollectionDateTime = null;
       this.ReportIssuedDateTime = null;
       this.OrderingPractitioner = null;
+      this.PrincipalResultInterpreter = null;
       this.ObservationList = [];
       this.DisplayDataLineList = [];
 
@@ -403,6 +404,10 @@
       this.OrderingPractitioner = new Practitioner();
       this.OrderingPractitioner.InflateXCN(oOBR.Field(16));
 
+      Breakpoint;
+      this.PrincipalResultInterpreter = new Practitioner();
+      this.PrincipalResultInterpreter.InflateNDL(oOBR.Field(32));
+
       //Get the Observations and DisplayDataLineList
       if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
         this.DisplayDataLineList = GetDisplayDataList(DSPList, oFacilityConfig);
@@ -410,66 +415,6 @@
         this.ObservationList = GetObservationList(OBXList, oFacilityConfig);
       }
 
-
-      switch (oOBR.Field(25).AsString) {
-        case "F":
-          this.Status = "final";
-          break;
-        case "C":
-          this.Status = "corrected";
-          break;
-        case "P":
-          this.Status = "preliminary";
-          break;
-        case "X":
-          this.Status = "cancelled";
-          break;
-        default:
-          throw new Error("The Report status found in OBR-25 was not expected, value is : " + oOBR.Field(25).AsString);
-      }
-
-      this.DiagServSectId = V2Support.Set(oOBR.Field(24));
-
-      this.ReportCode = V2Support.Set(oOBR.Field(4).Component(1));
-      this.ReportCodeDescription = V2Support.Set(oOBR.Field(4).Component(2));
-      this.ReportCodeSystem = V2Support.Set(oOBR.Field(4).Component(3));
-
-      try {
-        this.CollectionDateTime = DateAndTimeFromHL7(oOBR.Field(7).AsString);
-      }
-      catch (Exec) {
-        throw new Error("Collection Date & Time in OBR-7 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(7).AsString);
-      }
-
-      try {
-        this.ReportIssuedDateTime = DateAndTimeFromHL7(oOBR.Field(22).AsString);
-      }
-      catch (Exec) {
-        throw new Error("Results Rpt/Status Change Date & Time in OBR-22 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(22).AsString);
-      }
-    }
-
-
-
-    function ReportOLD(oOBR) {
-      this.FillerOrderNumberValue = null;
-      this.FillerOrderNumberNamespaceId = null;
-      this.FillerOrderNumberUniversalId = null;
-      this.Status = null;
-      this.DiagServSectId = null;
-
-      this.ReportCode = null;
-      this.ReportCodeDescription = null;
-      this.ReportCodeSystem = null;
-
-      this.CollectionDateTime = null;
-      this.ReportIssuedDateTime = null;
-
-      var V2Support = new HL7V2Support();
-
-      this.FillerOrderNumberValue = V2Support.Set(oOBR.Field(3).Component(1));
-      this.FillerOrderNumberNamespaceId = V2Support.Set(oOBR.Field(3).Component(2));
-      this.FillerOrderNumberUniversalId = V2Support.Set(oOBR.Field(3).Component(3));
 
       switch (oOBR.Field(25).AsString) {
         case "F":
@@ -521,7 +466,6 @@
       }
       return DisplayDataLineList;
     }
-
 
     //Loops through each OBX segment and creates an array of Observation object instances
     function GetObservationList(OBXList, oFacilityConfig) {
