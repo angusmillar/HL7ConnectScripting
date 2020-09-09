@@ -5,12 +5,15 @@ var SiteContextEnum = {
   RMH: "RMH"
 };
 
+
 //enum for Implementation
 var ImplementationTypeEnum = {
-  None: "NONE",
-  CliniSearch: "CLINISEARCH",
-  Theater: "THEATER",
-  CareZone: "CAREZONE"
+  CLINISEARCHPATHOLOGY: "CLINISEARCHPATHOLOGY",
+  CLINISEARCHRADIOLOGY: "CLINISEARCHRADIOLOGY",
+  CLINISEARCHADT: "CLINISEARCHADT",
+  ICIMSADT: "ICIMSADT",
+  THEATER: "THEATER",
+  CAREZONE: "CAREZONE"
 };
 
 //enum for Environment
@@ -25,13 +28,7 @@ function HL7CParameterSupport(oLogger, Parameter) {
   var ParameterMask = "[SiteCode]|[EnvironmentCode]|{ImplementationCode}";
   this.SiteCode = null;
   this.Environment = null;
-  this.Implementation = "NONE";
-
-  // this.EnvironmentCodes = {
-  //   TEST: "TEST",
-  //   DEV: "DEV",
-  //   PROD: "PROD"
-  // };
+  this.Implementation = null;
 
   if (Parameter == undefined || Parameter == null) {
     throw new Error("The interface's script parameter is null or empty. It must conform to the following mask: " + ParameterMask);
@@ -50,6 +47,10 @@ function HL7CParameterSupport(oLogger, Parameter) {
       var ErrorMsg = "The interface's script parameter appears to have no SiteCode in the mask : " + ParameterMask;
       oLogger.Log(ErrorMsg);
       throw new Error(ErrorMsg);
+    } else if (this.SiteCode in SiteContextEnum === false) {
+      var ErrorMsg = "The interface's script parameter appears to have no SiteCode must be one of (RMH, SAH)";
+      oLogger.Log(ErrorMsg);
+      throw new Error(ErrorMsg);
     }
 
     //EnvironmentCode
@@ -65,6 +66,8 @@ function HL7CParameterSupport(oLogger, Parameter) {
       throw new Error(ErrorMsg);
     } else if (this.Environment in EnvironmentTypeEnum === false) {
       var ErrorMsg = "The interface's script parameter appears to have no EnvironmentCode must be one of (Dev, Test, Prod)";
+      oLogger.Log(ErrorMsg);
+      throw new Error(ErrorMsg);
     }
 
     //ImplementationCode (Optional)
@@ -80,6 +83,8 @@ function HL7CParameterSupport(oLogger, Parameter) {
       throw new Error(ErrorMsg);
     } else if (this.Implementation in ImplementationTypeEnum === false) {
       var ErrorMsg = "The interface's script parameter appears to have no ImplementationCode";
+      oLogger.Log(ErrorMsg);
+      throw new Error(ErrorMsg);
     }
   }
 

@@ -310,7 +310,7 @@
 
 
         var oXADAdressTarget = null;
-        if (FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+        if (FacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
           oXADAdressTarget = oSeg.Field(11);
         } else {
           var Dic = ResolveAddressTypeFromXADList(oSeg.Field(11), AddressTypeArray);
@@ -409,7 +409,7 @@
       this.PrincipalResultInterpreter.InflateNDL(oOBR.Field(32));
 
       //Get the Observations and DisplayDataLineList
-      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
         this.DisplayDataLineList = GetDisplayDataList(DSPList, oFacilityConfig);
       } else {
         this.ObservationList = GetObservationList(OBXList, oFacilityConfig);
@@ -471,10 +471,8 @@
     function GetObservationList(OBXList, oFacilityConfig) {
       var ObservationList = [];
       for (var i = 0; (i < OBXList.length); i++) {
-        Breakpoint;
         if (oFacilityConfig.SiteContext == SiteContextEnum.SAH && OBXList[i].Field(2).AsString == "XCN" && OBXList[i].Field(3).Component(1).AsString == "LS") {
-          //Custom logic for SAH
-          Breakpoint;
+          //Custom logic for SAH        
           SahOBXLeadSurgeonProcessing(ObservationList, OBXList[i]);
         } else {
           var obs = new Observation(OBXList[i]);

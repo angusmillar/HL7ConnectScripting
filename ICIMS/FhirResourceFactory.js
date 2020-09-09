@@ -61,8 +61,8 @@
         }
 
         //Observation Resource       
-        if (oModels.FacilityConfig.Implementation != ImplementationTypeEnum.CliniSearchPathology) {
-          if (oModels.FacilityConfig.Implementation != ImplementationTypeEnum.CliniSearchRadiology) {
+        if (oModels.FacilityConfig.Implementation != ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
+          if (oModels.FacilityConfig.Implementation != ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
             var DiagnosticReportLogical = FhirObservationFactory(CurrentReport.ObservationList, CurrentReport.ReportIssuedDateTime, oPatientResourceReference, oModels.FacilityConfig);
           }
         }
@@ -94,7 +94,7 @@
 
         //ProcedureRequest Resource
         var oProcedureRequestResourceReference = null;
-        if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology || oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+        if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY || oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
           DiagnosticReportLogical.ProcedureRequestResource = FhirProcedureRequestFactory(oPatientResourceReference, DiagnosticReportLogical.OrderingPractitionerResourceReference);
           var oProcedureRequestResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.ProcedureRequest, DiagnosticReportLogical.ProcedureRequestResource.id, oFhirConstants.ResourceName.ProcedureRequest);
         }
@@ -113,7 +113,7 @@
 
       //Icims Organization Resource
       BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(oConstant.organization.icims.id, oConstant.organization.icims.name, oConstant.organization.icims.aliasList));
-      if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+      if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
         //DHM Organization Resource
         BundleLogical.OrganizationResourceList.push(FhirOrganizationFactory(oConstant.organization.dhm.id, oConstant.organization.dhm.name, oConstant.organization.dhm.aliasList));
       } else {
@@ -141,7 +141,7 @@
       oMsgHeader.SetMetaProfile([oConstant.fhirResourceProfile.icims.messageHeader]);
       var HeaderEventCoding = oFhirDataType.GetCoding("diagnosticreport-provide", "http://hl7.org/fhir/message-events", "diagnosticreport-provide");
       oMsgHeader.SetEvent(HeaderEventCoding);
-      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology || oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY || oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
         oMsgHeader.SetDestination(oConstant.organization.sah.application.cliniSearch.code, undefined, oFacilityConfig.EndPoint);
       } else {
         oMsgHeader.SetDestination(oConstant.organization.icims.name, undefined, oFacilityConfig.EndPoint);
@@ -150,7 +150,7 @@
       var oReceiverReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Organization, oConstant.organization.icims.id, oConstant.organization.icims.name);
       oMsgHeader.SetReceiver(oReceiverReference);
       var oSenderReference = null;
-      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
         oSenderReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Organization, oConstant.organization.dhm.id, oConstant.organization.dhm.name);
       } else {
         oSenderReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Organization, oConstant.organization.sah.id, oConstant.organization.sah.name);
@@ -279,14 +279,14 @@
         XhtmlNarrative = GetDiagnosticReportNarrative(oReport.DisplayDataLineList);
         var oNarrative = oFhirDataType.GetNarrative("additional", XhtmlNarrative)
         oDiagReport.SetText(oNarrative);
-      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
         //ToDo: Check we have the correct OBX and not just [0]
         if (oReport.ObservationList != null || oReport.ObservationList.length != 0) {
           XhtmlNarrative = GetDiagnosticReportNarrativeFromFT(oReport.ObservationList[oReport.ObservationList.length - 1].Value);
           var oNarrative = oFhirDataType.GetNarrative("additional", XhtmlNarrative)
           oDiagReport.SetText(oNarrative);
         } else {
-          throw new Error("Unable to locate OBX segments under the " + ImplementationTypeEnum.CliniSearchRadiology + " messages' OBR segment.");
+          throw new Error("Unable to locate OBX segments under the " + ImplementationTypeEnum.CLINISEARCHRADIOLOGY + " messages' OBR segment.");
         }
       }
 
@@ -303,15 +303,15 @@
         ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
           oFhirTool.PreFixUuid(oReport.FillerOrderNumberUniversalId.toLowerCase()),
           oReport.FillerOrderNumberValue);
-      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
         if (SendingFacilityCode.toUpperCase() == oConstant.organization.dhm.name.toUpperCase()) {
           ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
             oConstant.organization.dhm.codeSystem.FillerOrderNumber,
             oReport.FillerOrderNumberValue);
         } else {
-          throw new Error("Unable to resolve where the " + ImplementationTypeEnum.CliniSearchPathology + " message has come to format the FillerOrderNumber.");
+          throw new Error("Unable to resolve where the " + ImplementationTypeEnum.CLINISEARCHPATHOLOGY + " message has come to format the FillerOrderNumber.");
         }
-      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
         ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
           oConstant.organization.sah.application.sanRad.codeSystem.FillerOrderNumber,
           oReport.FillerOrderNumberValue);
@@ -322,7 +322,7 @@
       oDiagReport.SetIdentifierArray([ReportIdentifier]);
 
       //This is the correct way to set the Requesting Practitioner
-      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology || oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY || oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
         if (oProcedureRequestResourceReference != null) {
           oDiagReport.AddBasedOn(oProcedureRequestResourceReference);
         }
@@ -335,9 +335,9 @@
       oDiagReport.SetCategory(oCategoryCodeableConcept);
 
       var oCodeCoding = null;
-      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology && SendingFacilityCode.toUpperCase() == oConstant.organization.dhm.name.toUpperCase()) {
+      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY && SendingFacilityCode.toUpperCase() == oConstant.organization.dhm.name.toUpperCase()) {
         oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.dhm.codeSystem.ReportPanel, oReport.ReportCodeDescription);
-      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
         oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.sah.application.sanRad.codeSystem.ReportPanel, oReport.ReportCodeDescription);
       } else {
         if (oReport.ReportCode == null && oReport.ReportCodeDescription != null) {
@@ -355,8 +355,8 @@
       oDiagReport.SetIssued(oFhirTool.FhirDateTimeFormat(oReport.ReportIssuedDateTime.AsXML));
 
       //Add Performer Practitioner which is incorrect if this is a Requesting Practitioner   
-      if (oFacilityConfig.Implementation != ImplementationTypeEnum.CliniSearchRadiology) {
-        if (oFacilityConfig.Implementation != ImplementationTypeEnum.CliniSearchPathology) {
+      if (oFacilityConfig.Implementation != ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
+        if (oFacilityConfig.Implementation != ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
           if (oOrderingPractitionerResourceReference != null) {
             var oOrderingPerformerRoleCodeableConcept = undefined;
             if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.careZone.code.toUpperCase()) {
@@ -369,7 +369,7 @@
       }
 
       BreakPoint;
-      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology && oPrincipalResultInterpreterResourceReference != null) {
+      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY && oPrincipalResultInterpreterResourceReference != null) {
         var oResultInterpreterPerformerRoleCoding = oFhirDataType.GetCoding("78729002", "http://snomed.info/sct", "Diagnostic radiologist");
         var oResultInterpreterPerformerRoleCodeableConcept = oFhirDataType.GetCodeableConcept(oResultInterpreterPerformerRoleCoding, undefined);
         oDiagReport.AddPerformer(oResultInterpreterPerformerRoleCodeableConcept, oPrincipalResultInterpreterResourceReference)
@@ -430,9 +430,9 @@
       for (var o = 0; (o < oObservationList.length); o++) {
         var oObservation = oObservationList[o];
 
-        if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+        if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
           var ObsCategoryCoding = oFhirDataType.GetCoding("laboratory", "http://hl7.org/fhir/observation-category", "Laboratory");
-        } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+        } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
           var ObsCategoryCoding = oFhirDataType.GetCoding("RAD", "http://hl7.org/fhir/observation-category", "Radiology");
         } else {
           var ObsCategoryCoding = oFhirDataType.GetCoding("procedure", "http://hl7.org/fhir/observation-category", "Procedure");
@@ -614,11 +614,11 @@
       oProvenance.SetAgent(undefined, whoReference, onBehalfOfReference);
 
       var messageControlIdIdentifier = null;
-      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+      if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
         messageControlIdIdentifier = oFhirDataType.GetIdentifier("official", undefined,
           oConstant.organization.dhm.codeSystem.messageControlId, MessageControlID);
 
-      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
         messageControlIdIdentifier = oFhirDataType.GetIdentifier("official", undefined,
           oConstant.organization.sah.application.sanRad.codeSystem.messageControlId, MessageControlID);
       } else {

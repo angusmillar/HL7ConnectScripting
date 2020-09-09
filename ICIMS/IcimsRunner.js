@@ -63,11 +63,11 @@
         //Environment Switch
         switch (oHL7CParameterSupport.Environment) {
           case EnvironmentTypeEnum.DEV:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHADT) {
               FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
               FacilityConfiguration.AuthorizationToken = "Basic NotRequired";
               FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
-            } else {
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.ICIMSADT) {
               FacilityConfiguration.EndPoint = "http://localhost:60823/api/mock";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
               FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
@@ -75,11 +75,11 @@
             break;
 
           case EnvironmentTypeEnum.TEST:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHADT) {
               FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9001/adt"
               FacilityConfiguration.AuthorizationToken = "";
               FacilityConfiguration.NameOfInterfaceRunningScript = "ADT-CliniSearch-Test";
-            } else {
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.ICIMSADT) {
               FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com/staging/api/pas_sah.py"
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
               FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
@@ -87,11 +87,11 @@
             break;
 
           case EnvironmentTypeEnum.PROD:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHADT) {
               FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9001/adt"
               FacilityConfiguration.AuthorizationToken = "";
               FacilityConfiguration.NameOfInterfaceRunningScript = "ADT-CliniSearch-Prod";
-            } else {
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.ICIMSADT) {
               FacilityConfiguration.EndPoint = "http://icimsprod01.sah.com/staging/api/pas_sah.py"
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
               FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsScriptOutbound";
@@ -295,15 +295,3 @@
     }
   }
 
-
-//======= Global ===============================================================
-
-//enum of the sites configured for this script.
-//Add to this list as new sites are brought on board.
-
-//Enum for Site Context.
-// var SiteContextEnum = {
-//   /** RMH */
-//   RMH: "RMH",
-//   SAH: "SAH"
-// };

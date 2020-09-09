@@ -27,11 +27,11 @@
         //Environment Switch
         switch (oHL7CParameterSupport.Environment) {
           case EnvironmentTypeEnum.DEV:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
               FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
               FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-ClinicalReports-Outbound";
-            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
               FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
               FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-ClinicalReports-Outbound";
@@ -44,12 +44,12 @@
             break;
 
           case EnvironmentTypeEnum.TEST:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
               FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Pathology-CliniSearch-Test";
-            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
-              FacilityConfiguration.EndPoint = "??";
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
+              FacilityConfiguration.EndPoint = "http://icimsdev01.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Test";
             } else {
@@ -61,11 +61,11 @@
             break;
 
           case EnvironmentTypeEnum.PROD:
-            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchPathology) {
+            if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
               FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Pathology-CliniSearch-Prod";
-            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CliniSearchRadiology) {
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
               FacilityConfiguration.EndPoint = "??";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Prod";
@@ -284,23 +284,23 @@
 
 //enum of the sites configured for this script.
 //Add to this list as new sites are brought on board.
-var SiteContextEnum = {
-  SAH: "SAH",
-  RMH: "RMH"
-};
+// var SiteContextEnum = {
+//   SAH: "SAH",
+//   RMH: "RMH"
+// };
 
 //enum for Implementation
-var ImplementationTypeEnum = {
-  None: "NONE",
-  CliniSearchPathology: "CLINISEARCHPATHOLOGY",
-  CliniSearchRadiology: "CLINISEARCHRADIOLOGY",
-  Theater: "THEATER",
-  CareZone: "CAREZONE"
-};
+// var ImplementationTypeEnum = {
+//   None: "NONE",
+//   CLINISEARCHPATHOLOGY: "CLINISEARCHPATHOLOGY",
+//   CLINISEARCHRADIOLOGY: "CLINISEARCHRADIOLOGY",
+//   Theater: "THEATER",
+//   CareZone: "CAREZONE"
+// };
 
 //enum for Environment
-var EnvironmentTypeEnum = {
-  DEV: "DEV",
-  TEST: "TEST",
-  PROD: "PROD"
-};
+// var EnvironmentTypeEnum = {
+//   DEV: "DEV",
+//   TEST: "TEST",
+//   PROD: "PROD"
+// };
