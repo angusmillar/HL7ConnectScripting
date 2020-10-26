@@ -429,6 +429,12 @@
         case "X":
           this.Status = "cancelled";
           break;
+        case "S":
+          this.Status = "partial";
+          break;
+        case "D":
+          this.Status = "cancelled";
+          break;
         default:
           throw new Error("The Report status found in OBR-25 was not expected, value is : " + oOBR.Field(25).AsString);
       }
@@ -628,6 +634,12 @@
               this.Status = "preliminary";
             case "D":
               this.Status = "entered-in-error";
+              break;
+            case "S":
+              this.Status = "unknown";
+              break;
+            case "D":
+              this.Status = "cancelled";
               break;
             default:
               throw new Error("The Observation status found in OBX-11 of the OBX segment index " + this.Index + " was not expected, value is : " + oOBX.Field(11).AsString + ", allowed values are (F,C,D,P).");
