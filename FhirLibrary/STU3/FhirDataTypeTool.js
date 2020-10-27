@@ -100,7 +100,12 @@ function FhirDataTypeTool() {
 
   function Reference(resourceType, reference, display) {
     var ref = new function () { };
-    ref.reference = FhirTool.SetFhir(resourceType + "/" + reference);
+    if (FhirTool.SetFhir(resourceType) != undefined && FhirTool.SetFhir(reference) != undefined) {
+      ref.reference = FhirTool.SetFhir(resourceType + "/" + reference);
+    }
+    if (FhirTool.SetFhir(resourceType) == undefined && FhirTool.SetFhir(reference) != undefined) {
+      ref.reference = FhirTool.SetFhir(reference);
+    }
     ref.display = FhirTool.SetFhir(display);
     return ref;
   }

@@ -67,11 +67,13 @@
           }
         }
 
-        BreakPoint;
         //OrderingPractitioner Resource            
-        var oTargetOrderingPractitionerResource = FindPractitionerResourceIdByMedicareProviderNumber(BundleLogical.PractitionerResourceList, CurrentReport.OrderingPractitioner.MedicareProviderNumber);
+        var oTargetOrderingPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.OrderingPractitioner.Identifier, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
         if (oTargetOrderingPractitionerResource == null) {
-          oTargetOrderingPractitionerResource = FhirPractitionerFactory(CurrentReport.OrderingPractitioner);
+          //Both Agfa and Karisma at the SAM provide a Medicare Provider Number for the Ordering Provider (OBR-16)
+          //However, Agfa does not provide an AssigningAuthority code (i.e AUSHICPR) to tell us this fact whereas Karisma does,
+          //So this code is weak because we are just assuming they are providing a Medicare Provider number 
+          oTargetOrderingPractitionerResource = FhirPractitionerFactory(CurrentReport.OrderingPractitioner, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
           if (oTargetOrderingPractitionerResource != null) {
             BundleLogical.PractitionerResourceList.push(oTargetOrderingPractitionerResource);
           }
@@ -81,13 +83,27 @@
         }
 
         //PrincipalResultInterpreter Practitioner Resource        
-        var oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByMedicareProviderNumber(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.MedicareProviderNumber);
-        if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
-          oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter);
-          if (oTargetPrincipalResultInterpreterPractitionerResource != null) {
+        var oTargetPrincipalResultInterpreterPractitionerResource = null
+        //For the PrincipalResultInterpreter we also do not get an AssigningAuthority to detect a Medicare Provider number so again we are making assumptions based on the messages seen 
+        //For Agfa we appear to get a Medicare Provider number, yet for Karisma we only get a local code.
+        if (oModels.DiagnosticReport.Meta.SendingApplication.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingApplicationCode.toUpperCase()) {
+          //Check we have not already generated a PractitionerResource for this Practitioner
+          oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
+          if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
+            oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
             BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
           }
+        } else if (oModels.DiagnosticReport.Meta.SendingApplication.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingApplicationCode.toUpperCase()) {
+          //Check we have not already generated a PractitionerResource for this Practitioner
+          oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
+          if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
+            oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
+            BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
+          }
+        } else {
+          throw new Error("Unable recognised Sending Application Code of : " + oMeta.SendingApplicationCode);
         }
+
         if (oTargetPrincipalResultInterpreterPractitionerResource != null) {
           DiagnosticReportLogical.PrincipalResultInterpreterPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, oTargetPrincipalResultInterpreterPractitionerResource.id, "Principal Result Interpreter: " + CurrentReport.PrincipalResultInterpreter.FormattedName);
         }
@@ -223,7 +239,7 @@
       return oPatientResource;
     }
 
-    function FhirPractitionerFactory(oPractitioner) {
+    function FhirPractitionerFactory(oPractitioner, IdentifierSystem) {
       var oFhirTool = new FhirTools();
       var oConstant = new Constants();
       var oFhirDataType = new FhirDataTypeTool();
@@ -235,13 +251,22 @@
         oPractitionerResource.SetId(oFhirTool.GetGuid());
         //MedicareProviderNumber      
         var oPractitionerIdentifierArray = [];
-        if (oPractitioner.MedicareProviderNumber != null) {
+        if (oPractitioner.Identifier != null && IdentifierSystem === oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber) {
           var oPractMedicareProviderNumberTypeCoding = oFhirDataType.GetCoding("UPIN", "http://terminology.hl7.org.au/CodeSystem/v2-0203", "Medicare Provider Number");
           var oPractMedicareProviderNumberType = oFhirDataType.GetCodeableConcept(oPractMedicareProviderNumberTypeCoding, undefined);
           var oPractMedicareProviderNumberIdentifier = oFhirDataType.GetIdentifier("official", oPractMedicareProviderNumberType,
-            "http://ns.electronichealth.net.au/id/medicare-provider-number",
-            oPractitioner.MedicareProviderNumber);
+            oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber,
+            oPractitioner.Identifier);
           oPractitionerIdentifierArray.push(oPractMedicareProviderNumberIdentifier);
+        } else {
+          //Some other local Id with its system
+          var oLocalIdIdentifier = oFhirDataType.GetIdentifier("official", undefined,
+            IdentifierSystem,
+            oPractitioner.Identifier);
+          oPractitionerIdentifierArray.push(oLocalIdIdentifier);
+        }
+
+        if (oPractitionerIdentifierArray.length > 0) {
           oPractitionerResource.SetIdentifierArray(oPractitionerIdentifierArray);
         }
 
@@ -312,9 +337,15 @@
           throw new Error("Unable to resolve where the " + ImplementationTypeEnum.CLINISEARCHPATHOLOGY + " message has come to format the FillerOrderNumber.");
         }
       } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
-        ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
-          oConstant.organization.sah.application.sanRad.codeSystem.FillerOrderNumber,
-          oReport.FillerOrderNumberValue);
+        if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingApplicationCode.toUpperCase()) {
+          ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
+            oConstant.organization.sah.application.sanUSForWomen.codeSystem.FillerOrderNumber,
+            oReport.FillerOrderNumberValue);
+        } else {
+          ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
+            oConstant.organization.sah.application.sanRad.codeSystem.FillerOrderNumber,
+            oReport.FillerOrderNumberValue);
+        }
       } else {
         throw new Error("Unable to resolve where the message has come to format the FillerOrderNumber.");
       }
@@ -338,7 +369,13 @@
       if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY && SendingFacilityCode.toUpperCase() == oConstant.organization.dhm.name.toUpperCase()) {
         oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.dhm.codeSystem.ReportPanel, oReport.ReportCodeDescription);
       } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
-        oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.sah.application.sanRad.codeSystem.ReportPanel, oReport.ReportCodeDescription);
+        if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingApplicationCode.toUpperCase()) {
+          oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.sah.application.sanUSForWomen.codeSystem.ReportPanel, oReport.ReportCodeDescription);
+        } else if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingApplicationCode.toUpperCase()) {
+          oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.sah.application.sanRad.codeSystem.ReportPanel, oReport.ReportCodeDescription);
+        } else {
+          throw new Error("Unable to determine the correct ReportPanel system for the SendingApplicationCode of " + SendingApplicationCode);
+        }
       } else {
         if (oReport.ReportCode == null && oReport.ReportCodeDescription != null) {
           oCodeCoding = oFhirDataType.GetCoding(undefined, undefined, oReport.ReportCodeDescription);
@@ -416,15 +453,6 @@
         ObservationResourceList: [],
         SubObservationResourceList: []
       }
-
-      // var oDiagnosticReportLogical = {
-      //   DiagnosticReportResource: null,
-      //   OrderingPractitionerResource: null,
-      //   PrincipalResultInterpreterPractitionerResource: null,
-      //   ProcedureRequestResource: null,
-      //   ObservationResourceList: [],
-      //   SubObservationResourceList: []
-      // }
 
       var SubIdProcessedArray = [];
       for (var o = 0; (o < oObservationList.length); o++) {
@@ -722,12 +750,12 @@
       return output;
     }
 
-    function FindPractitionerResourceIdByMedicareProviderNumber(oPractitionerResourceList, MedicareProviderNumber) {
+    function FindPractitionerResourceIdByIdentifier(oPractitionerResourceList, IdentifierValue, IdentifierSystem) {
       for (var r = 0; (r < oPractitionerResourceList.length); r++) {
         if (oPractitionerResourceList[r].identifier != null && oPractitionerResourceList[r].identifier != undefined) {
           for (var i = 0; (i < oPractitionerResourceList[r].identifier.length); i++) {
-            if (oPractitionerResourceList[r].identifier[i].system == "http://ns.electronichealth.net.au/id/medicare-provider-number") {
-              if (oPractitionerResourceList[r].identifier[i].value == MedicareProviderNumber) {
+            if (oPractitionerResourceList[r].identifier[i].system == IdentifierSystem) {
+              if (oPractitionerResourceList[r].identifier[i].value == IdentifierValue) {
                 return oPractitionerResourceList[r];
               }
             }

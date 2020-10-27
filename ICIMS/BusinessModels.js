@@ -400,11 +400,25 @@
       this.FillerOrderNumberNamespaceId = V2Support.Set(oOBR.Field(3).Component(2));
       this.FillerOrderNumberUniversalId = V2Support.Set(oOBR.Field(3).Component(3));
 
-      //OrderingPractitioner
-      this.OrderingPractitioner = new Practitioner();
-      this.OrderingPractitioner.InflateXCN(oOBR.Field(16));
+      //OrderingPractitioner  
+      //There can be repeats 
+      //Try and get the MedicareProviderNumber         
+      if ((oOBR.Field(16).RepeatCount) >= 1) {
+        for (var j = 0; j <= ((oOBR.Field(16).RepeatCount) - 1); j++) {
+          var CurrentField = oOBR.Field(16).Repeats(j);
+          if (CurrentField.Component(8).AsString.toUpperCase() === "AUSHICPR") {
+            this.OrderingPractitioner = new Practitioner();
+            this.OrderingPractitioner.InflateXCN(CurrentField);
+          }
+        }
+      }
+      //If we do not get the MedicareProviderNumber then just get the first repeat and its id
+      //Sometimes it is a MedicareProviderNumber but there is no system to tell us as much.
+      if (this.OrderingPractitioner == null) {
+        this.OrderingPractitioner = new Practitioner();
+        this.OrderingPractitioner.InflateXCN(oOBR.Field(16));
+      }
 
-      Breakpoint;
       this.PrincipalResultInterpreter = new Practitioner();
       this.PrincipalResultInterpreter.InflateNDL(oOBR.Field(32));
 
@@ -718,7 +732,6 @@
       catch (Exec) {
         throw new Error("Message Date & Time in MSH-7 can not be parsed as a Date or Date time, vaule was: " + oMSH.Field(7).AsString);
       }
-
       this.SendingApplication = V2Support.Set(oMSH.Field(3));
       this.SendingFacility = V2Support.Set(oMSH.Field(4));
     }

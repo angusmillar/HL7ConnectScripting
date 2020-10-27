@@ -3,7 +3,7 @@ function Practitioner() {
   this.Family = null;
   this.Given = null;
   this.Title = null;
-  this.MedicareProviderNumber = null;
+  this.Identifier = null;
   this.FormattedName = null;
 
   this.InflateNDL = function (oNDL) {
@@ -14,7 +14,7 @@ function Practitioner() {
     var V2Support = new HL7V2Support();
     var oStringSupport = new StringSupport();
 
-    this.MedicareProviderNumber = oStringSupport.RemoveWhiteSpace(V2Support.Set(oNDL.Component(1).SubComponent(1)));
+    this.Identifier = oStringSupport.RemoveWhiteSpace(V2Support.Set(oNDL.Component(1).SubComponent(1)));
     this.Family = V2Support.Set(oNDL.Component(1).SubComponent(2));
     this.Given = V2Support.Set(oNDL.Component(1).SubComponent(3));
     this.Title = V2Support.Set(oNDL.Component(1).SubComponent(6));
@@ -28,7 +28,7 @@ function Practitioner() {
     var V2Support = new HL7V2Support();
     var oStringSupport = new StringSupport();
 
-    this.MedicareProviderNumber = oStringSupport.RemoveWhiteSpace(V2Support.Set(oXCN.Component(1)));
+    this.Identifier = oStringSupport.RemoveWhiteSpace(V2Support.Set(oXCN.Component(1)));
     this.Family = V2Support.Set(oXCN.Component(2));
     this.Given = V2Support.Set(oXCN.Component(3));
     this.Title = V2Support.Set(oXCN.Component(6));

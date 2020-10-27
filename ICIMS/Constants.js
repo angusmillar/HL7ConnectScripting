@@ -44,10 +44,22 @@ function Constants() {
         sanRad: {
           code: "SANRAD",
           name: "SAN Radiology",
+          sendingApplicationCode: "AGFARIS",
           codeSystem: {
             FillerOrderNumber: "https://www.sah.org.au/systems/fhir/radiology/agfa/fillerOrderNumber",
             ReportPanel: "https://www.sah.org.au/systems/fhir/radiology/agfa/reportPanelCode",
             messageControlId: "https://www.sah.org.au/systems/fhir/radiology/agfa/hl7-v2/message-control-id"
+          }
+        },
+        sanUSForWomen: {
+          code: "SANUSForWomen",
+          name: "SAN Ultrasound for Women",
+          sendingApplicationCode: "Karisma",
+          codeSystem: {
+            FillerOrderNumber: "https://www.sah.org.au/systems/fhir/ultraSoundForWomen/karisma/fillerOrderNumber",
+            ReportPanel: "https://www.sah.org.au/systems/fhir/ultraSoundForWomen/karisma/reportPanelCode",
+            messageControlId: "https://www.sah.org.au/systems/fhir/ultraSoundForWomen/karisma/hl7-v2/message-control-id",
+            provider: "https://www.sah.org.au/systems/fhir/ultraSoundForWomen/karisma/providerIdentifier"
           }
         }
       }
@@ -66,6 +78,11 @@ function Constants() {
         FillerOrderNumber: "http://www.dhm.com.au/fhir/pathology/fillerOrderNumber",
         ReportPanel: "http://www.dhm.com.au/fhir/pathology/reportPanelCode",
         messageControlId: "http://www.dhm.com.au/fhir/pathology/hl7-v2/message-control-id"
+      }
+    },
+    servicesAustralia: {
+      codeSystem: {
+        medicareProviderNumber: "http://ns.electronichealth.net.au/id/medicare-provider-number"
       }
     }
   };
