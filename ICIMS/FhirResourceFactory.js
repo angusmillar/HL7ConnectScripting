@@ -86,6 +86,7 @@
         var oTargetPrincipalResultInterpreterPractitionerResource = null
         //For the PrincipalResultInterpreter we also do not get an AssigningAuthority to detect a Medicare Provider number so again we are making assumptions based on the messages seen 
         //For Agfa we appear to get a Medicare Provider number, yet for Karisma we only get a local code.
+        //Also note that we are only adding a PrincipalResultInterpreterPractitionerResource for Radiology and not Pathology or the other Theatre or CareZone bundles
         if (oModels.DiagnosticReport.Meta.SendingApplication.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingApplicationCode.toUpperCase()) {
           //Check we have not already generated a PractitionerResource for this Practitioner
           oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
@@ -100,8 +101,6 @@
             oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
             BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
           }
-        } else {
-          throw new Error("Unable recognised Sending Application Code of : " + oMeta.SendingApplicationCode);
         }
 
         if (oTargetPrincipalResultInterpreterPractitionerResource != null) {
