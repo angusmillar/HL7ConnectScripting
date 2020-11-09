@@ -66,7 +66,7 @@
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Pathology-CliniSearch-Prod";
             } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
-              FacilityConfiguration.EndPoint = "??";
+              FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Prod";
             } else {
