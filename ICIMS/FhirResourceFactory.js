@@ -87,14 +87,14 @@
         //For the PrincipalResultInterpreter we also do not get an AssigningAuthority to detect a Medicare Provider number so again we are making assumptions based on the messages seen 
         //For Agfa we appear to get a Medicare Provider number, yet for Karisma we only get a local code.
         //Also note that we are only adding a PrincipalResultInterpreterPractitionerResource for Radiology and not Pathology or the other Theatre or CareZone bundles
-        if (oModels.DiagnosticReport.Meta.SendingApplication.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingApplicationCode.toUpperCase()) {
+        if (oModels.DiagnosticReport.Meta.SendingFacility.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingFacilityCode.toUpperCase()) {
           //Check we have not already generated a PractitionerResource for this Practitioner
           oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
           if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
             oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
             BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
           }
-        } else if (oModels.DiagnosticReport.Meta.SendingApplication.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingApplicationCode.toUpperCase()) {
+        } else if (oModels.DiagnosticReport.Meta.SendingFacility.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingFacilityCode.toUpperCase()) {
           //Check we have not already generated a PractitionerResource for this Practitioner
           oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
           if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
@@ -314,6 +314,7 @@
         }
       }
 
+      BreakPoint;
       oDiagReport.SetMetaProfile([oConstant.fhirResourceProfile.icims.diagnosticReport]);
       var oTypeCoding = oFhirDataType.GetCoding("FILL", "http://hl7.org/fhir/identifier-type", "Filler Identifier");
       var oType = oFhirDataType.GetCodeableConcept(oTypeCoding, "Report Identifier");
@@ -336,14 +337,16 @@
           throw new Error("Unable to resolve where the " + ImplementationTypeEnum.CLINISEARCHPATHOLOGY + " message has come to format the FillerOrderNumber.");
         }
       } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
-        if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingApplicationCode.toUpperCase()) {
+        if (SendingFacilityCode.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingFacilityCode.toUpperCase()) {
           ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
             oConstant.organization.sah.application.sanUSForWomen.codeSystem.FillerOrderNumber,
             oReport.FillerOrderNumberValue);
-        } else {
+        } else if (SendingFacilityCode.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingFacilityCode.toUpperCase()) {
           ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
             oConstant.organization.sah.application.sanRad.codeSystem.FillerOrderNumber,
             oReport.FillerOrderNumberValue);
+        } else {
+          throw new Error("Unable to resolve where the CLINISEARCHRADIOLOGY message has come to format the FillerOrderNumber.");
         }
       } else {
         throw new Error("Unable to resolve where the message has come to format the FillerOrderNumber.");
@@ -368,12 +371,12 @@
       if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY && SendingFacilityCode.toUpperCase() == oConstant.organization.dhm.name.toUpperCase()) {
         oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.dhm.codeSystem.ReportPanel, oReport.ReportCodeDescription);
       } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
-        if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingApplicationCode.toUpperCase()) {
+        if (SendingFacilityCode.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingFacilityCode.toUpperCase()) {
           oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.sah.application.sanUSForWomen.codeSystem.ReportPanel, oReport.ReportCodeDescription);
-        } else if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingApplicationCode.toUpperCase()) {
+        } else if (SendingFacilityCode.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingFacilityCode.toUpperCase()) {
           oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.sah.application.sanRad.codeSystem.ReportPanel, oReport.ReportCodeDescription);
         } else {
-          throw new Error("Unable to determine the correct ReportPanel system for the SendingApplicationCode of " + SendingApplicationCode);
+          throw new Error("Unable to determine the correct ReportPanel system for the SendingFacilityCode of " + SendingFacilityCode);
         }
       } else {
         if (oReport.ReportCode == null && oReport.ReportCodeDescription != null) {

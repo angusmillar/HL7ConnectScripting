@@ -44,7 +44,8 @@ function Constants() {
         sanRad: {
           code: "SANRAD",
           name: "SAN Radiology",
-          sendingApplicationCode: "AGFARIS",
+          sendingApplicationCode: "BIZTALK",
+          sendingFacilityCode: "SAH",
           codeSystem: {
             FillerOrderNumber: "https://www.sah.org.au/systems/fhir/radiology/agfa/fillerOrderNumber",
             ReportPanel: "https://www.sah.org.au/systems/fhir/radiology/agfa/reportPanelCode",
@@ -54,7 +55,8 @@ function Constants() {
         sanUSForWomen: {
           code: "SANUSForWomen",
           name: "SAN Ultrasound for Women",
-          sendingApplicationCode: "Karisma",
+          sendingApplicationCode: "BIZTALK",
+          sendingFacilityCode: "ultsound",
           codeSystem: {
             FillerOrderNumber: "https://www.sah.org.au/systems/fhir/ultraSoundForWomen/karisma/fillerOrderNumber",
             ReportPanel: "https://www.sah.org.au/systems/fhir/ultraSoundForWomen/karisma/reportPanelCode",
