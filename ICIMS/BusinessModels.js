@@ -419,8 +419,11 @@
         this.OrderingPractitioner.InflateXCN(oOBR.Field(16));
       }
 
-      this.PrincipalResultInterpreter = new Practitioner();
-      this.PrincipalResultInterpreter.InflateNDL(oOBR.Field(32));
+      if (oOBR.Field(32).defined){
+        this.PrincipalResultInterpreter = new Practitioner();
+        this.PrincipalResultInterpreter.InflateNDL(oOBR.Field(32));
+      }
+      
 
       //Get the Observations and DisplayDataLineList
       if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {

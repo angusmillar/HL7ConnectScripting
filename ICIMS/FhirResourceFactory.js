@@ -83,28 +83,31 @@
         }
 
         //PrincipalResultInterpreter Practitioner Resource        
-        var oTargetPrincipalResultInterpreterPractitionerResource = null
-        //For the PrincipalResultInterpreter we also do not get an AssigningAuthority to detect a Medicare Provider number so again we are making assumptions based on the messages seen 
-        //For Agfa we appear to get a Medicare Provider number, yet for Karisma we only get a local code.
-        //Also note that we are only adding a PrincipalResultInterpreterPractitionerResource for Radiology and not Pathology or the other Theatre or CareZone bundles
-        if (oModels.DiagnosticReport.Meta.SendingFacility.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingFacilityCode.toUpperCase()) {
-          //Check we have not already generated a PractitionerResource for this Practitioner
-          oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
-          if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
-            oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
-            BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
+        //Note that we had a message from the AGFA system which had no PrincipalResultInterpreter, many othr do have it though.
+        if (CurrentReport.PrincipalResultInterpreter != null) {
+          var oTargetPrincipalResultInterpreterPractitionerResource = null
+          //For the PrincipalResultInterpreter we also do not get an AssigningAuthority to detect a Medicare Provider number so again we are making assumptions based on the messages seen 
+          //For Agfa we appear to get a Medicare Provider number, yet for Karisma we only get a local code.
+          //Also note that we are only adding a PrincipalResultInterpreterPractitionerResource for Radiology and not Pathology or the other Theatre or CareZone bundles
+          if (oModels.DiagnosticReport.Meta.SendingFacility.toUpperCase() == oConstant.organization.sah.application.sanRad.sendingFacilityCode.toUpperCase()) {
+            //Check we have not already generated a PractitionerResource for this Practitioner
+            oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
+            if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
+              oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
+              BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
+            }
+          } else if (oModels.DiagnosticReport.Meta.SendingFacility.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingFacilityCode.toUpperCase()) {
+            //Check we have not already generated a PractitionerResource for this Practitioner
+            oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
+            if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
+              oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
+              BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
+            }
           }
-        } else if (oModels.DiagnosticReport.Meta.SendingFacility.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingFacilityCode.toUpperCase()) {
-          //Check we have not already generated a PractitionerResource for this Practitioner
-          oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
-          if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
-            oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
-            BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
-          }
-        }
 
-        if (oTargetPrincipalResultInterpreterPractitionerResource != null) {
-          DiagnosticReportLogical.PrincipalResultInterpreterPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, oTargetPrincipalResultInterpreterPractitionerResource.id, "Principal Result Interpreter: " + CurrentReport.PrincipalResultInterpreter.FormattedName);
+          if (oTargetPrincipalResultInterpreterPractitionerResource != null) {
+            DiagnosticReportLogical.PrincipalResultInterpreterPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, oTargetPrincipalResultInterpreterPractitionerResource.id, "Principal Result Interpreter: " + CurrentReport.PrincipalResultInterpreter.FormattedName);
+          }
         }
 
         //ProcedureRequest Resource
@@ -622,6 +625,7 @@
 
       }
 
+      Breakpoint;
       for (var p = 0; (p < oBundleLogical.PractitionerResourceList.length); p++) {
         TargetReferenceArray.push(oFhirDataType.GetReference(oBundleLogical.PractitionerResourceList[p].resourceType, oBundleLogical.PractitionerResourceList[p].id, oBundleLogical.PractitionerResourceList[p].resourceType));
       }
