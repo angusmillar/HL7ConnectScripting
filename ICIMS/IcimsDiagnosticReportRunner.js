@@ -30,11 +30,11 @@
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
               FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-ClinicalReports-Outbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Pathology-CliniSearch-Prod";
             } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
               FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
-              FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-ClinicalReports-Outbound";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Prod";
             } else {
               FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
