@@ -1,9 +1,9 @@
-<% include $repo$\Logging\Logger.js %>
-<% include $repo$\Support\HL7CParameterSupport.js %>
-<% include $repo$\ICIMS\BusinessModels.js %>
-<% include $repo$\ICIMS\IcimsInterfaceModels.js %>
-<% include $repo$\ICIMS\RestClient.js %>
-<% include $repo$\FhirLibrary\Json\FhirJson.js %>
+<% include $newserver$\Logging\Logger.js %>
+<% include $newserver$\Support\HL7CParameterSupport.js %>
+<% include $newserver$\ICIMS\BusinessModels.js %>
+<% include $newserver$\ICIMS\IcimsInterfaceModels.js %>
+<% include $newserver$\ICIMS\RestClient.js %>
+<% include $newserver$\FhirLibrary\Json\FhirJson.js %>
 
   // The IcimsRunner script is the entry point for HL7 Connect.
   // This script is to be referanced on a HL7 Connect outgoing scripted interface with the procedure name

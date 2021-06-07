@@ -1,4 +1,4 @@
-<% include $repo$\ICIMS\SetReportAnnotation.js %>
+<% include $newserver$\ICIMS\SetReportAnnotation.js %>
 
   //Set Annotation
   function OnReceivePathology(aEvent) {

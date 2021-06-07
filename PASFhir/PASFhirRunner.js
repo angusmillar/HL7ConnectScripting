@@ -1,12 +1,12 @@
 
-<% include $repo$\Support\HL7CParameterSupport.js %>
-<% include $repo$\PASFhir\FacilityConfig.js %>
-<% include $repo$\Logging\Logger.js %>
-<% include $repo$\PASFhir\BusinessModel.js %>
-<% include $repo$\FhirLibrary\Json\FhirJson.js %>
-<% include $repo$\FhirLibrary\Client\FhirClient.js %>
-<% include $repo$\PASFhir\FhirResourceFactory.js %>
-<% include $repo$\PASFhir\FacilityFhirConfig.js %>
+<% include $newserver$\Support\HL7CParameterSupport.js %>
+<% include $newserver$\PASFhir\FacilityConfig.js %>
+<% include $newserver$\Logging\Logger.js %>
+<% include $newserver$\PASFhir\BusinessModel.js %>
+<% include $newserver$\FhirLibrary\Json\FhirJson.js %>
+<% include $newserver$\FhirLibrary\Client\FhirClient.js %>
+<% include $newserver$\PASFhir\FhirResourceFactory.js %>
+<% include $newserver$\PASFhir\FacilityFhirConfig.js %>
 
   function Main(aEvent) {
     //Validate and set the site context for the script

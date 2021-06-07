@@ -1,12 +1,12 @@
-<% include $repo$\V2Libaray\HL7V2Support.js %>
-<% include $repo$\PASFhir\HL7Table.js %>
-<% include $repo$\PASFhir\HL7V2ToFhirMapping.js %>
-<% include $repo$\PASFhir\HL7MessageHeader.js %>
-<% include $repo$\PASFhir\Patient.js %>
-<% include $repo$\PASFhir\Encounter.js %>
-<% include $repo$\PASFhir\Address.js %>
-<% include $repo$\PASFhir\Contact.js %>
-<% include $repo$\PASFhir\Merge.js %>
+<% include $newserver$\V2Libaray\HL7V2Support.js %>
+<% include $newserver$\PASFhir\HL7Table.js %>
+<% include $newserver$\PASFhir\HL7V2ToFhirMapping.js %>
+<% include $newserver$\PASFhir\HL7MessageHeader.js %>
+<% include $newserver$\PASFhir\Patient.js %>
+<% include $newserver$\PASFhir\Encounter.js %>
+<% include $newserver$\PASFhir\Address.js %>
+<% include $newserver$\PASFhir\Contact.js %>
+<% include $newserver$\PASFhir\Merge.js %>
 
   function BusinessModel() {
 

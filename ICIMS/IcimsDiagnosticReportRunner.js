@@ -1,10 +1,10 @@
 
-<% include $repo$\Logging\Logger.js %>
-<% include $repo$\Support\HL7CParameterSupport.js %>
-<% include $repo$\ICIMS\BusinessModels.js %>
-<% include $repo$\FhirLibrary\Json\FhirJson.js %>
-<% include $repo$\FhirLibrary\Client\FhirClient.js %>
-<% include $repo$\ICIMS\FhirResourceFactory.js %>
+<% include $newserver$\Logging\Logger.js %>
+<% include $newserver$\Support\HL7CParameterSupport.js %>
+<% include $newserver$\ICIMS\BusinessModels.js %>
+<% include $newserver$\FhirLibrary\Json\FhirJson.js %>
+<% include $newserver$\FhirLibrary\Client\FhirClient.js %>
+<% include $newserver$\ICIMS\FhirResourceFactory.js %>
 
   function Main(aEvent) {
     //Validate and set the site context for the script

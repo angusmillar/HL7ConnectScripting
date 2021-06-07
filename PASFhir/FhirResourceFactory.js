@@ -1,19 +1,19 @@
 
-<% include $repo$\FhirLibrary\R4\FhirTools.js %>
-<% include $repo$\FhirLibrary\R4\FhirConfig.js %>
-<% include $repo$\FhirLibrary\R4\FhirDataTypeTool.js %>
+<% include $newserver$\FhirLibrary\R4\FhirTools.js %>
+<% include $newserver$\FhirLibrary\R4\FhirConfig.js %>
+<% include $newserver$\FhirLibrary\R4\FhirDataTypeTool.js %>
 
-<% include $repo$\FhirLibrary\R4\Resource.js %>
-<% include $repo$\FhirLibrary\R4\DomainResource.js %>
-<% include $repo$\FhirLibrary\R4\BundleFhirResource.js %>
-<% include $repo$\FhirLibrary\R4\MessageHeaderFhirResource.js %>
-<% include $repo$\FhirLibrary\R4\OrganizationFhirResource.js %>
-<% include $repo$\FhirLibrary\R4\PatientFhirResource.js %>
-<% include $repo$\FhirLibrary\R4\EncounterFhirResource.js %>
-<% include $repo$\FhirLibrary\R4\ProvenanceFhirResource.js %>
-<% include $repo$\FhirLibrary\R4\ConditionFhirResource.js %>
-<% include $repo$\FhirLibrary\R4\AllergyIntoleranceFhirResource.js %>
-<% include $repo$\FhirLibrary\R4\ParametersFhirResource.js %>
+<% include $newserver$\FhirLibrary\R4\Resource.js %>
+<% include $newserver$\FhirLibrary\R4\DomainResource.js %>
+<% include $newserver$\FhirLibrary\R4\BundleFhirResource.js %>
+<% include $newserver$\FhirLibrary\R4\MessageHeaderFhirResource.js %>
+<% include $newserver$\FhirLibrary\R4\OrganizationFhirResource.js %>
+<% include $newserver$\FhirLibrary\R4\PatientFhirResource.js %>
+<% include $newserver$\FhirLibrary\R4\EncounterFhirResource.js %>
+<% include $newserver$\FhirLibrary\R4\ProvenanceFhirResource.js %>
+<% include $newserver$\FhirLibrary\R4\ConditionFhirResource.js %>
+<% include $newserver$\FhirLibrary\R4\AllergyIntoleranceFhirResource.js %>
+<% include $newserver$\FhirLibrary\R4\ParametersFhirResource.js %>
 
   function FhirResourceFactory(oModels) {
 

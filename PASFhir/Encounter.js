@@ -1,6 +1,6 @@
-<% include $repo$\PASFhir\NextOfKin.js %>
-<% include $repo$\PASFhir\Diagnosis.js %>
-<% include $repo$\PASFhir\AllergyIntolerance.js %>
+<% include $newserver$\PASFhir\NextOfKin.js %>
+<% include $newserver$\PASFhir\Diagnosis.js %>
+<% include $newserver$\PASFhir\AllergyIntolerance.js %>
 
   function Encounter(oHL7, oFacilityConfig) {
 

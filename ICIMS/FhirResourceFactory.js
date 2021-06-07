@@ -1,19 +1,19 @@
 
-<% include $repo$\FhirLibrary\STU3\Resource.js %>
-<% include $repo$\FhirLibrary\STU3\DomainResource.js %>
-<% include $repo$\FhirLibrary\STU3\BundleFhirResource.js %>
-<% include $repo$\FhirLibrary\STU3\MessageHeaderFhirResource.js %>
-<% include $repo$\FhirLibrary\STU3\OrganizationFhirResource.js %>
-<% include $repo$\FhirLibrary\STU3\DiagnosticReportFhirResource.js %>
-<% include $repo$\FhirLibrary\STU3\PatientFhirResource.js %>
-<% include $repo$\FhirLibrary\STU3\ObservationFhirResource.js %>
-<% include $repo$\FhirLibrary\STU3\ProvenanceFhirResource.js %>
-<% include $repo$\FhirLibrary\STU3\PractitionerFhirResource.js %>
-<% include $repo$\FhirLibrary\STU3\ProcedureRequestFhirResource.js %>
-<% include $repo$\FhirLibrary\STU3\FhirDataTypeTool.js %>
-<% include $repo$\FhirLibrary\STU3\FhirTools.js %>
-<% include $repo$\FhirLibrary\STU3\FhirConstants.js %>
-<% include $repo$\ICIMS\Constants.js %>
+<% include $newserver$\FhirLibrary\STU3\Resource.js %>
+<% include $newserver$\FhirLibrary\STU3\DomainResource.js %>
+<% include $newserver$\FhirLibrary\STU3\BundleFhirResource.js %>
+<% include $newserver$\FhirLibrary\STU3\MessageHeaderFhirResource.js %>
+<% include $newserver$\FhirLibrary\STU3\OrganizationFhirResource.js %>
+<% include $newserver$\FhirLibrary\STU3\DiagnosticReportFhirResource.js %>
+<% include $newserver$\FhirLibrary\STU3\PatientFhirResource.js %>
+<% include $newserver$\FhirLibrary\STU3\ObservationFhirResource.js %>
+<% include $newserver$\FhirLibrary\STU3\ProvenanceFhirResource.js %>
+<% include $newserver$\FhirLibrary\STU3\PractitionerFhirResource.js %>
+<% include $newserver$\FhirLibrary\STU3\ProcedureRequestFhirResource.js %>
+<% include $newserver$\FhirLibrary\STU3\FhirDataTypeTool.js %>
+<% include $newserver$\FhirLibrary\STU3\FhirTools.js %>
+<% include $newserver$\FhirLibrary\STU3\FhirConstants.js %>
+<% include $newserver$\ICIMS\Constants.js %>
 
 
   function FhirResourceFactory() {

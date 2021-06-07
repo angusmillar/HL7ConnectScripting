@@ -1,7 +1,7 @@
-<% include $repo$\V2Libaray\HL7V2Support.js %>
-<% include $repo$\ICIMS\Practitioner.js %>
-<% include $repo$\Support\StringSupport.js %>
-<% include $repo$\Support\ArraySupport.js %>
+<% include $newserver$\V2Libaray\HL7V2Support.js %>
+<% include $newserver$\ICIMS\Practitioner.js %>
+<% include $newserver$\Support\StringSupport.js %>
+<% include $newserver$\Support\ArraySupport.js %>
 
   function BusinessModels(SiteContext) {
     this.FacilityConfig = null;
