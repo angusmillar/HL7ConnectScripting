@@ -23,7 +23,7 @@ var EnvironmentTypeEnum = {
   PROD: "PROD"
 };
 
-function HL7CParameterSupport(oLogger, Parameter) {
+function HL7CParameterSupport(oLogger, Parameter, ReceivingFacility) {
 
   var ParameterMask = "[SiteCode]|[EnvironmentCode]|{ImplementationCode}";
   this.SiteCode = null;
@@ -74,6 +74,25 @@ function HL7CParameterSupport(oLogger, Parameter) {
     if (SplitParam.length >= 3) {
       if (SplitParam[2] != "") {
         this.Implementation = SplitParam[2].toUpperCase();
+      }
+    }
+
+    //Custom Code for the CliniSearch Server move
+    if (this.Implementation === "DYNAMIC"){
+      if (ReceivingFacility != ""){
+        if (ReceivingFacility.toUpperCase() === "CLINISEARCH_PATHOLOGY"){
+          this.Implementation = ImplementationTypeEnum.CLINISEARCHPATHOLOGY;
+        } else if (ReceivingFacility.toUpperCase() === "CLINISEARCH_RADIOLOGY" || ReceivingFacility.toUpperCase() === "CLINISEARCH_ULTRASOUNDWOMEN") {
+          this.Implementation = ImplementationTypeEnum.CLINISEARCHRADIOLOGY;
+        } else {
+          var ErrorMsg = "The interface's script parameter ImplementationCode is set to DYNAMIC and yet the ReceivingFacility MSH-5 code of " + ReceivingFacility + "is not handled by the script";
+          oLogger.Log(ErrorMsg);
+          throw new Error(ErrorMsg);  
+        }     
+      } else {
+        var ErrorMsg = "The interface's script parameter ImplementationCode is set to DYNAMIC yet ReceivingFacility MSH-5 was empty";
+        oLogger.Log(ErrorMsg);
+        throw new Error(ErrorMsg);
       }
     }
 

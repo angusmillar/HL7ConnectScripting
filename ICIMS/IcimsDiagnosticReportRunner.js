@@ -13,7 +13,14 @@
     BreakPoint;
     var oLogger = new Logger();
     oLogger.SetCustomLogName(_CustomLogNameType.IcimsPathology);
-    var oHL7CParameterSupport = new HL7CParameterSupport(oLogger, aEvent.Parameter);
+
+    //The inbound HL7 V2 message object
+    var oHL7 = aEvent.OutMessage;
+
+    //Used for custom routing for Cliniseach server move
+    var ReceivingFacility = oHL7.Segment("MSH", 0).Field(5).Component(1).oHL7Reply;
+
+    var oHL7CParameterSupport = new HL7CParameterSupport(oLogger, aEvent.Parameter, ReceivingFacility);
     var SiteContext = ValidateSiteContext(oHL7CParameterSupport.SiteCode);
 
     var oModels = new BusinessModels(SiteContext);
@@ -94,8 +101,6 @@
 
     //Boolean to detect if script is run in test development Environment, set by the OnScriptSend event
     var IsTestCase = aEvent.IsTestCase;
-    //The inbound HL7 V2 message object
-    var oHL7 = aEvent.OutMessage;
     //The programaticaly build HL7 V2 acknowledgement message, effectively an acknowledgement to our selves
     //to indicate this message successfully was sent to ICIMS or not.
     var oHL7Reply = aEvent.ReplyMessage;
