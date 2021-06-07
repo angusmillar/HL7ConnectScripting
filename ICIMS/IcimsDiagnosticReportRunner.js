@@ -18,7 +18,7 @@
     var oHL7 = aEvent.OutMessage;
 
     //Used for custom routing for Cliniseach server move
-    var ReceivingFacility = oHL7.Segment("MSH", 0).Field(5).Component(1).oHL7Reply;
+    var ReceivingFacility = oHL7.Segment("MSH", 0).Field(5).Component(1).AsString;
 
     var oHL7CParameterSupport = new HL7CParameterSupport(oLogger, aEvent.Parameter, ReceivingFacility);
     var SiteContext = ValidateSiteContext(oHL7CParameterSupport.SiteCode);
@@ -69,11 +69,11 @@
 
           case EnvironmentTypeEnum.PROD:
             if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
-              FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9000/fhir";
+              FacilityConfiguration.EndPoint = "http://clinisearchprod.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Pathology-CliniSearch-Prod";
             } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
-              FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9000/fhir";
+              FacilityConfiguration.EndPoint = "http://clinisearchprod.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Prod";
             } else {
