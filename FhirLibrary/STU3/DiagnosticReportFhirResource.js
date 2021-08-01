@@ -36,6 +36,10 @@ function DiagnosticReportFhirResource() {
     Resource.effectiveDateTime = FhirTool.SetFhir(dateTime);
   };
 
+  Resource.SetEffectivePeriodDateTime = function (StartDateTime, EndDateTime) {
+    Resource.effectivePeriod = GetEffectivePeriod(StartDateTime, EndDateTime);
+  };
+
   Resource.SetIssued = function (dateTime) {
     Resource.issued = FhirTool.SetFhir(dateTime);
   };
@@ -54,6 +58,13 @@ function DiagnosticReportFhirResource() {
   Resource.SetPresentedForm = function (AttachmentArray) {
     Resource.presentedForm = FhirTool.SetFhir(AttachmentArray);
   };
+
+  function GetEffectivePeriod(StartDateTime, EndDateTime) {
+    var EffectivePeriod = new function () { };
+    EffectivePeriod.start = StartDateTime;
+    EffectivePeriod.end = EndDateTime;   
+    return EffectivePeriod;
+  }
 
   function GetPerformer(oRoleCodableConcept, oActorPractitionerReference) {
     var Performer = new function () { };

@@ -74,18 +74,22 @@ function HL7CParameterSupport(oLogger, Parameter) {
     if (SplitParam.length >= 3) {
       if (SplitParam[2] != "") {
         this.Implementation = SplitParam[2].toUpperCase();
+
+        if (this.Implementation == null) {
+          var ErrorMsg = "The interface's script parameter appears to have no ImplementationCode in the mask : " + ParameterMask;
+          oLogger.Log(ErrorMsg);
+          throw new Error(ErrorMsg);
+        } else if (this.Implementation in ImplementationTypeEnum === false) {
+          var ErrorMsg = "The interface's script parameter appears to have no ImplementationCode";
+          oLogger.Log(ErrorMsg);
+          throw new Error(ErrorMsg);
+        }
+
+
       }
     }
 
-    if (this.Implementation == null) {
-      var ErrorMsg = "The interface's script parameter appears to have no ImplementationCode in the mask : " + ParameterMask;
-      oLogger.Log(ErrorMsg);
-      throw new Error(ErrorMsg);
-    } else if (this.Implementation in ImplementationTypeEnum === false) {
-      var ErrorMsg = "The interface's script parameter appears to have no ImplementationCode";
-      oLogger.Log(ErrorMsg);
-      throw new Error(ErrorMsg);
-    }
+    
   }
 
 }

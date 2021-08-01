@@ -388,8 +388,10 @@
       this.ReportCodeSystem = null;
 
       this.CollectionDateTime = null;
+      this.ObservationEndDateTime = null
       this.ReportIssuedDateTime = null;
       this.OrderingPractitioner = null;
+      this.Technician = null;
       this.PrincipalResultInterpreter = null;
       this.ObservationList = [];
       this.DisplayDataLineList = [];
@@ -424,6 +426,11 @@
         this.PrincipalResultInterpreter.InflateNDL(oOBR.Field(32));
       }
       
+      //Used by the RadiationOncology Messages
+      if (oOBR.Field(34).Component(1).SubComponent(2).defined){
+        this.Technician = new Practitioner();
+        this.Technician.InflateNDL(oOBR.Field(34));      
+      }
 
       //Get the Observations and DisplayDataLineList
       if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
@@ -468,6 +475,16 @@
       catch (Exec) {
         throw new Error("Collection Date & Time in OBR-7 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(7).AsString);
       }
+
+      if (oOBR.Field(8).AsString != "")
+      {
+        try {
+          this.ObservationEndDateTime = DateAndTimeFromHL7(oOBR.Field(8).AsString);
+        }
+        catch (Exec) {
+          throw new Error("Observation End Date & Time in OBR-8 can not be parsed as a Date or Date time, vaule was: " + oOBR.Field(8).AsString);
+        }
+      }    
 
       try {
         this.ReportIssuedDateTime = DateAndTimeFromHL7(oOBR.Field(22).AsString);

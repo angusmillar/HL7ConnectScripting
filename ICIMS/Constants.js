@@ -30,6 +30,14 @@ function Constants() {
             messageControlId: "https://www.sah.org.au/systems/fhir/hl7-v2/message-control-id"
           }
         },
+        radiationOncology: {
+          code: "RadiationOncology",
+          name: "Radiation Oncology",
+          codeSystem: {
+            messageControlId: "https://www.sah.org.au/systems/fhir/radiationOncology/hl7-v2/message-control-id",
+            FillerOrderNumber: "e9472622-07c2-4fd5-9a1a-1aa3573b8937"
+          }
+        },
         careZone: {
           code: "CareZone",
           name: "Care Zone"

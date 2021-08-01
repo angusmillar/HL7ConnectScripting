@@ -55,6 +55,7 @@
           DiagnosticReportResource: null,
           OrderingPractitionerResourceReference: null,
           PrincipalResultInterpreterPractitionerResourceReference: null,
+          TechnicianPractitionerResourceReference: null,
           ProcedureRequestResource: null,
           ObservationResourceList: [],
           SubObservationResourceList: []
@@ -110,6 +111,13 @@
           }
         }
 
+        BreakPoint;
+        if (CurrentReport.Technician != null){
+          oTechnicianPractitionerResource = FhirPractitionerFactory(CurrentReport.Technician, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
+          DiagnosticReportLogical.TechnicianPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, oTechnicianPractitionerResource.id, "Radiation Oncologist : " + CurrentReport.Technician.FormattedName);          
+          BundleLogical.PractitionerResourceList.push(oTechnicianPractitionerResource);
+        }
+
         //ProcedureRequest Resource
         var oProcedureRequestResourceReference = null;
         if (oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY || oModels.FacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
@@ -117,12 +125,14 @@
           var oProcedureRequestResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.ProcedureRequest, DiagnosticReportLogical.ProcedureRequestResource.id, oFhirConstants.ResourceName.ProcedureRequest);
         }
         //DiagnosticReport Resource       
-        DiagnosticReportLogical.DiagnosticReportResource = FhirDiagnosticReportFactory(CurrentReport, oModels.DiagnosticReport.Meta.SendingFacility, oModels.DiagnosticReport.Meta.SendingApplication, oPatientResourceReference, oProcedureRequestResourceReference, DiagnosticReportLogical.OrderingPractitionerResourceReference, DiagnosticReportLogical.PrincipalResultInterpreterPractitionerResourceReference, DiagnosticReportLogical.ObservationResourceList, oModels.FacilityConfig);
+        DiagnosticReportLogical.DiagnosticReportResource = FhirDiagnosticReportFactory(CurrentReport, oModels.DiagnosticReport.Meta.SendingFacility, 
+                                                                                      oModels.DiagnosticReport.Meta.SendingApplication, oPatientResourceReference, oProcedureRequestResourceReference, 
+                                                                                      DiagnosticReportLogical.OrderingPractitionerResourceReference, DiagnosticReportLogical.PrincipalResultInterpreterPractitionerResourceReference, 
+                                                                                      DiagnosticReportLogical.ObservationResourceList, oModels.FacilityConfig, DiagnosticReportLogical.TechnicianPractitionerResourceReference);
         BundleLogical.DiagnosticReportLogicalList.push(DiagnosticReportLogical);
-
       }
 
-      BreakPoint;
+      
       var FocusReferenceArray = [];
       for (var k = 0; (k < BundleLogical.DiagnosticReportLogicalList.length); k++) {
         FocusReferenceArray.push(oFhirDataType.GetReference(oFhirConstants.ResourceName.DiagnosticReport, BundleLogical.DiagnosticReportLogicalList[k].DiagnosticReportResource.id, oFhirConstants.ResourceName.DiagnosticReport));
@@ -260,7 +270,7 @@
             oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber,
             oPractitioner.Identifier);
           oPractitionerIdentifierArray.push(oPractMedicareProviderNumberIdentifier);
-        } else {
+        } else if (oPractitioner.Identifier != null) {
           //Some other local Id with its system
           var oLocalIdIdentifier = oFhirDataType.GetIdentifier("official", undefined,
             IdentifierSystem,
@@ -294,7 +304,7 @@
       return oProcedureRequestResource;
     }
 
-    function FhirDiagnosticReportFactory(oReport, SendingFacilityCode, SendingApplicationCode, oPatientResourceReference, oProcedureRequestResourceReference, oOrderingPractitionerResourceReference, oPrincipalResultInterpreterResourceReference, oObservationResourceList, oFacilityConfig) {
+    function FhirDiagnosticReportFactory(oReport, SendingFacilityCode, SendingApplicationCode, oPatientResourceReference, oProcedureRequestResourceReference, oOrderingPractitionerResourceReference, oPrincipalResultInterpreterResourceReference, oObservationResourceList, oFacilityConfig, oTechnicianPractitionerResourceReference) {
       var oFhirTool = new FhirTools();
       var oFhirDataType = new FhirDataTypeTool();
       var oConstant = new Constants();
@@ -331,6 +341,10 @@
         ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
           oFhirTool.PreFixUuid(oReport.FillerOrderNumberUniversalId.toLowerCase()),
           oReport.FillerOrderNumberValue);
+      } else if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.radiationOncology.code.toUpperCase()) {
+          ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
+            oFhirTool.PreFixUuid(oConstant.organization.sah.application.radiationOncology.codeSystem.FillerOrderNumber),
+            oReport.FillerOrderNumberValue);          
       } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
         if (SendingFacilityCode.toUpperCase() == oConstant.organization.dhm.name.toUpperCase()) {
           ReportIdentifier = oFhirDataType.GetIdentifier("official", oType,
@@ -393,8 +407,28 @@
       oDiagReport.SetCode(oCodeCodeableConcept);
       oDiagReport.SetSubject(oPatientResourceReference);
 
-      oDiagReport.SetEffectiveDateTime(oFhirTool.FhirDateTimeFormat(oReport.CollectionDateTime.AsXML));
+
+      BreakPoint;
+      //EffectivePeriod: e.g CollectionDate from OBR-7 (a.ka.ObserationStartDateTime) and maybe ObservationEndDateTime from OBR-8
+      if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.radiationOncology.code.toUpperCase()) {
+        oDiagReport.SetEffectivePeriodDateTime(oFhirTool.FhirDateTimeFormat(oReport.CollectionDateTime.AsXML), oFhirTool.FhirDateTimeFormat(oReport.ObservationEndDateTime.AsXML));
+      }
+      else{
+        oDiagReport.SetEffectiveDateTime(oFhirTool.FhirDateTimeFormat(oReport.CollectionDateTime.AsXML));
+      }
+
+      
       oDiagReport.SetIssued(oFhirTool.FhirDateTimeFormat(oReport.ReportIssuedDateTime.AsXML));
+
+
+      //For RadiationOncology messages  add the Technician as a Performer
+      if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.radiationOncology.code.toUpperCase()) {
+        if (oTechnicianPractitionerResourceReference != null){                   
+          var oTechnicianPerformerRoleCoding = oFhirDataType.GetCoding("3430008", "http://snomed.info/sct", "Radiation therapist");
+          oTechnicianPerformerRoleCodeableConcept = oFhirDataType.GetCodeableConcept(oTechnicianPerformerRoleCoding, undefined);          
+          oDiagReport.AddPerformer(oTechnicianPerformerRoleCodeableConcept, oTechnicianPractitionerResourceReference);
+        }
+      }
 
       //Add Performer Practitioner which is incorrect if this is a Requesting Practitioner   
       if (oFacilityConfig.Implementation != ImplementationTypeEnum.CLINISEARCHRADIOLOGY) {
