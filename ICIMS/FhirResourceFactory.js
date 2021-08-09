@@ -395,7 +395,10 @@
         } else {
           throw new Error("Unable to determine the correct ReportPanel system for the SendingFacilityCode of " + SendingFacilityCode);
         }
-      } else {
+      } else if (SendingApplicationCode.toUpperCase() == oConstant.organization.sah.application.radiationOncology.code.toUpperCase()) {
+        oCodeCoding = oFhirDataType.GetCoding(oReport.ReportCode, oConstant.organization.sah.application.radiationOncology.codeSystem.ReportPanel, oReport.ReportCodeDescription);
+      }
+      else {
         if (oReport.ReportCode == null && oReport.ReportCodeDescription != null) {
           oCodeCoding = oFhirDataType.GetCoding(undefined, undefined, oReport.ReportCodeDescription);
         } else {
