@@ -127,7 +127,7 @@
 
       //Patient
       this.Patient = new Patient(oHL7.Segment("PID", 0), FacilityConfig);
-      Breakpoint;
+      
       for (var i = 0; (i < oHL7.CountSegment("OBR")); i++) {
         //For each OBR collect the Observation Segments 
         var OBR = oHL7.Segment("OBR", i);
@@ -273,7 +273,7 @@
           this.Language = V2Support.Set(oSeg.Field(15));
         }
 
-        Breakpoint;
+        
         //The Patient ATSI code value
         if (oSeg.Field(10).AsString != "" && oSeg.Field(10).ComponentCount > 1 && oSeg.Field(10).Component(1).AsString != "") {
           this.Aboriginality = V2Support.Set(oSeg.Field(10).Component(1));
@@ -432,10 +432,16 @@
         this.Technician.InflateNDL(oOBR.Field(34));      
       }
 
+
+      breakPoint;
       //Get the Observations and DisplayDataLineList
       if (oFacilityConfig.Implementation == ImplementationTypeEnum.CLINISEARCHPATHOLOGY) {
         this.DisplayDataLineList = GetDisplayDataList(DSPList, oFacilityConfig);
-      } else {
+      } else if (oFacilityConfig.Implementation == ImplementationTypeEnum.ICIMSPATHOLOGY) {
+        this.DisplayDataLineList = GetDisplayDataList(DSPList, oFacilityConfig);
+        this.ObservationList = GetObservationList(OBXList, oFacilityConfig);
+      } 
+      else {
         this.ObservationList = GetObservationList(OBXList, oFacilityConfig);
       }
 
@@ -713,7 +719,7 @@
       //This was resolved and the PMI is to now only send a single address that being the correct address.
       //For this reason I have changes the code below to just take the first address regardless of there being many, which there should not be.
 
-      //BreakPoint;
+      
 
       //If we did not get the target adddress then just take the first address.
       if (oROL.Field(11).RepeatCount > 0) {

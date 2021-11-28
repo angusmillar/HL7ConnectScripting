@@ -88,6 +88,7 @@ function Constants() {
       codeSystem: {
         FillerOrderNumber: "http://www.dhm.com.au/fhir/pathology/fillerOrderNumber",
         ReportPanel: "http://www.dhm.com.au/fhir/pathology/reportPanelCode",
+        Result: "http://www.dhm.com.au/fhir/pathology/resultCode",
         messageControlId: "http://www.dhm.com.au/fhir/pathology/hl7-v2/message-control-id"
       }
     },

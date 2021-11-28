@@ -35,6 +35,10 @@
               FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
               FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Prod";
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.ICIMSPATHOLOGY) {
+              FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
+              FacilityConfiguration.AuthorizationToken = "";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-PathologyPSA-Outbound";            
             } else {
               FacilityConfiguration.EndPoint = "https://stu3.test.pyrohealth.net/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
@@ -69,6 +73,10 @@
               FacilityConfiguration.EndPoint = "http://CliniSearch.sah.com:9000/fhir";
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Prod";
+            } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.ICIMSPATHOLOGY) {
+              FacilityConfiguration.EndPoint = "????";
+              FacilityConfiguration.AuthorizationToken = "";
+              FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-PathologyPSA-Outbound";            
             } else {
               FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
               FacilityConfiguration.AuthorizationToken = "Basic aGw3OmlDSU1TMjBsNw==";
@@ -122,8 +130,7 @@
           var Bundle = new FhirResFactory.CreateDiagnosticReportBundle(oModels);
 
           BreakPoint;
-          var BodyData = JSON.stringify(Bundle, null, 4);
-          BreakPoint;
+          var BodyData = JSON.stringify(Bundle, null, 4);          
 
           if (IsTestCase) {
             var fso = new ActiveXObject("Scripting.FileSystemObject");
@@ -142,8 +149,7 @@
           StopInterface(ErrorMsg, oLogger, oModels.FacilityConfig, IsTestCase);
         }
         //Data Processed now attempt to call ICIMS REST Service
-        if (CallRESTService) {
-          BreakPoint;
+        if (CallRESTService) {          
           oLogger.Log("Logging request body data about to be sent to ICIMS:");
           oLogger.Log("-------------------------------------------------------------");
           oLogger.Log(BodyData);
