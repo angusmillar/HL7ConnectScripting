@@ -57,7 +57,7 @@
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Reports-CliniSearch-Test";
             } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.ICIMSPATHOLOGY) {
-              FacilityConfiguration.EndPoint = "??";
+              FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
               FacilityConfiguration.AuthorizationToken = "";
               FacilityConfiguration.NameOfInterfaceRunningScript = "IcimsPSAPathologyOutbound";                        
             } else {
