@@ -78,7 +78,7 @@
               FacilityConfiguration.AuthorizationToken = ""; //Not required
               FacilityConfiguration.NameOfInterfaceRunningScript = "Radiology-CliniSearch-Prod";
             } else if (oHL7CParameterSupport.Implementation == ImplementationTypeEnum.ICIMSPATHOLOGY) {
-              FacilityConfiguration.EndPoint = "????";
+              FacilityConfiguration.EndPoint = "http://localhost:5000/fhir";
               FacilityConfiguration.AuthorizationToken = "";
               FacilityConfiguration.NameOfInterfaceRunningScript = "Icims-PathologyPSA-Outbound";            
             } else {
