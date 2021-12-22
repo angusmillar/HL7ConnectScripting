@@ -402,6 +402,8 @@
       this.FillerOrderNumberNamespaceId = V2Support.Set(oOBR.Field(3).Component(2));
       this.FillerOrderNumberUniversalId = V2Support.Set(oOBR.Field(3).Component(3));
 
+
+      breakPoint;
       //OrderingPractitioner  
       //There can be repeats 
       //Try and get the MedicareProviderNumber         
@@ -416,11 +418,14 @@
       }
       //If we do not get the MedicareProviderNumber then just get the first repeat and its id
       //Sometimes it is a MedicareProviderNumber but there is no system to tell us as much.
-      if (this.OrderingPractitioner == null) {
-        this.OrderingPractitioner = new Practitioner();
-        this.OrderingPractitioner.InflateXCN(oOBR.Field(16));
+      if (oOBR.Field(16).AsString != "")
+      {
+        if (this.OrderingPractitioner == null) {
+          this.OrderingPractitioner = new Practitioner();
+          this.OrderingPractitioner.InflateXCN(oOBR.Field(16));
+        }
       }
-
+      
       if (oOBR.Field(32).defined){
         this.PrincipalResultInterpreter = new Practitioner();
         this.PrincipalResultInterpreter.InflateNDL(oOBR.Field(32));
