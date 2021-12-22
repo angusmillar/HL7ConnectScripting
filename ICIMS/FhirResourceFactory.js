@@ -81,20 +81,22 @@
         var oFhirPractitionerFactory = new FhirPractitionerFactory();
 
         //OrderingPractitioner Resource            
-        var oTargetOrderingPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.OrderingPractitioner.Identifier, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
-        if (oTargetOrderingPractitionerResource == null) {
-          //Both Agfa and Karisma at the SAM provide a Medicare Provider Number for the Ordering Provider (OBR-16)
-          //However, Agfa does not provide an AssigningAuthority code (i.e AUSHICPR) to tell us this fact whereas Karisma does,
-          //So this code is weak because we are just assuming they are providing a Medicare Provider number 
+        if (CurrentReport.OrderingPractitioner != null)
+        {
+          var oTargetOrderingPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.OrderingPractitioner.Identifier, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
+          if (oTargetOrderingPractitionerResource == null) {
+            //Both Agfa and Karisma at the SAM provide a Medicare Provider Number for the Ordering Provider (OBR-16)
+            //However, Agfa does not provide an AssigningAuthority code (i.e AUSHICPR) to tell us this fact whereas Karisma does,
+            //So this code is weak because we are just assuming they are providing a Medicare Provider number 
 
-          oTargetOrderingPractitionerResource = oFhirPractitionerFactory.GetResource(CurrentReport.OrderingPractitioner, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
-          //oTargetOrderingPractitionerResource = FhirPractitionerFactory(CurrentReport.OrderingPractitioner, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
-          if (oTargetOrderingPractitionerResource != null) {
-            BundleLogical.PractitionerResourceList.push(oTargetOrderingPractitionerResource);
+            oTargetOrderingPractitionerResource = oFhirPractitionerFactory.GetResource(CurrentReport.OrderingPractitioner, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);          
+            if (oTargetOrderingPractitionerResource != null) {
+              BundleLogical.PractitionerResourceList.push(oTargetOrderingPractitionerResource);
+            }
           }
-        }
-        if (oTargetOrderingPractitionerResource != null) {
-          DiagnosticReportLogical.OrderingPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, oTargetOrderingPractitionerResource.id, "Ordering Practitioner:" + CurrentReport.OrderingPractitioner.FormattedName);
+          if (oTargetOrderingPractitionerResource != null) {
+            DiagnosticReportLogical.OrderingPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, oTargetOrderingPractitionerResource.id, "Ordering Practitioner:" + CurrentReport.OrderingPractitioner.FormattedName);
+          }
         }
 
         //PrincipalResultInterpreter Practitioner Resource        
