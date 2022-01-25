@@ -5,7 +5,7 @@ function FhirObservationFactory() {
     };
 
     function CreateObservationResource(oV2Obs, ReportIssuedDateTime, oPatientReference, ObsCategoryCodeableConcept, SendingFacility) {        
-        if (oV2Obs.DataType == "ST" || oV2Obs.DataType == "NM" || oV2Obs.DataType == "FT") {
+        if (oV2Obs.DataType == "ST" || oV2Obs.DataType == "NM" || oV2Obs.DataType == "FT" || oV2Obs.DataType == "SN") {
             var oFhirTool = new FhirTools();
             var oConstant = new Constants();
             var oFhirDataType = new FhirDataTypeTool();
@@ -58,6 +58,18 @@ function FhirObservationFactory() {
                 oObservation.SetValueString(StripFormatting);
             } else if (oV2Obs.DataType == "NM") {
                 oObservation.SetValueQuantity(oFhirDataType.GetQuantity(oV2Obs.Value, undefined, oV2Obs.Units, undefined, undefined));
+                if (oV2Obs.ReferenceRangeText != null) {
+                    var RangeTypeCodeCoding = oFhirDataType.GetCoding("normal",
+                    "http://hl7.org/fhir/referencerange-meaning", "Normal Range");
+                    var RangeTypeCodeCodeableConcept = oFhirDataType.GetCodeableConcept(RangeTypeCodeCoding);
+                    oObservation.SetReferenceRange(undefined, undefined, RangeTypeCodeCodeableConcept, undefined, undefined, oV2Obs.ReferenceRangeText);
+                }
+            } else if (oV2Obs.DataType == "SN") {                
+                if (oV2Obs.ValueComparator == null){                    
+                    oObservation.SetValueQuantity(oFhirDataType.GetQuantity(oV2Obs.Value, undefined, oV2Obs.Units, undefined, undefined));
+                } else {
+                    oObservation.SetValueQuantity(oFhirDataType.GetQuantity(oV2Obs.Value, oV2Obs.ValueComparator, oV2Obs.Units, undefined, undefined));
+                }                
                 if (oV2Obs.ReferenceRangeText != null) {
                     var RangeTypeCodeCoding = oFhirDataType.GetCoding("normal",
                     "http://hl7.org/fhir/referencerange-meaning", "Normal Range");

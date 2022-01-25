@@ -561,6 +561,7 @@
       this.CodeDescription = null;
       this.CodeSystem = null;
       this.SubId = null;
+      this.ValueComparator = null;
       this.Value = null;
       this.Units = null;
       this.ReferenceRangeText = null;
@@ -601,6 +602,34 @@
           var FamilyName = V2Support.Set(oOBX.Field(5).Component(2));
           var GivenName = V2Support.Set(oOBX.Field(5).Component(3));
           this.Value = ProviderNumber + "^" + FamilyName + "^" + GivenName;
+        } else if (this.DataType.toUpperCase() == "SN") {         
+          //We only support structures such as |>^10.0| or |>10.0| but not ranges like |^5^-^10|
+          if (oOBX.Field(5).Component(3).defined || oOBX.Field(5).Component(4).defined){
+            throw new Error("Encountered an unsupported SN(Structured Numeric) OBX Segment with a result range. The library does not support SN datatypes with values in OBX-5.3 or OBX-5.4.");          
+          } else if (oOBX.Field(5).Component(2).defined) {     
+            this.ValueComparator = V2Support.Set(oOBX.Field(5).Component(1));
+            this.Value = V2Support.Set(oOBX.Field(5).Component(2));            
+          } else {
+            var TempValue = V2Support.Set(oOBX.Field(5));            
+            if (TempValue != null){
+              TempValue = trim(TempValue); 
+              if (TempValue.indexOf("<=", 0) === 0){
+                this.ValueComparator = "<=";              
+                this.Value = TempValue.replace("<=", "");
+              } else if (TempValue.indexOf(">=", 0) === 0){
+                this.ValueComparator = ">=";
+                this.Value = TempValue.replace(">=", ""); 
+              } else if (TempValue.indexOf(">", 0) === 0){
+                this.ValueComparator = ">";
+                this.Value = TempValue.replace(">", ""); 
+              } else if (TempValue.indexOf("<", 0) === 0){
+                this.ValueComparator = "<";
+                this.Value = TempValue.replace("<", ""); 
+              } else {
+                this.Value = TempValue; 
+              }             
+            }            
+          }                  
         } else {
           this.Value = V2Support.Set(oOBX.Field(5));
         }
@@ -1034,16 +1063,5 @@
       }
       return Dic;
     }
-
-
-    // //We want the HL7 Nulls |""| within the Business module because we later apply logic to them for ICIMS
-    // function Set(Content) {
-    //   if (Content.IsNull)
-    //     return "\"\"";
-    //   else if (Content.AsString != "")
-    //     return Content.AsString;
-    //   else
-    //     return null;
-    // }
 
   }
