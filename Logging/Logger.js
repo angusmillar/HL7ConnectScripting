@@ -17,6 +17,11 @@ function Logger() {
 
   //CustomLogName must be one of the DefinedCustomLogs registered in the Kernel above.
   this.CustomLogName = null;
+  this.DisableLogging = false;
+
+  this.SetDisableLogging = function (isDisabled) {
+    this.DisableLogging = isDisabled;
+  }
 
   this.SetCustomLogName = function (CustomLogNameType) {
     if (CustomLogNameType.toUpperCase() == _CustomLogNameType.Icims.toUpperCase()) {
@@ -36,10 +41,13 @@ function Logger() {
   }
 
   this.Log = function (message) {
-    var currentdate = new Date();
-    var datetime = currentdate.toDateString() + " : "
-      + currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
-    Kernel.WriteToCustomLog(this.CustomLogName, datetime + ": " + message + "\r" + "\n")
+    if (this.DisableLogging == false)
+    {
+      var currentdate = new Date();
+      var datetime = currentdate.toDateString() + " : "
+        + currentdate.getHours() + ":" + currentdate.getMinutes() + ":" + currentdate.getSeconds();
+      Kernel.WriteToCustomLog(this.CustomLogName, datetime + ": " + message + "\r" + "\n")
+    }
   }
 }
 
