@@ -13,6 +13,7 @@
     BreakPoint;
     var oLogger = new Logger();
     oLogger.SetCustomLogName(_CustomLogNameType.IcimsPathology);
+    oLogger.SetDisableLogging(true);
     var oHL7CParameterSupport = new HL7CParameterSupport(oLogger, aEvent.Parameter);
     var SiteContext = ValidateSiteContext(oHL7CParameterSupport.SiteCode);
 
