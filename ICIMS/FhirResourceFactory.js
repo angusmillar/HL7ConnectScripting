@@ -110,16 +110,14 @@
             //Check we have not already generated a PractitionerResource for this Practitioner
             oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
             if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
-              oTargetPrincipalResultInterpreterPractitionerResource = oFhirPractitionerFactory.GetResource(CurrentReport.PrincipalResultInterpreter, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
-              //oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
+              oTargetPrincipalResultInterpreterPractitionerResource = oFhirPractitionerFactory.GetResource(CurrentReport.PrincipalResultInterpreter, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);              
               BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
             }
           } else if (oModels.DiagnosticReport.Meta.SendingFacility.toUpperCase() == oConstant.organization.sah.application.sanUSForWomen.sendingFacilityCode.toUpperCase()) {
             //Check we have not already generated a PractitionerResource for this Practitioner
             oTargetPrincipalResultInterpreterPractitionerResource = FindPractitionerResourceIdByIdentifier(BundleLogical.PractitionerResourceList, CurrentReport.PrincipalResultInterpreter.Identifier, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
             if (oTargetPrincipalResultInterpreterPractitionerResource == null) {
-              oTargetPrincipalResultInterpreterPractitionerResource = oFhirPractitionerFactory.GetResource(CurrentReport.PrincipalResultInterpreter, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
-              //oTargetPrincipalResultInterpreterPractitionerResource = FhirPractitionerFactory(CurrentReport.PrincipalResultInterpreter, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);
+              oTargetPrincipalResultInterpreterPractitionerResource = oFhirPractitionerFactory.GetResource(CurrentReport.PrincipalResultInterpreter, oConstant.organization.sah.application.sanUSForWomen.codeSystem.provider);              
               BundleLogical.PractitionerResourceList.push(oTargetPrincipalResultInterpreterPractitionerResource);
             }
           }
@@ -130,8 +128,7 @@
         }
         
         if (CurrentReport.Technician != null){
-          oTechnicianPractitionerResource = oFhirPractitionerFactory.GetResource(CurrentReport.Technician, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
-          //oTechnicianPractitionerResource = FhirPractitionerFactory(CurrentReport.Technician, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);
+          oTechnicianPractitionerResource = oFhirPractitionerFactory.GetResource(CurrentReport.Technician, oConstant.organization.servicesAustralia.codeSystem.medicareProviderNumber);          
           DiagnosticReportLogical.TechnicianPractitionerResourceReference = oFhirDataType.GetReference(oFhirConstants.ResourceName.Practitioner, oTechnicianPractitionerResource.id, "Radiation Oncologist : " + CurrentReport.Technician.FormattedName);          
           BundleLogical.PractitionerResourceList.push(oTechnicianPractitionerResource);
         }
