@@ -402,30 +402,34 @@
       this.FillerOrderNumberNamespaceId = V2Support.Set(oOBR.Field(3).Component(2));
       this.FillerOrderNumberUniversalId = V2Support.Set(oOBR.Field(3).Component(3));
 
-
-      breakPoint;
       //OrderingPractitioner  
       //There can be repeats 
-      //Try and get the MedicareProviderNumber         
+      //Scan the repeats and us the first repeat that claims to have a  Medicare Number due to OBR-16.8 = AUSHICPR 
       if ((oOBR.Field(16).RepeatCount) >= 1) {
         for (var j = 0; j <= ((oOBR.Field(16).RepeatCount) - 1); j++) {
           var CurrentField = oOBR.Field(16).Repeats(j);
           if (CurrentField.Component(8).AsString.toUpperCase() === "AUSHICPR") {
             this.OrderingPractitioner = new Practitioner();
             this.OrderingPractitioner.InflateXCN(CurrentField);
+            break;
           }
         }
       }
-      //If we do not get the MedicareProviderNumber then just get the first repeat and its id
-      //Sometimes it is a MedicareProviderNumber but there is no system to tell us as much.
-      if (oOBR.Field(16).AsString != "")
-      {
-        if (this.OrderingPractitioner == null) {
-          this.OrderingPractitioner = new Practitioner();
-          this.OrderingPractitioner.InflateXCN(oOBR.Field(16));
+
+      //If we didn't find a repeat with a MedicareProviderNumber, then use the first repeat that has either a given or familyname 
+      if (this.OrderingPractitioner == null){
+        if ((oOBR.Field(16).RepeatCount) >= 1) {
+          for (var j = 0; j <= ((oOBR.Field(16).RepeatCount) - 1); j++) {
+            var CurrentField = oOBR.Field(16).Repeats(j);
+            if (oOBR.Field(16).Component(2).AsString != "" || oOBR.Field(16).Component(3).AsString != ""){
+              this.OrderingPractitioner = new Practitioner();
+              this.OrderingPractitioner.InflateXCN(CurrentField);
+              break;
+            }
+          }
         }
       }
-      
+            
       if (oOBR.Field(32).defined){
         this.PrincipalResultInterpreter = new Practitioner();
         this.PrincipalResultInterpreter.InflateNDL(oOBR.Field(32));
